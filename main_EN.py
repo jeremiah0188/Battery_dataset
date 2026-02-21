@@ -3,18 +3,19 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# ================= 1. Page Configuration (必须是第一行代码) =================
+# ================= 1. 获取 URL 参数 (必须在 Config 之前抓取) =================
+# 检查网址是否有 ?admin=Jian (注意 Jian 的首字母大写)
+# 使用 .get 方式更稳定
+admin_val = st.query_params.get("admin", "")
+is_jian_entry = (admin_val == "Jian")
+
+# ================= 2. Page Configuration =================
 st.set_page_config(
     page_title="Open Battery Dataset Portal",
     layout="wide",
-    initial_sidebar_state="collapsed"  # 初始状态收起
+    # 【核心修改】：如果是管理员入口，强制展开侧边栏；否则强制收起
+    initial_sidebar_state="expanded" if is_jian_entry else "collapsed"
 )
-
-# ================= 2. 秘密入口逻辑 (URL 参数控制) =================
-# 检查网址是否有 ?admin=Jian
-is_jian_entry = False
-if "admin" in st.query_params and st.query_params["admin"] == "Jian":
-    is_jian_entry = True
 
 # ================= 3. 深度定制 CSS (追求极致洁净感) =================
 # 1. 隐藏菜单、页脚、顶部装饰条
@@ -25,14 +26,20 @@ hide_css = """
     footer {visibility: hidden;}
     header {visibility: hidden;}
     #stDecoration {display:none;}
-
-    /* 如果没有 admin 参数，隐藏侧边栏按钮和侧边栏本身 */
-    """
+"""
 
 if not is_jian_entry:
+    # 普通用户模式：彻底隐藏侧边栏及其开关按钮
     hide_css += """
     [data-testid="stSidebar"] {display: none;}
     [data-testid="collapsedControl"] {display: none;}
+    """
+else:
+    # 管理员（Jian）模式：我们需要看到侧边栏，所以要确保它不被 display:none
+    # 同时稍微调整 header 确保侧边栏能正常推开页面
+    hide_css += """
+    [data-testid="stSidebar"] {display: flex !important;}
+    [data-testid="collapsedControl"] {visibility: visible !important;}
     """
 
 st.markdown(hide_css + "</style>", unsafe_allow_html=True)
@@ -66,16 +73,21 @@ df = load_data()
 is_admin = False
 if is_jian_entry:
     st.sidebar.title("👨‍💻 Jian's Control Panel")
+    # 提醒管理员当前处于特殊入口
+    st.sidebar.info("Secret entry detected: Jian Mode")
+
     try:
         target_password = st.secrets["admin_password"]
     except:
         target_password = ""
-        st.sidebar.warning("Password not set in Secrets!")
+        st.sidebar.warning("Admin password not set in Secrets!")
 
-    admin_pw = st.sidebar.text_input("Password", type="password")
+    admin_pw = st.sidebar.text_input("Enter Password", type="password")
     if admin_pw == target_password and target_password != "":
         is_admin = True
         st.sidebar.success("Admin unlocked!")
+    elif admin_pw != "":
+        st.sidebar.error("Wrong password!")
 
 # ================= 6. Main Page UI =================
 st.title("🔋 Open Battery Dataset Portal")
