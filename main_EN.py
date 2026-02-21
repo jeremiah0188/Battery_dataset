@@ -3,54 +3,63 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# ================= 1. 获取 URL 参数 (必须在 Config 之前抓取) =================
-# 检查网址是否有 ?admin=Jian (注意 Jian 的首字母大写)
-# 使用 .get 方式更稳定
-admin_val = st.query_params.get("admin", "")
+# ================= 1. 获取 URL 参数 (抓取优先级最高) =================
+# 获取 ?admin=Jian
+# 尝试兼容新旧版本抓取方式
+try:
+    admin_val = st.query_params.get("admin", "")
+except:
+    admin_val = st.experimental_get_query_params().get("admin", [""])[0]
+
 is_jian_entry = (admin_val == "Jian")
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
     page_title="Open Battery Dataset Portal",
     layout="wide",
-    # 【核心修改】：如果是管理员入口，强制展开侧边栏；否则强制收起
+    # 如果是 Jian 模式，强制侧边栏展开；否则强制关闭
     initial_sidebar_state="expanded" if is_jian_entry else "collapsed"
 )
 
-# ================= 3. 深度定制 CSS (追求极致洁净感) =================
-# 1. 隐藏菜单、页脚、顶部装饰条
-# 2. 如果不是 Jian 模式，物理隐藏整个侧边栏
-hide_css = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    #stDecoration {display:none;}
-"""
-
+# ================= 3. 深度定制 CSS (根据身份切换) =================
 if not is_jian_entry:
-    # 普通用户模式：彻底隐藏侧边栏及其开关按钮
-    hide_css += """
-    [data-testid="stSidebar"] {display: none;}
-    [data-testid="collapsedControl"] {display: none;}
+    # 【普通用户模式】：极致洁净，完全抹除侧边栏痕迹
+    hide_css = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        #stDecoration {display:none;}
+        [data-testid="stSidebar"] {display: none;}
+        [data-testid="collapsedControl"] {display: none;}
+        </style>
     """
 else:
-    # 管理员（Jian）模式：我们需要看到侧边栏，所以要确保它不被 display:none
-    # 同时稍微调整 header 确保侧边栏能正常推开页面
-    hide_css += """
-    [data-testid="stSidebar"] {display: flex !important;}
-    [data-testid="collapsedControl"] {visibility: visible !important;}
+    # 【管理员 Jian 模式】：保留侧边栏功能，但隐藏右上角多余菜单
+    hide_css = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {background-color: rgba(0,0,0,0); color: rgba(0,0,0,0);} /* 让顶部透明但不消失 */
+        #stDecoration {display:none;}
+        /* 强制确保侧边栏在 admin 模式下可见 */
+        [data-testid="stSidebar"] {display: flex !important; visibility: visible !important;}
+        </style>
     """
 
-st.markdown(hide_css + "</style>", unsafe_allow_html=True)
+st.markdown(hide_css, unsafe_allow_html=True)
 
-# ================= 4. File & Data Setup =================
+# ================= 4. 诊断提示 (仅在暗门开启时显示在主屏幕) =================
+if is_jian_entry:
+    st.toast("🔑 Admin Link Detected!")
+    st.info("💡 **Jian Mode Active**: The admin sidebar should be visible on the left. If not, please try to refresh (Ctrl+F5).")
+
+# ================= 5. File & Data Setup =================
 DATA_FILE = "dataset.xlsx"
 UPLOAD_DIR = "uploaded_files"
 
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
-
 
 @st.cache_data
 def load_data():
@@ -66,34 +75,30 @@ def load_data():
     else:
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Battery Type', 'Capacity (Ah)', 'Status'])
 
-
 df = load_data()
 
-# ================= 5. 管理员身份验证 (仅在暗门开启时) =================
+# ================= 6. 管理员身份验证 =================
 is_admin = False
 if is_jian_entry:
-    st.sidebar.title("👨‍💻 Jian's Control Panel")
-    # 提醒管理员当前处于特殊入口
-    st.sidebar.info("Secret entry detected: Jian Mode")
+    with st.sidebar:
+        st.title("👨‍💻 Jian's Control Panel")
+        try:
+            target_password = st.secrets["admin_password"]
+        except:
+            target_password = ""
+            st.warning("Password not set in Secrets!")
 
-    try:
-        target_password = st.secrets["admin_password"]
-    except:
-        target_password = ""
-        st.sidebar.warning("Admin password not set in Secrets!")
+        admin_pw = st.text_input("Enter Admin Password", type="password")
+        if admin_pw == target_password and target_password != "":
+            is_admin = True
+            st.success("Admin unlocked!")
+        elif admin_pw != "":
+            st.error("Incorrect password.")
 
-    admin_pw = st.sidebar.text_input("Enter Password", type="password")
-    if admin_pw == target_password and target_password != "":
-        is_admin = True
-        st.sidebar.success("Admin unlocked!")
-    elif admin_pw != "":
-        st.sidebar.error("Wrong password!")
-
-# ================= 6. Main Page UI =================
+# ================= 7. Main Page UI =================
 st.title("🔋 Open Battery Dataset Portal")
 st.markdown("Browse, download, and share open-source battery datasets for research and engineering.")
 
-# 根据身份决定显示的标签页
 if is_admin:
     tabs = st.tabs(["📚 Browse Datasets", "☁️ Upload Dataset", "⚙️ Admin Dashboard"])
 else:
