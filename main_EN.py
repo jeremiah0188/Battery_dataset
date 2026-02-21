@@ -3,70 +3,86 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# ================= 1. Page Configuration (必须放在最前面) =================
-st.set_page_config(page_title="Open Battery Dataset Portal", layout="wide")
+# ================= 1. Page Configuration (必须是第一行代码) =================
+st.set_page_config(
+    page_title="Open Battery Dataset Portal",
+    layout="wide",
+    initial_sidebar_state="collapsed"  # 初始状态收起
+)
 
-# --- 隐藏 Streamlit 默认装饰和 GitHub 图标 ---
-hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}       /* 隐藏右上角菜单 */
-            footer {visibility: hidden;}          /* 隐藏页脚 */
-            header {visibility: hidden;}          /* 隐藏顶部 GitHub 图标栏 */
-            #stDecoration {display:none;}         /* 隐藏顶部彩虹装饰条 */
-            </style>
-            """
-st.markdown(hide_st_style, unsafe_allow_html=True)
+# ================= 2. 秘密入口逻辑 (URL 参数控制) =================
+# 检查网址是否有 ?admin=Jian
+is_jian_entry = False
+if "admin" in st.query_params and st.query_params["admin"] == "Jian":
+    is_jian_entry = True
 
-# ================= 2. File & Directory Setup =================
+# ================= 3. 深度定制 CSS (追求极致洁净感) =================
+# 1. 隐藏菜单、页脚、顶部装饰条
+# 2. 如果不是 Jian 模式，物理隐藏整个侧边栏
+hide_css = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    #stDecoration {display:none;}
+
+    /* 如果没有 admin 参数，隐藏侧边栏按钮和侧边栏本身 */
+    """
+
+if not is_jian_entry:
+    hide_css += """
+    [data-testid="stSidebar"] {display: none;}
+    [data-testid="collapsedControl"] {display: none;}
+    """
+
+st.markdown(hide_css + "</style>", unsafe_allow_html=True)
+
+# ================= 4. File & Data Setup =================
 DATA_FILE = "dataset.xlsx"
 UPLOAD_DIR = "uploaded_files"
 
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
-# ================= 3. Load Data & Initialize Status =================
+
 @st.cache_data
 def load_data():
     if os.path.exists(DATA_FILE):
         try:
-            # 尝试跳过第二行（如果是元数据行）
             df = pd.read_excel(DATA_FILE, header=0, skiprows=[1])
         except:
             df = pd.read_excel(DATA_FILE, header=0)
-
         df = df.astype(str)
-
-        # 核心逻辑：确保 Status 列存在
         if 'Status' not in df.columns:
             df['Status'] = 'Approved'
         return df
     else:
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Battery Type', 'Capacity (Ah)', 'Status'])
 
+
 df = load_data()
 
-# ================= 4. Sidebar Admin Login =================
-st.sidebar.title("👨‍💻 Admin Access")
-st.sidebar.write("For host to review datasets.")
+# ================= 5. 管理员身份验证 (仅在暗门开启时) =================
+is_admin = False
+if is_jian_entry:
+    st.sidebar.title("👨‍💻 Jian's Control Panel")
+    try:
+        target_password = st.secrets["admin_password"]
+    except:
+        target_password = ""
+        st.sidebar.warning("Password not set in Secrets!")
 
-# 从 Secrets 安全读取密码，如果未设置则默认为空字符串防止报错
-try:
-    target_password = st.secrets["admin_password"]
-except:
-    target_password = ""
-    st.sidebar.warning("Admin password not set in Secrets!")
+    admin_pw = st.sidebar.text_input("Password", type="password")
+    if admin_pw == target_password and target_password != "":
+        is_admin = True
+        st.sidebar.success("Admin unlocked!")
 
-admin_pw = st.sidebar.text_input("Password", type="password")
-
-# ================= 5. Main Page UI =================
+# ================= 6. Main Page UI =================
 st.title("🔋 Open Battery Dataset Portal")
 st.markdown("Browse, download, and share open-source battery datasets for research and engineering.")
 
-# 验证密码是否正确
-is_admin = (admin_pw == target_password and target_password != "")
-
+# 根据身份决定显示的标签页
 if is_admin:
-    st.sidebar.success("Admin unlocked!")
     tabs = st.tabs(["📚 Browse Datasets", "☁️ Upload Dataset", "⚙️ Admin Dashboard"])
 else:
     tabs = st.tabs(["📚 Browse Datasets", "☁️ Upload Dataset"])
@@ -74,10 +90,7 @@ else:
 # ================= TAB 1: Browse Datasets =================
 with tabs[0]:
     st.header("Available Datasets")
-
-    # 过滤：向公众展示 "Approved" 的数据
     public_df = df[df['Status'] == 'Approved']
-
     search_query = st.text_input("🔍 Search datasets (e.g., author, battery type, keyword)")
 
     if search_query and not public_df.empty:
@@ -93,31 +106,23 @@ with tabs[0]:
 
         st.markdown("---")
         st.subheader("Dataset Details & Download")
-
-        valid_datasets = filtered_df[filtered_df['Dataset Name'].notna()]
-        dataset_names = valid_datasets['Dataset Name'].astype(str).unique().tolist()
-
+        dataset_names = filtered_df['Dataset Name'].astype(str).unique().tolist()
         selected_dataset = st.selectbox("Select a dataset to view full details:", ["(Select)"] + dataset_names)
 
         if selected_dataset != "(Select)":
-            details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
-
+            details = filtered_df[filtered_df['Dataset Name'] == selected_dataset].iloc[0]
             with st.expander(f"📖 {selected_dataset} - Full Information", expanded=True):
                 link = details.get('Link', '')
                 if pd.notna(link) and str(link).startswith('http') and str(link).lower() != 'nan':
                     st.markdown(f"### [🔗 Click Here to Download / Go to Source]({link})")
-                else:
-                    st.info("No external download link provided.")
 
                 st.markdown("#### Detailed Metadata")
                 col1, col2 = st.columns(2)
                 all_columns = [c for c in df.columns if c not in ['Link', 'Status']]
-
                 half_index = len(all_columns) // 2
                 for i, col_name in enumerate(all_columns):
                     val = details.get(col_name, 'N/A')
                     if str(val).lower() == 'nan': val = 'N/A'
-
                     if i <= half_index:
                         col1.write(f"{col_name}: {val}")
                     else:
@@ -128,19 +133,15 @@ with tabs[0]:
 # ================= TAB 2: Upload Dataset =================
 with tabs[1]:
     st.header("Contribute a Dataset")
-    st.info("Note: Uploaded datasets will be reviewed by the admin before appearing in the public portal.")
+    st.info("Note: Uploaded datasets will be reviewed before appearing in the public portal.")
 
     with st.form("upload_form"):
         new_name = st.text_input("Dataset Name *")
         new_author = st.text_input("Author / Institution")
-        new_link = st.text_input("External Link (GitHub, Mendeley, Drive, etc.)")
-        new_battery = st.selectbox("Battery Type",
-                                   ["Cylindrical (18650/21700)", "Pouch", "Prismatic", "Coin cell", "Other"])
-        new_notes = st.text_area("Additional Notes / Description")
-
-        uploaded_file = st.file_uploader("Upload local file (Optional)",
-                                         type=['csv', 'xlsx', 'zip', 'rar'])
-
+        new_link = st.text_input("External Link (GitHub, Mendeley, etc.)")
+        new_battery = st.selectbox("Battery Type", ["Cylindrical", "Pouch", "Prismatic", "Coin cell", "Other"])
+        new_notes = st.text_area("Additional Notes")
+        uploaded_file = st.file_uploader("Upload local file (Optional)", type=['csv', 'xlsx', 'zip'])
         submitted = st.form_submit_button("📤 Submit for Review")
 
         if submitted:
@@ -158,18 +159,13 @@ with tabs[1]:
 
                 new_row = {col: "" for col in df.columns}
                 new_row.update({
-                    'Dataset Name': new_name,
-                    'Author': new_author,
+                    'Dataset Name': new_name, 'Author': new_author,
                     'Link': new_link if new_link else file_path,
-                    'Battery Type': new_battery,
-                    'Additional Notes': new_notes,
-                    'Status': 'Pending'
+                    'Battery Type': new_battery, 'Status': 'Pending'
                 })
-
                 new_df = pd.DataFrame([new_row])
                 updated_df = pd.concat([df, new_df], ignore_index=True)
                 updated_df.to_excel(DATA_FILE, index=False)
-
                 st.success(f"Success! '{new_name}' is pending review.")
                 st.cache_data.clear()
 
@@ -177,25 +173,15 @@ with tabs[1]:
 if is_admin:
     with tabs[2]:
         st.header("⚙️ Admin Dashboard")
-        st.write("Manage dataset submissions. Change status to 'Approved' to publish.")
-
         with st.form("admin_form"):
             edited_df = st.data_editor(
                 df,
                 column_config={
-                    "Status": st.column_config.SelectboxColumn(
-                        "Status",
-                        options=["Approved", "Pending", "Rejected"],
-                        required=True,
-                    )
+                    "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])
                 },
-                use_container_width=True,
-                num_rows="dynamic"
+                use_container_width=True, num_rows="dynamic"
             )
-
-            save_changes = st.form_submit_button("💾 Save Changes to Database")
-
-            if save_changes:
+            if st.form_submit_button("💾 Save Changes to Database"):
                 edited_df.to_excel(DATA_FILE, index=False)
-                st.success("Database updated successfully!")
+                st.success("Database updated!")
                 st.cache_data.clear()
