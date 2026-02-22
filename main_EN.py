@@ -33,29 +33,25 @@ professional_css = """
         color: #334155;
     }
 
-    /* 隐藏顶部默认元素，保持洁净 */
-    #MainMenu {visibility: hidden;}
-    header {background-color: transparent;}
-    footer {visibility: hidden;}
-    #stDecoration {display:none;}
-
-    /* 顶部居中导航栏 (Tabs) */
+    /* 顶部居中导航栏 (Tabs) - 🚀 字体加大两倍优化版 */
     .stTabs [data-baseweb="tab-list"] {
         justify-content: center;
         background: #FFFFFF;
-        border-radius: 12px;
-        padding: 6px;
-        gap: 8px;
+        border-radius: 16px;
+        padding: 12px 20px;
+        gap: 20px;
         border: 1px solid #E2E8F0;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
     }
     .stTabs [data-baseweb="tab"] {
-        height: 42px;
-        border-radius: 8px;
+        height: 60px; /* 加高以适应大字体 */
+        border-radius: 10px;
         background-color: transparent;
         color: #64748B;
-        font-weight: 600;
+        font-weight: 700;
+        font-size: 28px !important; /* 🚀 强制字体加大 */
+        padding: 0 20px;
         transition: all 0.2s;
     }
     .stTabs [aria-selected="true"] {
@@ -125,7 +121,7 @@ professional_css = """
     .header-teal { border-left: 4px solid #0F766E; }
     .header-amber { border-left: 4px solid #f59e0b; }
 
-    /* --- 核心优化：Metadata Grid (全量元数据网格) --- */
+    /* Metadata Grid (全量元数据网格) */
     .metadata-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -165,13 +161,65 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# 物理销毁普通用户的侧边栏
+# ================= 4. 针对普通用户的“沉浸式”隔离与自定义顶部 Logo 栏 =================
 if not is_jian_entry:
-    st.markdown(
-        "<style>[data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}</style>",
-        unsafe_allow_html=True)
+    regular_user_header = """
+    <style>
+        /* 🚀 彻底隐藏默认的 Streamlit 顶部包含 Github/Share 的 Header */
+        [data-testid="stHeader"] { display: none !important; }
 
-# ================= 4. 🔗 Google Sheets 数据库配置 =================
+        /* 彻底隐藏侧边栏 */
+        [data-testid='stSidebar'], [data-testid='collapsedControl'] { display: none !important; }
+
+        /* 给页面顶部留出导航栏的空间 */
+        .block-container { padding-top: 5rem !important; }
+
+        /* 🚀 自定义悬浮顶部导航栏 (Logo + Login) */
+        .custom-top-navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 64px;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 999999;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .custom-top-navbar .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0F172A;
+        }
+        .custom-top-navbar .login-btn {
+            background-color: #0F766E;
+            color: #FFFFFF;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .custom-top-navbar .login-btn:hover {
+            background-color: #0D645E;
+            transform: translateY(-2px);
+        }
+    </style>
+    <div class="custom-top-navbar">
+        <div class="logo">🔋 OpenBattery</div>
+        <a href="?admin=Jian" target="_self" class="login-btn">LOGIN</a>
+    </div>
+    """
+    st.markdown(regular_user_header, unsafe_allow_html=True)
+else:
+    # Admin 模式下，仅隐藏不必要的底部水印，保留原生控制权
+    st.markdown("<style>#MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>", unsafe_allow_html=True)
+
+# ================= 5. 🔗 Google Sheets 数据库配置 =================
 # ⚠️⚠️⚠️ 必须修改：把下面这行换成你真实的 Google 表格网址！
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
@@ -193,7 +241,7 @@ def load_data():
 
 df = load_data()
 
-# ================= 5. 管理员身份验证 =================
+# ================= 6. 管理员身份验证 =================
 is_admin = False
 if is_jian_entry:
     with st.sidebar:
@@ -204,7 +252,7 @@ if is_jian_entry:
             is_admin = True
             st.success("Admin unlocked!")
 
-# ================= 6. 顶部居中导航构建 =================
+# ================= 7. 顶部居中导航构建 =================
 tab_names = ["🏠 Homepage", "📚 Browse Datasets", "☁️ Contribute Data", "ℹ️ About", "✉️ Contact"]
 if is_admin:
     tab_names.append("⚙️ Admin Dashboard")
@@ -213,7 +261,6 @@ tabs = st.tabs(tab_names)
 
 # ================= TAB 1: Homepage =================
 with tabs[0]:
-    # Qlik 风格 Hero Section
     public_count = len(df[df['Status'] == 'Approved'])
     hero_html = f"""
     <div class="hero-container">
@@ -279,14 +326,12 @@ with tabs[1]:
         st.markdown(f"**Result Counter:** {len(filtered_df)} datasets found.")
 
         if not filtered_df.empty:
-            # 数据预览表
             st.markdown('<div class="research-card" style="padding: 16px;">', unsafe_allow_html=True)
             display_cols = [c for c in ['Dataset Name', 'Domain / Category', 'Author', 'Battery Chemistry'] if
                             c in filtered_df.columns]
             st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # --- 全量 Dataset Details 区块 (自动展示所有列) ---
             st.markdown(
                 '<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>',
                 unsafe_allow_html=True)
@@ -299,37 +344,28 @@ with tabs[1]:
             if selected_dataset != "(Select to view)":
                 details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
 
-                # 开始构建纯白详情卡片
-                details_html = f'''
-                <div class="research-card">
-                    <h2 style="font-size: 28px; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>
-                    <p style="color: #64748B; font-size: 15px; margin-bottom: 24px;">
-                        Source: {details.get('Source Organization', details.get('Author', 'N/A'))}
-                    </p>
-                '''
+                # 🚀 核心修复：纯单行拼接字符串，彻底杜绝 Markdown 缩进解析 Bug
+                details_html = ""
+                details_html += f'<div class="research-card">'
+                details_html += f'<h2 style="font-size: 28px; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>'
+                details_html += f'<p style="color: #64748B; font-size: 15px; margin-bottom: 24px;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
 
-                # 下载按钮
                 link = details.get('Link', '')
                 if link.startswith('http'):
-                    details_html += f'<a href="{link}" target="_blank" style="display:inline-block; background:#0F766E; color:#FFF; padding:10px 24px; text-decoration:none; border-radius:8px; font-weight:600; font-size:14px; margin-bottom: 24px;">🔗 Download / Visit Source</a>'
+                    details_html += f'<div style="margin-bottom: 24px;"><a href="{link}" target="_blank" style="display:inline-block; background:#0F766E; color:#FFF; padding:10px 24px; text-decoration:none; border-radius:8px; font-weight:600; font-size:14px;">🔗 Download / Visit Source</a></div>'
 
-                # 🚀 核心优化：动态遍历 DataFrame 的每一列，生成 Metadata Grid
                 details_html += '<div class="metadata-grid">'
+
                 for col_name in df.columns:
-                    # 过滤掉不需要显示的内部字段
                     if col_name not in ['Link', 'Status', 'Dataset Name']:
                         val = details.get(col_name, 'N/A')
-                        # 只有当该列有内容时才展示
                         if str(val).strip() != '' and str(val).lower() != 'nan':
-                            details_html += f'''
-                            <div class="metadata-item">
-                                <div class="metadata-label">{col_name}</div>
-                                <div class="metadata-value">{val}</div>
-                            </div>
-                            '''
-                details_html += '</div></div>'  # 闭合 grid 和 card
+                            # 无空格拼接，绝不触发代码块模式
+                            details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
 
-                # 渲染 HTML
+                details_html += '</div></div>'
+
+                # 输出修复后的无缩进 HTML
                 st.markdown(details_html, unsafe_allow_html=True)
 
         else:
