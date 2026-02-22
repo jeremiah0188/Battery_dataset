@@ -78,26 +78,19 @@ professional_css = """
     }
 
     /* ================= 🎯 终极杀器：强制消除顶层导航区白底 ================= */
-    /* 1. 彻底清零首行中间列（导航列）内所有嵌套层的背景色 */
-    [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:nth-child(2) div {
+    /* 锁定页面最顶部的水平列（即导航栏所在区域），强行清空它继承的全局白卡样式！ */
+    [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stVerticalBlockBorderWrapper"],
+    [data-testid="stHorizontalBlock"]:first-of-type iframe {
         background: transparent !important;
         background-color: transparent !important;
         border: none !important;
         box-shadow: none !important;
         backdrop-filter: none !important;
-    }
-
-    /* 2. 强行把 iframe（第三方组件容器）收缩并切出圆角！这样它内置的白底也会跟着变圆角胶囊 */
-    [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:nth-child(2) iframe {
-        background: transparent !important;
-        border-radius: 999px !important; 
-        max-width: 780px !important; /* 让白底缩紧贴合胶囊 */
-        margin: 0 auto !important; /* 强制水平居中 */
-        display: block !important;
+        padding: 0 !important;
     }
 
     /* 导航区入场动画 */
-    div[data-testid="stHorizontalBlock"]:first-of-type {
+    [data-testid="stHorizontalBlock"]:first-of-type {
         margin-bottom: 1rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
@@ -419,40 +412,40 @@ with st.container():
                 orientation="horizontal",
                 styles={
                     "container": {
-                                     "padding": "6px 10px !important",
-                                     "background-color": "rgba(255, 255, 255, 0.96) !important",
-                                     "border": "1px solid rgba(226, 232, 240, 0.8) !important",
-                                     "border-radius": "999px !important",
-                                     "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
-                                     "margin": "0 auto",
-                                     "width": "100%", / * iframe已经被我们在全局CSS强制缩成了胶囊宽，这里用100 % 可以填满它，严丝合缝！ * /
-            "display": "flex",
-            "justify-content": "center",
-            "align-items": "center"
-            },
-            "icon": {
-                "color": "#64748B",
-                "font-size": "16px",
-            },
-            "nav-link": {
-                "font-size": "15px",
-                "font-weight": "700",
-                "color": "#475569",
-                "padding": "10px 18px",
-                "margin": "0 3px",
-                "border-radius": "50px",
-                "transition": "all 0.3s ease",
-                "--hover-color": "#F1F5F9",
-                "white-space": "nowrap"
-            },
-            "nav-link-selected": {
-                "background-color": "#4A6D5F",
-                "color": "#FFFFFF",
-                "font-weight": "800",
-                "border-radius": "50px",
-                "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
-            },
-            }
+                        "padding": "6px 10px !important",
+                        "background-color": "rgba(255, 255, 255, 0.96) !important",
+                        "border": "1px solid rgba(226, 232, 240, 0.8) !important",
+                        "border-radius": "999px !important",
+                        "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
+                        "margin": "0 auto",
+                        "width": "fit-content",  # 改回 Python 正确的注释规范
+                        "display": "flex",
+                        "justify-content": "center",
+                        "align-items": "center"
+                    },
+                    "icon": {
+                        "color": "#64748B",
+                        "font-size": "16px",
+                    },
+                    "nav-link": {
+                        "font-size": "15px",
+                        "font-weight": "700",
+                        "color": "#475569",
+                        "padding": "10px 18px",
+                        "margin": "0 3px",
+                        "border-radius": "50px",
+                        "transition": "all 0.3s ease",
+                        "--hover-color": "#F1F5F9",
+                        "white-space": "nowrap"
+                    },
+                    "nav-link-selected": {
+                        "background-color": "#4A6D5F",
+                        "color": "#FFFFFF",
+                        "font-weight": "800",
+                        "border-radius": "50px",
+                        "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
+                    },
+                }
             )
 
             if selected_page != st.session_state.current_view:
@@ -783,7 +776,7 @@ elif current_page == "Browse Datasets":
         else:
             st.warning("No datasets match your filters.")
 
-# ----------------- 页面 E：Contribute Data (内置文件上传) -----------------
+# ----------------- 页面 E：Contribute Data (加入本地文件上传) -----------------
 elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
                 unsafe_allow_html=True)
@@ -835,7 +828,6 @@ elif current_page == "Contribute Data":
 
                         final_link = new_link
                         if uploaded_file is not None:
-                            # 实际生产环境中你可以把 uploaded_file 的二进制保存到 S3/云存储中，这里演示将文件名拼接到数据库中
                             final_link = f"[Local File Attached] {uploaded_file.name} " + (
                                 f"| External Link: {new_link}" if new_link else "")
 
