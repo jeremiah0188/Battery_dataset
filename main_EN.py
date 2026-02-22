@@ -115,6 +115,7 @@ professional_css = """
         padding-bottom: 2px;
     }
     .nav-menu-row::-webkit-scrollbar { height: 0; }
+    
 /* 顶部导航按钮（胶囊样式） */
 .nav-text-btn div[data-testid="stButton"] {
     width: 100% !important;
@@ -125,7 +126,6 @@ professional_css = """
     min-width: 0 !important;
     height: 42px !important;
     min-height: 42px !important;
-
     background: #F0F3F8 !important;          /* 胶囊填充色 */
     background-color: #F0F3F8 !important;
     border: 1px solid #E2E8F0 !important;
@@ -202,18 +202,10 @@ professional_css = """
         justify-content: center !important;
 
         color: #64748B !important;
-        font-size: 18px !important;
+        font-size: 20px !important;
         line-height: 1 !important;
         transition: all 0.25s ease !important;
     }
-
-.nav-text-btn div[data-testid="stButton"] > button:hover {
-    color: #000000 !important;               /* ✅ 悬停仍然黑字 */
-    background: #E9EEF5 !important;          /* 可选：hover 稍微深一点 */
-    border-color: #D8E1EC !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10) !important;
-}
 
     /* emoji 居中修正 */
     .icon-btn-wrap .stButton > button p {
