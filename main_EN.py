@@ -77,24 +77,24 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 🎯 彻底清除顶部导航区的“幽灵白底” ================= */
-    /* 精准锁定页面上的第一个水平块（导航栏），强制把它的背景、边框全部设为透明/0！*/
-    div[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stVerticalBlockBorderWrapper"],
-    div[data-testid="stHorizontalBlock"]:first-of-type div[data-testid="column"] {
-        background: transparent !important;
+    /* ================= 🎯 彻底歼灭中间导航列的长方块白底 ================= */
+    /* 锁定包含 menu-wrapper 标记的整列，强制它和内部所有外壳变透明 */
+    div[data-testid="column"]:has(.menu-wrapper),
+    div[data-testid="column"]:has(.menu-wrapper) > div,
+    div[data-testid="column"]:has(.menu-wrapper) div[data-testid="stElementContainer"],
+    div[data-testid="column"]:has(.menu-wrapper) iframe {
         background-color: transparent !important;
+        background: transparent !important;
         border: none !important;
         box-shadow: none !important;
         backdrop-filter: none !important;
-        padding: 0 !important;
     }
 
-    /* 增加一个入场动画让导航更丝滑 */
+    /* ================= 针对首行增加一个入场动画让导航更丝滑 ================= */
     div[data-testid="stHorizontalBlock"]:first-of-type {
         margin-bottom: 1rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
-
     @keyframes headerSlideDown {
         0% { opacity: 0; transform: translateY(-40px); }
         100% { opacity: 1; transform: translateY(0); }
@@ -227,19 +227,6 @@ professional_css = """
         display: inline-block;
         margin: 4px;
     }
-
-    .section-header {
-        border: 1px solid #FFFFFF;
-        border-radius: 16px;
-        padding: 16px 24px;
-        margin-bottom: 20px;
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        transition: all 0.3s;
-    }
-    .header-blue { border-left: 5px solid #3B82F6; }
-    .header-teal { border-left: 5px solid #4A6D5F; }
-    .header-amber { border-left: 5px solid #F59E0B; }
 
     .metadata-grid {
         display: grid;
@@ -388,29 +375,6 @@ professional_css = """
             white-space: nowrap !important;
             gap: 6px !important;
         }
-
-        .nav-shell {
-            overflow-x: auto !important;
-            overflow-y: hidden !important;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 4px;
-        }
-        .nav-shell ul {
-            flex-wrap: nowrap !important;
-            min-width: max-content !important;
-        }
-
-        .custom-footer {
-            padding: 24px 10px 12px 10px !important;
-            gap: 10px !important;
-        }
-        .footer-links {
-            gap: 8px !important;
-            font-size: 12px !important;
-        }
-        .footer-copyright {
-            font-size: 11px !important;
-        }
     }
 </style>
 """
@@ -426,6 +390,9 @@ with st.container():
         st.image(LOGO_IMAGE_URL, width=180)
 
     with col_menu:
+        # 🔑 这里的 menu-wrapper 是专门给 CSS 提供靶点的
+        st.markdown('<span class="menu-wrapper"></span>', unsafe_allow_html=True)
+
         if st.session_state.current_view not in ["login", "signup"]:
             menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
             base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
@@ -837,7 +804,7 @@ elif current_page == "Contribute Data":
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
 
-                # ================= 🚀 新增本地文件上传组件 =================
+                # ================= 🚀 本地文件上传组件 =================
                 st.markdown("---")
                 st.markdown(
                     "<p style='font-size:14px; font-weight:600; color:#475569; margin-bottom:5px;'>Or Upload a Local Dataset File</p>",
@@ -858,7 +825,6 @@ elif current_page == "Contribute Data":
                     else:
                         new_row = {c: "" for c in df.columns}
 
-                        # 判断用户是否上传了文件，如果是，可以把文件名记录在 Link 里作为标记
                         final_link = new_link
                         if uploaded_file is not None:
                             final_link = f"[Local File Attached] {uploaded_file.name} " + (
