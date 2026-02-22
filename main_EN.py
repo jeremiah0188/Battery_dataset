@@ -81,15 +81,13 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域：强制透明、去除白底 ================= */
-    .nav-shell { width: 100%; display: block; }
+    /* ================= 彻底清除顶部导航区域的所有白底与框 ================= */
+    .nav-anchor { display: none; }
 
-    /* 暴力清除 iframe 外层和列包裹层的所有背景与阴影 */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell),
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) > div,
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stVerticalBlockBorderWrapper"],
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stHorizontalBlock"],
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="column"] {
+    div[data-testid="stVerticalBlock"]:has(.nav-anchor) > [data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="stVerticalBlockBorderWrapper"]:has(.nav-anchor),
+    div[data-testid="stHorizontalBlock"]:has(.nav-anchor),
+    div[data-testid="column"]:has(.nav-anchor) {
         background: transparent !important;
         background-color: transparent !important;
         border: none !important;
@@ -99,22 +97,12 @@ professional_css = """
         margin: 0 !important;
     }
 
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) iframe {
+    iframe[title="streamlit_option_menu.option_menu"] {
         background-color: transparent !important;
     }
 
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) {
-        margin-bottom: 1.5rem !important;
-        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-
-    @keyframes headerSlideDown {
-        0% { opacity: 0; transform: translateY(-40px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-
     /* === 顶部搜索栏特供样式 === */
-    .nav-shell .stTextInput input {
+    .top-search-bar .stTextInput input {
         border-radius: 50px !important;
         background-color: #F1F5F9 !important;
         border: 1px solid transparent !important;
@@ -122,7 +110,7 @@ professional_css = """
         font-size: 14px !important;
         transition: all 0.3s ease;
     }
-    .nav-shell .stTextInput input:focus {
+    .top-search-bar .stTextInput input:focus {
         background-color: #FFFFFF !important;
         border-color: #4A6D5F !important;
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.15) !important;
@@ -152,25 +140,12 @@ professional_css = """
 
     /* ================= 其他全局 UI ================= */
     .stButton>button {
-        background-color: #708090 !important;
-        border: none !important;
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-        border-radius: 50px !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        height: 44px !important;
-        padding: 0 24px !important;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 10px rgba(112, 128, 144, 0.3) !important;
+        background-color: #708090 !important; border: none !important; color: #FFFFFF !important;
+        font-weight: 700 !important; border-radius: 50px !important; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        height: 44px !important; padding: 0 24px !important; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(112, 128, 144, 0.3) !important;
     }
-    .stButton>button:hover {
-        background-color: #5c6a77 !important;
-        box-shadow: 0 6px 16px rgba(112, 128, 144, 0.5) !important;
-        transform: translateY(-2px) !important;
-    }
-
+    .stButton>button:hover { background-color: #5c6a77 !important; box-shadow: 0 6px 16px rgba(112, 128, 144, 0.5) !important; transform: translateY(-2px) !important; }
     .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div { border-radius: 12px !important; }
-
     [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
     [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 16px !important; color: #64748B; transition: color 0.3s; }
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
@@ -179,40 +154,13 @@ professional_css = """
     .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; transition: all 0.3s ease; }
     .section-header:hover h2 { color: #4A6D5F; transform: translateX(6px); }
 
-    .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    .hero-title:hover { transform: scale(1.02); }
-
     .dataset-list-row { display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease; background-color: transparent; }
-    .dataset-list-row .ds-name { transition: color 0.2s ease; }
     .dataset-list-row:hover { background-color: #F8FAFC !important; }
     .dataset-list-row:hover .ds-name { color: #4A6D5F !important; }
 
-    .hero-container {
-        display: flex; align-items: center; justify-content: space-between; padding: 4.5rem 4rem; background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.4) 100%);
-        border-radius: 24px; border: 1px solid #FFFFFF; box-shadow: 0 10px 40px rgba(0,0,0,0.03); margin-bottom: 2rem; gap: 4rem; backdrop-filter: blur(10px);
-    }
-    .hero-left { flex: 1.2; }
-    .hero-subtitle { font-size: 14px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
-    .hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.7; margin-bottom: 2rem; }
-
-    .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .bento-card { border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.5); }
-    .bento-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-
     .chem-tag { background: rgba(255,255,255,0.8); padding:8px 16px; border-radius:30px; font-size:13px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,0.04); color:#0F172A; border: 1px solid rgba(0,0,0,0.02); display: inline-block; margin: 4px; }
-
     .section-header { border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); transition: all 0.3s; }
-    .header-blue { border-left: 5px solid #3B82F6; }
-    .header-teal { border-left: 5px solid #4A6D5F; }
-    .header-amber { border-left: 5px solid #F59E0B; }
-
-    .custom-footer { width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B; font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; }
-    .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
-    .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
-    .footer-links a:hover { color: #4A6D5F; }
-    .footer-separator { color: #CBD5E1; font-weight: 400; }
-    .footer-copyright { color: #94A3B8; font-size: 13px; }
+    .header-blue { border-left: 5px solid #3B82F6; } .header-teal { border-left: 5px solid #4A6D5F; } .header-amber { border-left: 5px solid #F59E0B; }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
@@ -221,9 +169,10 @@ st.markdown(professional_css, unsafe_allow_html=True)
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 with st.container():
-    st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
+    st.markdown('<span class="nav-anchor"></span>', unsafe_allow_html=True)
 
-    col_logo, col_menu, col_search, col_icons, col_auth = st.columns([1.2, 5.0, 1.8, 0.8, 1.0],
+    # 布局调整：菜单栏加宽 (6.3) 防止换行，搜索栏缩减到一半 (0.9)
+    col_logo, col_menu, col_search, col_icons, col_auth = st.columns([1.2, 6.3, 0.9, 0.6, 1.0],
                                                                      vertical_alignment="center")
 
     with col_logo:
@@ -232,14 +181,9 @@ with st.container():
     with col_menu:
         if st.session_state.current_view not in ["login", "signup"]:
             menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-            base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
             if st.session_state.is_admin:
                 menu_tabs.append("Admin Dashboard")
-                menu_icons = base_icons + ['shield-lock']
-            else:
-                menu_icons = base_icons
 
-            # 核心路由逻辑：防止 option_menu 覆盖独立页面 (Settings/Notifications)
             try:
                 if st.session_state.current_view in menu_tabs:
                     default_idx = menu_tabs.index(st.session_state.current_view)
@@ -248,16 +192,16 @@ with st.container():
             except ValueError:
                 default_idx = 0
 
+            # 样式：无背景，无胶囊框，有鼠标悬浮过渡动画，纯文字加底部指示线
             selected_page = option_menu(
                 menu_title=None,
                 options=menu_tabs,
-                icons=menu_icons,
+                icons=["" for _ in menu_tabs],  # 去除图标，节省空间
                 default_index=default_idx,
                 orientation="horizontal",
                 styles={
                     "container": {
                         "padding": "0 !important",
-                        "background": "transparent !important",
                         "background-color": "transparent !important",
                         "border": "none !important",
                         "box-shadow": "none !important",
@@ -268,27 +212,24 @@ with st.container():
                         "align-items": "center"
                     },
                     "icon": {
-                        "color": "#94A3B8",
-                        "font-size": "15px",
-                        "margin-right": "6px",
-                        "transition": "color 0.3s ease"
+                        "display": "none"  # 彻底隐藏图标
                     },
                     "nav-link": {
                         "font-size": "15px",
                         "font-weight": "700",
                         "color": "#64748B",
-                        "padding": "8px 16px",
-                        "margin": "0 2px",
-                        "border-radius": "12px",
+                        "padding": "8px 12px",
+                        "margin": "0 8px",
+                        "border-radius": "0",
                         "background": "transparent",
                         "white-space": "nowrap",
-                        "transition": "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                        "--hover-color": "rgba(74, 109, 95, 0.08)"  # 非常柔和的绿色底作为悬浮态过渡
+                        "transition": "color 0.3s ease, transform 0.3s ease",
+                        "--hover-color": "transparent"
                     },
                     "nav-link-selected": {
                         "background-color": "transparent",
                         "color": "#4A6D5F",
-                        "font-weight": "800",
+                        "font-weight": "900",
                         "border-bottom": "3px solid #4A6D5F",
                         "border-radius": "0",
                         "box-shadow": "none"
@@ -296,7 +237,6 @@ with st.container():
                 }
             )
 
-            # 仅当用户真正点击菜单时，才触发跳转 (绕过默认渲染的检测)
             if selected_page != st.session_state.last_menu_selection:
                 st.session_state.current_view = selected_page
                 st.session_state.last_menu_selection = selected_page
@@ -304,8 +244,10 @@ with st.container():
 
     with col_search:
         if st.session_state.current_view not in ["login", "signup"]:
-            st.text_input("Global Search", placeholder="Search datasets...", label_visibility="collapsed",
+            st.markdown('<div class="top-search-bar">', unsafe_allow_html=True)
+            st.text_input("Global Search", placeholder="Search...", label_visibility="collapsed",
                           key="global_nav_search")
+            st.markdown('</div>', unsafe_allow_html=True)
 
     with col_icons:
         if st.session_state.current_view not in ["login", "signup"]:
@@ -333,8 +275,6 @@ with st.container():
                 if st.button("Sign In"):
                     st.session_state.current_view = "login"
                     st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -384,7 +324,6 @@ if current_page == "login" and not st.session_state.is_admin:
                     st.error("Invalid credentials.")
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 32px 0 24px 0;'>", unsafe_allow_html=True)
-
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("Create an Account", use_container_width=True):
@@ -407,7 +346,6 @@ elif current_page == "signup" and not st.session_state.is_admin:
             st.markdown(
                 "<p style='color: #64748B; font-size: 15px; margin-bottom: 32px; line-height: 1.6; text-align: center;'>Join the Open Battery Dataset Portal to contribute and track your submissions.</p>",
                 unsafe_allow_html=True)
-
             st.text_input("Full Name", placeholder="e.g. John Doe")
             st.text_input("Email address", placeholder="name@company.com")
             st.text_input("Password", type="password", placeholder="Create a strong password")
@@ -417,7 +355,6 @@ elif current_page == "signup" and not st.session_state.is_admin:
                 st.info("Registration is temporarily closed. Please contact the administrator.")
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 32px 0 24px 0;'>", unsafe_allow_html=True)
-
             c3, c4 = st.columns(2)
             with c3:
                 if st.button("Already have an account? Sign In", use_container_width=True):
@@ -480,15 +417,6 @@ elif current_page == "Homepage":
             st.markdown(f"<div>{tags_html}</div><br>", unsafe_allow_html=True)
             st.info("💡 Tip: Use these keywords in the search bar.")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="section-header header-blue"><h2>💬 Quick FAQ</h2></div>', unsafe_allow_html=True)
-    with st.expander("Do I need an account to download data?"):
-        st.write(
-            "No. All curated datasets on our platform are open-access and do not require an account to browse or download source files.")
-    with st.expander("How long does the moderation review take?"):
-        st.write(
-            "Our admin team typically reviews submitted datasets within 48-72 hours to ensure metadata quality and source validity.")
-
 # ----------------- 页面 D：Browse Datasets -----------------
 elif current_page == "Browse Datasets":
     st.markdown('<div class="section-header header-blue"><h2>Dataset Directory</h2></div>', unsafe_allow_html=True)
@@ -535,9 +463,6 @@ elif current_page == "Browse Datasets":
             <div style="font-size: 15px; font-weight: 700; color: #0F172A;">
                 <span style="background: #4A6D5F; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin-right: 8px;">{len(filtered_df)}</span> Datasets Found
             </div>
-            <div style="font-size: 13px; color: #64748B; font-weight: 500;">
-                Sort by: <span style="color: #0F172A; font-weight: 700;">Most Recent</span>
-            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -546,7 +471,7 @@ elif current_page == "Browse Datasets":
             html_parts.append(
                 '<div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">')
             html_parts.append(
-                '<div class="dataset-list-header" style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">')
+                '<div style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase;">')
             html_parts.append(
                 '<div style="flex: 2.5;">Dataset Name</div><div style="flex: 1.5;">Author</div><div style="flex: 1;">Domain</div><div style="flex: 0.8; text-align: right;">Action</div></div>')
 
@@ -559,10 +484,8 @@ elif current_page == "Browse Datasets":
                         display_author = f"{raw_author.split(',')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
                     elif ' and ' in raw_author:
                         display_author = f"{raw_author.split(' and ')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
-                    elif len(raw_author) > 25:
-                        display_author = raw_author[:22] + "..."
                     else:
-                        display_author = raw_author
+                        display_author = raw_author[:22] + "..." if len(raw_author) > 25 else raw_author
 
                 ds_name = row.get('Dataset Name', 'Unnamed')
                 domain = row.get('Domain', 'N/A')
@@ -577,7 +500,6 @@ elif current_page == "Browse Datasets":
                 html_parts.append(
                     '<div style="flex: 0.8; text-align: right;"><span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: default;">View ↓</span></div>')
                 html_parts.append('</div>')
-
             html_parts.append('</div>')
             st.markdown("".join(html_parts), unsafe_allow_html=True)
 
@@ -606,22 +528,15 @@ elif current_page == "Browse Datasets":
                         f'🔗 Download / Visit Source</a></div>'
                     )
 
-                details_html += '<div class="metadata-grid">'
+                details_html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px;">'
                 for col_name in df.columns:
                     if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status',
                                                                                                      'Dataset Name']:
                         val = str(details.get(col_name, '')).strip()
                         if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
                             details_html += (
-                                f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>')
-                details_html += '</div>'
-
-                details_html += (
-                    f'<div style="margin-top:24px; padding:14px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;">'
-                    f'<h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4>'
-                    f'<p style="margin:0; font-size:13px; color:#475569;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p>'
-                    f'</div></div>'
-                )
+                                f'<div style="background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px;"><div style="font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; margin-bottom: 6px;">{col_name}</div><div style="font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word;">{val}</div></div>')
+                details_html += '</div></div>'
                 st.markdown(details_html, unsafe_allow_html=True)
         else:
             st.warning("No datasets match your filters.")
@@ -651,7 +566,6 @@ elif current_page == "Contribute Data":
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
 
-                # 新增的本地文件上传选项
                 st.markdown(
                     "<h5 style='font-size:15px; margin-top:10px; color:#334155;'>Upload Local Files (Optional)</h5>",
                     unsafe_allow_html=True)
@@ -667,7 +581,6 @@ elif current_page == "Contribute Data":
                         st.error("Please fill in all required fields marked with * and provide either a URL or a file.")
                     else:
                         new_row = {c: "" for c in df.columns}
-
                         file_status = f"Local File: {uploaded_file.name}" if uploaded_file else new_link
 
                         new_row.update({
@@ -697,11 +610,8 @@ elif current_page == "Contribute Data":
     with tab_guide:
         with st.container(border=True):
             st.markdown("### 📖 Curation Policy & Metadata Standards")
-            st.write("""
-* Public Domain Only: Ensure the dataset you are submitting is publicly available or you hold the rights to share it.  
-* URL Validity: Provide direct links to repositories (GitHub, Mendeley, Zenodo) rather than generic homepages.  
-* Accuracy: Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.  
-            """)
+            st.write(
+                "* Public Domain Only: Ensure the dataset you are submitting is publicly available.\n* URL Validity: Provide direct links to repositories.\n* Accuracy: Fill out the Chemistry and Data Type fields accurately.")
 
 # ----------------- 页面 F：About -----------------
 elif current_page == "About":
@@ -742,7 +652,7 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.success("Synchronized successfully!")
                 st.cache_data.clear()
 
-# ----------------- 页面 I：Settings (新增) -----------------
+# ----------------- 页面 I：Settings -----------------
 elif current_page == "Settings":
     st.markdown('<div class="section-header header-teal"><h2>⚙️ Settings</h2></div>', unsafe_allow_html=True)
 
@@ -758,8 +668,7 @@ elif current_page == "Settings":
             st.text_input("Email", value="admin@example.com" if st.session_state.is_admin else "")
             st.text_input("Password", type="password", value="********" if st.session_state.is_admin else "")
             st.text_input("Role", value=role_text, disabled=True)
-            if st.button("Save Account Changes"):
-                st.success("Account settings updated successfully!")
+            if st.button("Save Account Changes"): st.success("Account settings updated successfully!")
 
     with tab_prefs:
         with st.container(border=True):
@@ -768,8 +677,7 @@ elif current_page == "Settings":
             st.radio("Theme", ["Light", "Auto"], horizontal=True)
             st.slider("Items per page", min_value=10, max_value=100, value=20, step=10)
             st.selectbox("Language", ["English", "中文"])
-            if st.button("Save Preferences"):
-                st.success("Preferences saved successfully!")
+            if st.button("Save Preferences"): st.success("Preferences saved successfully!")
 
     with tab_data_prefs:
         with st.container(border=True):
@@ -777,8 +685,7 @@ elif current_page == "Settings":
             st.selectbox("Preferred domain", ["All", "Energy", "Battery", "Healthcare", "Manufacturing"])
             st.selectbox("Preferred chemistry", ["All", "NMC", "LFP", "NCA", "LCO", "Solid-state"])
             st.selectbox("Default sort", ["Most Recent", "A-Z", "Most Popular"])
-            if st.button("Save Dataset Preferences"):
-                st.success("Dataset preferences updated!")
+            if st.button("Save Dataset Preferences"): st.success("Dataset preferences updated!")
 
     with tab_notifs:
         with st.container(border=True):
@@ -787,14 +694,12 @@ elif current_page == "Settings":
             st.toggle("Submission status updates", value=True)
             st.toggle("New dataset alerts", value=False)
             st.toggle("Weekly digest", value=True)
-            if st.button("Save Notifications"):
-                st.success("Notification preferences applied!")
+            if st.button("Save Notifications"): st.success("Notification preferences applied!")
 
-# ----------------- 页面 J：Notifications (新增) -----------------
+# ----------------- 页面 J：Notifications -----------------
 elif current_page == "Notifications":
     st.markdown('<div class="section-header header-blue"><h2>🔔 Notifications</h2></div>', unsafe_allow_html=True)
 
-    # 顶部操作按钮
     col_btn, col_filter, _ = st.columns([3, 2, 5])
     with col_btn:
         b1, b2 = st.columns(2)
@@ -805,7 +710,6 @@ elif current_page == "Notifications":
 
     st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0 24px 0;'>", unsafe_allow_html=True)
 
-    # Inbox 样式数据列表
     notifications = [
         {"title": "Your dataset submission has been approved",
          "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible in the directory.",
@@ -821,40 +725,21 @@ elif current_page == "Notifications":
          "time": "1 week ago", "status": "Read", "type": "System", "icon": "⚠️"},
     ]
 
-    # 渲染 Inbox
+    # 彻底修复 HTML 格式化问题，确保字符串内没有任何导致 markdown 换行的间隙
     for n in notifications:
         bg_color = "#F8FAFC" if n["status"] == "Read" else "#FFFFFF"
         border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
         box_shadow = "none" if n["status"] == "Read" else "0 4px 15px rgba(59, 130, 246, 0.05)"
+        status_badge = f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if \
+        n["status"] == "Unread" else ""
 
-        notif_html = f"""
-        <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 20px; transition: transform 0.2s; box-shadow: {box_shadow};">
-            <div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div>
-            <div style="flex: 1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span>
-                    <span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span>
-                </div>
-                <div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div>
-                <div style="display: flex; gap: 8px;">
-                    <span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>
-                    {f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if n["status"] == "Unread" else ''}
-                </div>
-            </div>
-        </div>
-        """
+        notif_html = f"""<div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 20px; transition: transform 0.2s; box-shadow: {box_shadow};"><div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div><div style="flex: 1;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;"><span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span><span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span></div><div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div><div style="display: flex; gap: 8px; align-items: center;"><span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>{status_badge}</div></div></div>"""
         st.markdown(notif_html, unsafe_allow_html=True)
 
 # ================= 8. 全局 Footer =================
 st.markdown("""
 <div class="custom-footer">
-    <div class="footer-links">
-        <a href="#">Citation Policy</a> <span class="footer-separator">/</span>
-        <a href="#">Changelog</a> <span class="footer-separator">/</span>
-        <a href="#">Terms & Privacy</a>
-    </div>
-    <div class="footer-copyright">
-        © 2026 Open Battery Dataset Portal. Maintained by Jian Wu.
-    </div>
+    <div class="footer-links"><a href="#">Citation Policy</a> <span class="footer-separator">/</span> <a href="#">Changelog</a> <span class="footer-separator">/</span> <a href="#">Terms & Privacy</a></div>
+    <div class="footer-copyright">© 2026 Open Battery Dataset Portal. Maintained by Jian Wu.</div>
 </div>
 """, unsafe_allow_html=True)
