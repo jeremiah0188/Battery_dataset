@@ -45,7 +45,7 @@ dynamic_css = f"""
 """
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
-# ================= 4. 专业 CSS（含导航白卡修复 + 移动端适配） =================
+# ================= 4. 专业 CSS =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -61,30 +61,43 @@ professional_css = """
         padding-bottom: 2rem !important;
     }
 
-    /* ================= 顶部导航区域：彻底禁用白卡 ================= */
+    /* ================= 全局内容白卡样式（恢复普通写法） ================= */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04) !important;
+        padding: 24px !important;
+        margin-bottom: 24px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    [data-testid="stVerticalBlockBorderWrapper"]:hover {
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
+    }
+
+    /* ================= 顶部导航区域：利用锚点彻底清洗内部白卡 ================= */
     .nav-shell {
         width: 100%;
         display: block;
     }
 
-    /* 导航区自身及内部元素禁止继承额外阴影 */
-    .nav-shell, .nav-shell * {
-        box-shadow: none !important;
-    }
-
-    /* 导航区相关 Streamlit 包裹层透明化 */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell),
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) > [data-testid="stVerticalBlockBorderWrapper"],
+    /* 核心修复：精准找到包含 nav-shell 的父容器，强制清除其内部所有列、框的背景 */
     div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stVerticalBlockBorderWrapper"],
-    div[data-testid="stHorizontalBlock"]:has(.nav-shell),
-    div[data-testid="stHorizontalBlock"]:has(.nav-shell) > div,
-    div[data-testid="stHorizontalBlock"]:has(.nav-shell) [data-testid="stVerticalBlockBorderWrapper"] {
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stHorizontalBlock"],
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="column"] {
         background: transparent !important;
         border: none !important;
         backdrop-filter: none !important;
         box-shadow: none !important;
         padding: 0 !important;
         margin: 0 !important;
+    }
+
+    /* 导航区自身及内部元素禁止继承额外阴影 */
+    .nav-shell, .nav-shell * {
+        box-shadow: none !important;
     }
 
     /* 给导航整体留一点底部间距和入场动画 */
@@ -98,23 +111,7 @@ professional_css = """
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* ================= 全局内容白卡样式（排除导航区） ================= */
-    [data-testid="stVerticalBlockBorderWrapper"]:not(:has(.nav-shell)) {
-        background: rgba(255, 255, 255, 0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.6) !important;
-        border-radius: 20px !important;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04) !important;
-        padding: 24px !important;
-        margin-bottom: 24px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    [data-testid="stVerticalBlockBorderWrapper"]:not(:has(.nav-shell)):hover {
-        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
-    }
-
-    /* 全局按钮 Slate Gray (#708090) */
+    /* ================= 其他全局 UI ================= */
     .stButton>button {
         background-color: #708090 !important;
         border: none !important;
@@ -133,12 +130,10 @@ professional_css = """
         transform: translateY(-2px) !important;
     }
 
-    /* 输入框优化 */
     .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
         border-radius: 12px !important;
     }
 
-    /* Tabs 强制加粗 */
     [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
     [data-baseweb="tab"] p {
         font-weight: 800 !important;
@@ -153,7 +148,6 @@ professional_css = """
         border-radius: 3px 3px 0 0;
     }
 
-    /* 文字层级悬浮微动画 */
     .section-header h2 {
         font-size: 24px;
         font-weight: 800;
@@ -177,7 +171,6 @@ professional_css = """
     }
     .hero-title:hover { transform: scale(1.02); }
 
-    /* 无边框列表行 Hover 样式 */
     .dataset-list-row {
         display: flex;
         padding: 18px 24px;
@@ -322,14 +315,12 @@ professional_css = """
             padding: 0.6rem !important;
         }
 
-        /* 页面卡片间距 */
-        [data-testid="stVerticalBlockBorderWrapper"]:not(:has(.nav-shell)) {
+        [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 16px !important;
             border-radius: 16px !important;
             margin-bottom: 16px !important;
         }
 
-        /* 首页适配 */
         .hero-container {
             flex-direction: column !important;
             padding: 1.5rem 1rem !important;
@@ -371,7 +362,6 @@ professional_css = """
             margin: 3px !important;
         }
 
-        /* 数据集列表适配：隐藏表头，行堆叠 */
         .dataset-list-header { display: none !important; }
         .dataset-list-row {
             flex-direction: column !important;
@@ -388,7 +378,6 @@ professional_css = """
             text-align: left !important;
         }
 
-        /* 标题字体缩小 */
         .section-header {
             padding: 12px 14px !important;
             border-radius: 12px !important;
@@ -399,35 +388,29 @@ professional_css = """
             line-height: 1.25 !important;
         }
 
-        /* Select / input / button 更紧凑 */
         .stButton>button {
             height: 40px !important;
             font-size: 14px !important;
             padding: 0 16px !important;
         }
 
-        /* tabs 允许横向滚动 */
         [data-testid="stTabs"] [data-baseweb="tab-list"] {
             overflow-x: auto !important;
             white-space: nowrap !important;
             gap: 6px !important;
         }
 
-        /* 顶部导航容器允许横向滚动（关键） */
         .nav-shell {
             overflow-x: auto !important;
             overflow-y: hidden !important;
             -webkit-overflow-scrolling: touch;
             padding-bottom: 4px;
         }
-
-        /* option_menu 容器在手机端不强制满宽，避免被挤压换行 */
         .nav-shell ul {
             flex-wrap: nowrap !important;
             min-width: max-content !important;
         }
 
-        /* Footer */
         .custom-footer {
             padding: 24px 10px 12px 10px !important;
             gap: 10px !important;
@@ -448,10 +431,9 @@ st.markdown(professional_css, unsafe_allow_html=True)
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 with st.container():
-    # 可见包裹层，用于精准排除白卡样式
+    # 注入锚点：只要这个包裹层存在，CSS 就能向上追踪到外层，强制清理内部白卡
     st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
 
-    # 手机上 logo 缩小一点
     col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
 
     with col_logo:
@@ -486,7 +468,7 @@ with st.container():
                         "border-radius": "999px !important",
                         "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
                         "margin": "0 auto",
-                        "width": "100%",
+                        "width": "fit-content",  # 关键修复：改为 fit-content 贴合内容，拒绝拉伸长白框！
                         "display": "flex",
                         "justify-content": "center",
                         "align-items": "center"
@@ -893,9 +875,9 @@ elif current_page == "Contribute Data":
         with st.container(border=True):
             st.markdown("### 📖 Curation Policy & Metadata Standards")
             st.write("""
-* **Public Domain Only:** Ensure the dataset you are submitting is publicly available or you hold the rights to share it.  
-* **URL Validity:** Provide direct links to repositories (GitHub, Mendeley, Zenodo) rather than generic homepages.  
-* **Accuracy:** Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.  
+* Public Domain Only: Ensure the dataset you are submitting is publicly available or you hold the rights to share it.  
+* URL Validity: Provide direct links to repositories (GitHub, Mendeley, Zenodo) rather than generic homepages.  
+* Accuracy: Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.  
             """)
 
 # ----------------- 页面 F：About -----------------
