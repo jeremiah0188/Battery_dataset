@@ -47,7 +47,7 @@ dynamic_css = f"""
 """
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
-# ================= 4. 企业级专业 CSS =================
+# ================= 4. 企业级专业 CSS (按钮颜色与无边框设计) =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -57,7 +57,6 @@ professional_css = """
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} #stDecoration {display:none;}
     [data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
 
-    /* 缩小底部 padding，因为页脚不再悬浮挡内容了 */
     .block-container { 
         max-width: 95% !important; 
         padding-top: 1.5rem !important; 
@@ -76,25 +75,30 @@ professional_css = """
     }
     [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
 
+    /* 全局按钮 Slate Gray (#708090) 填充 */
     .stButton>button { 
-        background-color: #FFFFFF !important; 
-        border: 1.5px solid #CBD5E1 !important; 
-        color: #0F172A !important; 
+        background-color: #708090 !important; 
+        border: none !important; 
+        color: #FFFFFF !important; 
         font-weight: 700 !important; 
         border-radius: 50px !important; 
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; 
         height: 44px !important;
         padding: 0 24px !important; 
         letter-spacing: 0.5px;
-        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02) !important;
+        box-shadow: 0 4px 10px rgba(112, 128, 144, 0.3) !important;
     }
     .stButton>button:hover { 
-        border-color: #4A6D5F !important; 
-        color: #4A6D5F !important; 
-        background-color: #F8FAFC !important; 
-        box-shadow: 0 6px 16px rgba(74, 109, 95, 0.15) !important;
+        background-color: #5c6a77 !important; 
+        box-shadow: 0 6px 16px rgba(112, 128, 144, 0.5) !important;
         transform: translateY(-2px) !important;
     }
+
+    /* Tabs 无图标且强制加粗 */
+    [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
+    [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 16px !important; color: #64748B; transition: color 0.3s; }
+    [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; border-radius: 3px 3px 0 0; }
 
     .hero-container {
         display: flex; align-items: center; justify-content: space-between;
@@ -128,30 +132,13 @@ professional_css = """
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
-    /* 全局自定义页脚 (Qlik 流式极简风格) */
+    /* Qlik 流式极简风格页脚 */
     .custom-footer {
-        width: 100%;
-        padding: 40px 16px 20px 16px; /* 增加上部留白，与正文隔开 */
-        margin-top: 40px;
-        color: #64748B;
-        font-size: 14px;
-        border-top: 1px solid #E2E8F0; /* 顶部极浅分割线 */
-        display: flex;
-        flex-direction: column;
-        gap: 16px; /* 链接和版权之间的间距 */
+        width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B;
+        font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; 
     }
-    .footer-links {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-        font-weight: 600;
-    }
-    .footer-links a {
-        color: #475569;
-        text-decoration: none;
-        transition: color 0.2s;
-    }
+    .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
+    .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
     .footer-links a:hover { color: #4A6D5F; }
     .footer-separator { color: #CBD5E1; font-weight: 400; }
     .footer-copyright { color: #94A3B8; font-size: 13px; }
@@ -159,7 +146,7 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部完美居中导航栏 =================
+# ================= 5. 顶部完美居中悬浮导航栏 (已去掉外壳底板) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 col_logo, col_menu, col_auth = st.columns([1.5, 7, 1.2], vertical_alignment="center")
@@ -186,18 +173,17 @@ with col_menu:
             orientation="horizontal",
             styles={
                 "container": {
-                    "padding": "6px 16px !important",
-                    "background": "linear-gradient(90deg, #FFFFFF 0%, rgba(74, 109, 95, 0.12) 100%)",
-                    "border": "1px solid rgba(74, 109, 95, 0.25)",
-                    "border-radius": "50px",
-                    "box-shadow": "0 4px 15px rgba(0,0,0,0.03)",
+                    "padding": "0 !important",
+                    "background": "transparent",
+                    "border": "none",
+                    "box-shadow": "none",
                     "margin": "0 auto"
                 },
                 "icon": {"color": "#64748B", "font-size": "16px"},
                 "nav-link": {
                     "font-size": "15px", "font-weight": "700", "color": "#475569",
                     "padding": "8px 22px", "margin": "0 4px",
-                    "--hover-color": "rgba(255,255,255,0.7)", "border-radius": "50px"
+                    "--hover-color": "rgba(255,255,255,0.6)", "border-radius": "50px"
                 },
                 "nav-link-selected": {
                     "background-color": "#4A6D5F", "color": "white",
@@ -374,16 +360,69 @@ elif current_page == "Browse Datasets":
         if sel_subcategory != "All" and 'Sub-category' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['Sub-category'] == sel_subcategory]
 
-        st.markdown(f"**Result Counter:** {len(filtered_df)} datasets found.")
+        # 🚀 深度优化 1：Web 产品目录风格的 Toolbar (融入 Result Counter)
+        st.markdown(f"""
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.7); padding: 12px 20px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 20px;">
+            <div style="font-size: 15px; font-weight: 700; color: #0F172A;">
+                <span style="background: #4A6D5F; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin-right: 8px;">{len(filtered_df)}</span> Datasets Found
+            </div>
+            <div style="font-size: 13px; color: #64748B; font-weight: 500;">
+                Sort by: <span style="color: #0F172A; font-weight: 700; cursor: pointer;">Most Recent</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
         if not filtered_df.empty:
-            with st.container(border=True):
-                display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if
-                                c in filtered_df.columns]
-                st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
+            # 🚀 深度优化 2 & 3 & 4：纯 HTML 无边框可悬停的 Web List
+            html_table = '''
+            <div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                <div style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <div style="flex: 2.5;">Dataset Name</div>
+                    <div style="flex: 1.5;">Author</div>
+                    <div style="flex: 1;">Domain</div>
+                    <div style="flex: 0.8; text-align: right;">Action</div>
+                </div>
+            '''
+            for _, row in filtered_df.iterrows():
+                # 智能提取第一作者 (et al.) 逻辑
+                raw_author = str(row.get('Author', 'Unspecified')).strip()
+                if raw_author in ['Unspecified', 'N/A', '', 'nan']:
+                    display_author = '<span style="color:#94A3B8; font-style:italic;">Unspecified</span>'
+                else:
+                    if ',' in raw_author:
+                        first_author = raw_author.split(',')[0].strip()
+                        display_author = f"{first_author} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
+                    elif ' and ' in raw_author:
+                        first_author = raw_author.split(' and ')[0].strip()
+                        display_author = f"{first_author} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
+                    elif len(raw_author) > 25:
+                        display_author = raw_author[:22] + "..."
+                    else:
+                        display_author = raw_author
 
+                ds_name = row.get('Dataset Name', 'Unnamed')
+                domain = row.get('Domain', 'N/A')
+
+                # 构建列表行 (去除竖线、高亮Hover、增加假按钮)
+                html_table += f'''
+                <div style="display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease;" 
+                     onmouseover="this.style.backgroundColor='#F8FAFC'" onmouseout="this.style.backgroundColor='transparent'">
+                    <div style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>
+                    <div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>
+                    <div style="flex: 1; color: #64748B;">
+                        <span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span>
+                    </div>
+                    <div style="flex: 0.8; text-align: right;">
+                        <span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: default;">View ↓</span>
+                    </div>
+                </div>
+                '''
+            html_table += "</div>"
+            st.markdown(html_table, unsafe_allow_html=True)
+
+            # --- 下方保留 Selectbox 作为真实触发详情的媒介 ---
             st.markdown(
-                '<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>',
+                '<div class="section-header header-teal" style="margin-top: 32px;"><h2>📖 Dataset Details</h2></div>',
                 unsafe_allow_html=True)
             valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
             selected_dataset = st.selectbox("Select a dataset to view full details:",
@@ -424,8 +463,7 @@ elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
                 unsafe_allow_html=True)
 
-    tab_submit, tab_request, tab_guide = st.tabs(
-        ["📤 Submit a Dataset", "🙋 Request a Dataset", "📖 Submission Guidelines"])
+    tab_submit, tab_request, tab_guide = st.tabs(["Submit a Dataset", "Request a Dataset", "Submission Guidelines"])
 
     with tab_submit:
         with st.container(border=True):
@@ -449,7 +487,7 @@ elif current_page == "Contribute Data":
                 new_contributor = c8.text_input("Contributor Name *")
                 new_email = c9.text_input("Contact Email (Optional)")
 
-                if st.form_submit_button("📤 Submit to Moderation Queue"):
+                if st.form_submit_button("Submit to Moderation Queue"):
                     if not new_name or not new_domain or not new_link or not new_contributor:
                         st.error("Please fill in all required fields marked with *")
                     else:
@@ -473,7 +511,7 @@ elif current_page == "Contribute Data":
                 st.text_area("Additional Details",
                              placeholder="Specify any required parameters, chemistry, or format...")
                 st.text_input("Your Email (to notify you if found)")
-                if st.form_submit_button("🙋 Submit Request"):
+                if st.form_submit_button("Submit Request"):
                     st.success("Request submitted successfully! We will keep an eye out for this data.")
 
     with tab_guide:
@@ -519,7 +557,7 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.success("Synchronized successfully!")
                 st.cache_data.clear()
 
-# ======== 8. 全局自定义 Footer (流式排版，完美跟在内容尾部) ========
+# ======== 8. 全局自定义 Footer ========
 st.markdown("""
 <div class="custom-footer">
     <div class="footer-links">
