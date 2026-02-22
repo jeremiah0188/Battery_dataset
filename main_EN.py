@@ -76,12 +76,11 @@ professional_css = """
         margin-bottom: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-
     [data-testid="stVerticalBlockBorderWrapper"]:hover {
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域（纯文字导航） ================= */
+    /* ================= 顶部导航区域 ================= */
     .nav-shell { width: 100%; display: block; }
 
     div[data-testid="stVerticalBlock"]:has(.nav-shell),
@@ -108,36 +107,48 @@ professional_css = """
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    .top-nav {
+    /* 导航按钮容器 */
+    .nav-menu-row {
         display: flex;
         align-items: center;
-        gap: 18px;
+        gap: 10px;
         flex-wrap: nowrap;
         overflow-x: auto;
         white-space: nowrap;
         padding-top: 4px;
     }
-    .top-nav::-webkit-scrollbar { height: 0; }
+    .nav-menu-row::-webkit-scrollbar { height: 0; }
 
-    .top-nav a {
-        color: #64748B;
-        text-decoration: none !important;
-        font-weight: 700;
-        font-size: 15px;
-        padding: 6px 2px 10px 2px;
-        border-bottom: 3px solid transparent;
-        transition: all 0.25s ease;
-        display: inline-flex;
-        align-items: center;
+    /* 顶部导航按钮（纯文字，无胶囊） */
+    .nav-text-btn .stButton > button {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        color: #64748B !important;
+        font-weight: 700 !important;
+        font-size: 18px !important;   /* ✅ 导航字体大小在这里调 */
+        height: 36px !important;
+        min-height: 36px !important;
+        padding: 0 4px 8px 4px !important;
+        margin: 0 !important;
+        letter-spacing: 0 !important;
+        border-bottom: 3px solid transparent !important;
+        transition: all 0.25s ease !important;
+        justify-content: center !important;
     }
-    .top-nav a:hover {
-        color: #4A6D5F;
-        transform: translateY(-1px);
-    }
-    .top-nav a.active {
+    .nav-text-btn .stButton > button:hover {
         color: #4A6D5F !important;
-        border-bottom-color: #4A6D5F !important;
+        background: transparent !important;
+        transform: translateY(-1px) !important;
+        box-shadow: none !important;
+    }
+
+    /* 当前激活项（给不同 key 单独套 class） */
+    .nav-active .stButton > button {
+        color: #4A6D5F !important;
         font-weight: 800 !important;
+        border-bottom-color: #4A6D5F !important;
     }
 
     /* 顶部搜索栏 */
@@ -155,16 +166,7 @@ professional_css = """
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.12) !important;
     }
 
-    /* 顶部图标按钮容器 */
-    .icon-buttons {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 2px;
-    }
-
-    /* 只给顶部图标按钮定制，不影响全局按钮 */
+    /* 顶部图标按钮 */
     .icon-btn-wrap .stButton > button {
         width: 54px !important;
         height: 54px !important;
@@ -179,7 +181,7 @@ professional_css = """
         align-items: center !important;
         justify-content: center !important;
         line-height: 1 !important;
-        font-size: 22px !important;
+        font-size: 20px !important;
         color: #64748B !important;
         transition: all 0.25s ease !important;
     }
@@ -207,7 +209,7 @@ professional_css = """
         transform: translateY(-2px) !important;
     }
 
-    /* ================= 其他全局 UI ================= */
+    /* 其他全局保持不变 */
     .stButton>button {
         background-color: #708090 !important;
         border: none !important;
@@ -227,7 +229,6 @@ professional_css = """
     }
 
     .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div { border-radius: 12px !important; }
-
     [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
     [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 16px !important; color: #64748B; transition: color 0.3s; }
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
@@ -302,37 +303,22 @@ professional_css = """
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
+
+
 # ================= 5. 顶部导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
-
-# 读取导航 query 参数（点击 HTML 导航链接后切页）
-qp = st.query_params
-if "nav" in qp:
-    nav_target = qp["nav"]
-    valid_pages = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact", "Admin Dashboard", "Settings", "Notifications"]
-    if nav_target in valid_pages:
-        # Admin Dashboard 仅管理员可进
-        if nav_target == "Admin Dashboard" and not st.session_state.is_admin:
-            st.session_state.current_view = "Homepage"
-            st.session_state.last_menu_selection = "Homepage"
-        else:
-            st.session_state.current_view = nav_target
-            if nav_target in ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact", "Admin Dashboard"]:
-                st.session_state.last_menu_selection = nav_target
-        # 清掉参数，避免刷新重复触发
-        del st.query_params["nav"]
-        st.rerun()
 
 with st.container():
     st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
 
+    # 这里调布局宽度（菜单、搜索、图标、登录按钮占比）
     col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
-        [1.35, 6.8, 2.3, 1.0, 1.15],
+        [1.45, 6.9, 2.35, 1.1, 1.2],
         vertical_alignment="center"
     )
 
     with col_logo:
-        st.image(LOGO_IMAGE_URL, width=170)
+        st.image(LOGO_IMAGE_URL, width=200)  # ✅ logo 大小在这里调（比如 170 / 185 / 200）
 
     with col_menu:
         if st.session_state.current_view not in ["login", "signup"]:
@@ -346,12 +332,34 @@ with st.container():
                 else st.session_state.last_menu_selection
             )
 
-            nav_html = '<div class="top-nav">'
-            for tab in menu_tabs:
-                cls = "active" if tab == active_tab else ""
-                nav_html += f'<a class="{cls}" href="?nav={tab}">{tab}</a>'
-            nav_html += '</div>'
-            st.markdown(nav_html, unsafe_allow_html=True)
+            st.markdown('<div class="nav-menu-row">', unsafe_allow_html=True)
+
+            # 为了让文字按钮精确对齐，按文字长度给不同列宽
+            if st.session_state.is_admin:
+                nav_cols = st.columns([1.35, 2.05, 2.15, 1.0, 1.0, 1.8])
+            else:
+                nav_cols = st.columns([1.35, 2.05, 2.15, 1.0, 1.0])
+
+            def render_nav_button(col, label, page_name, key_name):
+                wrapper_cls = "nav-text-btn nav-active" if active_tab == page_name else "nav-text-btn"
+                with col:
+                    st.markdown(f'<div class="{wrapper_cls}">', unsafe_allow_html=True)
+                    if st.button(label, key=key_name):
+                        st.session_state.current_view = page_name
+                        st.session_state.last_menu_selection = page_name
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+            render_nav_button(nav_cols[0], "Homepage", "Homepage", "nav_home_btn")
+            render_nav_button(nav_cols[1], "Browse Datasets", "Browse Datasets", "nav_browse_btn")
+            render_nav_button(nav_cols[2], "Contribute Data", "Contribute Data", "nav_contribute_btn")
+            render_nav_button(nav_cols[3], "About", "About", "nav_about_btn")
+            render_nav_button(nav_cols[4], "Contact", "Contact", "nav_contact_btn")
+
+            if st.session_state.is_admin:
+                render_nav_button(nav_cols[5], "Admin Dashboard", "Admin Dashboard", "nav_admin_btn")
+
+            st.markdown('</div>', unsafe_allow_html=True)
 
     with col_search:
         if st.session_state.current_view not in ["login", "signup"]:
@@ -366,9 +374,8 @@ with st.container():
 
     with col_icons:
         if st.session_state.current_view not in ["login", "signup"]:
-            st.markdown('<div class="icon-buttons">', unsafe_allow_html=True)
-
             c_icon1, c_icon2 = st.columns(2)
+
             with c_icon1:
                 st.markdown('<div class="icon-btn-wrap">', unsafe_allow_html=True)
                 if st.button("⚙", help="Settings", key="nav_settings_btn"):
@@ -382,8 +389,6 @@ with st.container():
                     st.session_state.current_view = "Notifications"
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
-
-            st.markdown('</div>', unsafe_allow_html=True)
 
     with col_auth:
         st.markdown('<div class="nav-auth">', unsafe_allow_html=True)
@@ -401,6 +406,7 @@ with st.container():
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
+
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
