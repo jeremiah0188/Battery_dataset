@@ -47,7 +47,7 @@ dynamic_css = f"""
 """
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
-# ================= 4. 企业级专业 CSS (按钮颜色与无边框设计) =================
+# ================= 4. 企业级专业 CSS =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -100,6 +100,18 @@ professional_css = """
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
     [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; border-radius: 3px 3px 0 0; }
 
+    /* 无边框列表行 Hover 样式 */
+    .dataset-list-row {
+        display: flex;
+        padding: 18px 24px;
+        font-size: 14px;
+        border-bottom: 1px solid #F1F5F9;
+        align-items: center;
+        transition: all 0.2s ease;
+        background-color: transparent;
+    }
+    .dataset-list-row:hover { background-color: #F8FAFC !important; }
+
     .hero-container {
         display: flex; align-items: center; justify-content: space-between;
         padding: 4.5rem 4rem; 
@@ -132,7 +144,7 @@ professional_css = """
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
-    /* Qlik 流式极简风格页脚 */
+    /* 流式极简风格页脚 */
     .custom-footer {
         width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B;
         font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; 
@@ -146,7 +158,7 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部完美居中悬浮导航栏 (已去掉外壳底板) =================
+# ================= 5. 顶部完美居中悬浮导航栏 (极致透明底板) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 col_logo, col_menu, col_auth = st.columns([1.5, 7, 1.2], vertical_alignment="center")
@@ -165,6 +177,7 @@ with col_menu:
         except ValueError:
             default_idx = 0
 
+        # 🚀 强力透明化：彻底剥离所有背景和外壳
         selected_page = option_menu(
             menu_title=None,
             options=menu_tabs,
@@ -174,9 +187,9 @@ with col_menu:
             styles={
                 "container": {
                     "padding": "0 !important",
-                    "background": "transparent",
-                    "border": "none",
-                    "box-shadow": "none",
+                    "background-color": "transparent !important",
+                    "border": "none !important",
+                    "box-shadow": "none !important",
                     "margin": "0 auto"
                 },
                 "icon": {"color": "#64748B", "font-size": "16px"},
@@ -245,6 +258,7 @@ if current_page == "login" and not st.session_state.is_admin:
             email_input = st.text_input("Email address", placeholder="name@company.com")
             pwd_input = st.text_input("Password", type="password", placeholder="••••••••")
             st.markdown("<br>", unsafe_allow_html=True)
+
             if st.button("Sign In", use_container_width=True):
                 if pwd_input == st.secrets.get("admin_password", ""):
                     st.session_state.is_admin = True
@@ -252,15 +266,53 @@ if current_page == "login" and not st.session_state.is_admin:
                     st.rerun()
                 else:
                     st.error("Invalid credentials.")
+
+            # 🚀 新增：如果没有账号，提供双向跳转选项
             st.markdown("<hr style='border-color: #E2E8F0; margin: 32px 0 24px 0;'>", unsafe_allow_html=True)
-            if st.button("Return Home", use_container_width=True):
-                st.session_state.current_view = "Homepage"
-                st.rerun()
+
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("Create an Account", use_container_width=True):
+                    st.session_state.current_view = "signup"
+                    st.rerun()
+            with c2:
+                if st.button("Return Home", use_container_width=True):
+                    st.session_state.current_view = "Homepage"
+                    st.rerun()
 
 # ----------------- 页面 B：注册页 (Sign Up) -----------------
 elif current_page == "signup" and not st.session_state.is_admin:
-    st.session_state.current_view = "login"
-    st.rerun()
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    _, col, _ = st.columns([1, 1.2, 1])
+    with col:
+        # 🚀 恢复：完整的注册账号页面流
+        with st.container(border=True):
+            st.markdown(
+                "<h2 style='font-size: 34px; font-weight: 900; color: #0F172A; margin-bottom: 8px; text-align: center;'>Create Account</h2>",
+                unsafe_allow_html=True)
+            st.markdown(
+                "<p style='color: #64748B; font-size: 15px; margin-bottom: 32px; line-height: 1.6; text-align: center;'>Join the Open Battery Dataset Portal to contribute and track your submissions.</p>",
+                unsafe_allow_html=True)
+
+            st.text_input("Full Name", placeholder="e.g. John Doe")
+            st.text_input("Email address", placeholder="name@company.com")
+            st.text_input("Password", type="password", placeholder="Create a strong password")
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            if st.button("Register Account", use_container_width=True):
+                st.info("Registration is temporarily closed. Please contact the administrator.")
+
+            st.markdown("<hr style='border-color: #E2E8F0; margin: 32px 0 24px 0;'>", unsafe_allow_html=True)
+
+            c3, c4 = st.columns(2)
+            with c3:
+                if st.button("Already have an account? Sign In", use_container_width=True):
+                    st.session_state.current_view = "login"
+                    st.rerun()
+            with c4:
+                if st.button("Return to Homepage", use_container_width=True):
+                    st.session_state.current_view = "Homepage"
+                    st.rerun()
 
 # ----------------- 页面 C：Homepage -----------------
 elif current_page == "Homepage":
@@ -360,7 +412,6 @@ elif current_page == "Browse Datasets":
         if sel_subcategory != "All" and 'Sub-category' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['Sub-category'] == sel_subcategory]
 
-        # 🚀 深度优化 1：Web 产品目录风格的 Toolbar (融入 Result Counter)
         st.markdown(f"""
         <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.7); padding: 12px 20px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 20px;">
             <div style="font-size: 15px; font-weight: 700; color: #0F172A;">
@@ -373,18 +424,15 @@ elif current_page == "Browse Datasets":
         """, unsafe_allow_html=True)
 
         if not filtered_df.empty:
-            # 🚀 深度优化 2 & 3 & 4：纯 HTML 无边框可悬停的 Web List
-            html_table = '''
-            <div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                <div style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <div style="flex: 2.5;">Dataset Name</div>
-                    <div style="flex: 1.5;">Author</div>
-                    <div style="flex: 1;">Domain</div>
-                    <div style="flex: 0.8; text-align: right;">Action</div>
-                </div>
-            '''
+            html_parts = []
+            html_parts.append(
+                '<div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">')
+            html_parts.append(
+                '<div style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">')
+            html_parts.append(
+                '<div style="flex: 2.5;">Dataset Name</div><div style="flex: 1.5;">Author</div><div style="flex: 1;">Domain</div><div style="flex: 0.8; text-align: right;">Action</div></div>')
+
             for _, row in filtered_df.iterrows():
-                # 智能提取第一作者 (et al.) 逻辑
                 raw_author = str(row.get('Author', 'Unspecified')).strip()
                 if raw_author in ['Unspecified', 'N/A', '', 'nan']:
                     display_author = '<span style="color:#94A3B8; font-style:italic;">Unspecified</span>'
@@ -403,24 +451,21 @@ elif current_page == "Browse Datasets":
                 ds_name = row.get('Dataset Name', 'Unnamed')
                 domain = row.get('Domain', 'N/A')
 
-                # 构建列表行 (去除竖线、高亮Hover、增加假按钮)
-                html_table += f'''
-                <div style="display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease;" 
-                     onmouseover="this.style.backgroundColor='#F8FAFC'" onmouseout="this.style.backgroundColor='transparent'">
-                    <div style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>
-                    <div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>
-                    <div style="flex: 1; color: #64748B;">
-                        <span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span>
-                    </div>
-                    <div style="flex: 0.8; text-align: right;">
-                        <span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: default;">View ↓</span>
-                    </div>
-                </div>
-                '''
-            html_table += "</div>"
-            st.markdown(html_table, unsafe_allow_html=True)
+                html_parts.append('<div class="dataset-list-row">')
+                html_parts.append(
+                    f'<div style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
+                html_parts.append(
+                    f'<div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>')
+                html_parts.append(
+                    f'<div style="flex: 1; color: #64748B;"><span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span></div>')
+                html_parts.append(
+                    '<div style="flex: 0.8; text-align: right;"><span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: default;">View ↓</span></div>')
+                html_parts.append('</div>')
 
-            # --- 下方保留 Selectbox 作为真实触发详情的媒介 ---
+            html_parts.append('</div>')
+            final_list_html = "".join(html_parts)
+            st.markdown(final_list_html, unsafe_allow_html=True)
+
             st.markdown(
                 '<div class="section-header header-teal" style="margin-top: 32px;"><h2>📖 Dataset Details</h2></div>',
                 unsafe_allow_html=True)
