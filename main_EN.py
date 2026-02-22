@@ -78,47 +78,42 @@ professional_css = """
 }
 
 /* ==============================================================
-   🎯 导航栏修复核心 (限制在顶级子元素，防止隐藏整个网页！)
+   🎯 导航栏核心修复
+   策略：在同一个 st.container() 里用 CSS class 区分桌面/手机，
+   通过 media query 切换，完全避免 Streamlit 双重渲染。
    ============================================================== */
 
-/* 1. 强制去除桌面导航底层的任何白卡背景（消灭矩形白块） */
-.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) {
+/* 导航外层容器 — 去除所有白卡样式 */
+.nav-wrapper,
+.nav-wrapper [data-testid="stVerticalBlockBorderWrapper"],
+.nav-wrapper [data-testid="stHorizontalBlock"],
+.nav-wrapper div[data-testid="column"] {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
     padding: 0 !important;
-    margin-bottom: 14px !important;
+    margin-bottom: 0 !important;
+}
+
+/* 滑入动画 */
+.nav-wrapper {
     animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    margin-bottom: 14px !important;
 }
-
-.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) [data-testid="stVerticalBlockBorderWrapper"],
-.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) [data-testid="stHorizontalBlock"],
-.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) div[data-testid="column"] {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    padding: 0 !important;
-}
-
 @keyframes headerSlideDown {
-    0% { opacity: 0; transform: translateY(-24px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0%  { opacity: 0; transform: translateY(-24px); }
+    100%{ opacity: 1; transform: translateY(0); }
 }
 
-/* 2. 响应式显示控制（精准靶向，避免双重渲染） */
+/* 桌面部分 — 默认显示 */
+.nav-desktop { display: block !important; }
+/* 手机部分 — 默认隐藏 */
+.nav-mobile  { display: none  !important; }
+
 @media (max-width: 768px) {
-    /* 手机端：彻底隐藏桌面导航外壳 */
-    .block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) {
-        display: none !important;
-    }
-}
-@media (min-width: 769px) {
-    /* 桌面端：彻底隐藏手机导航外壳 */
-    .block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.mobile-nav-marker) {
-        display: none !important;
-    }
+    .nav-desktop { display: none  !important; }
+    .nav-mobile  { display: block !important; }
 }
 
 /* 全局按钮 */
@@ -338,7 +333,7 @@ professional_css = """
 .footer-separator { color: #CBD5E1; }
 .footer-copyright { color: #94A3B8; font-size: 12px; }
 
-/* 手机抽屉导航 UI 样式 */
+/* 手机导航卡片样式 */
 .mobile-nav-card {
     background: rgba(255,255,255,0.96);
     border: 1px solid rgba(226,232,240,0.85);
@@ -369,7 +364,7 @@ professional_css = """
     border-color: #4A6D5F !important;
 }
 
-/* ===== 其它响应式调整 ===== */
+/* ===== 响应式调整 ===== */
 @media (max-width: 1024px) {
     .hero-container {
         flex-direction: column !important;
@@ -463,7 +458,11 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏（桌面 + 手机抽屉） =================
+# ================= 5. 顶部导航栏 =================
+# 关键修复：桌面和手机导航放在同一个 st.container() 中，
+# 用 <div class="nav-desktop"> / <div class="nav-mobile"> 包裹 HTML，
+# 通过 CSS media query 切换显示，完全消灭双重 Streamlit 渲染问题。
+
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
@@ -474,137 +473,129 @@ if st.session_state.is_admin:
 else:
     menu_icons = base_icons
 
-# ---- Desktop Nav ----
-with st.container():
-    # 注入隐形锚点标记以供 CSS :has 选择器使用
-    st.markdown('<span class="desktop-nav-marker"></span>', unsafe_allow_html=True)
+# ── 用 st.markdown 注入 nav-wrapper 开标签，让后续 Streamlit 组件都在其"视觉范围"内 ──
+st.markdown('<div class="nav-wrapper">', unsafe_allow_html=True)
 
-    col_logo, col_menu, col_auth = st.columns([1.55, 7.6, 1.2], vertical_alignment="center")
+# ─── 桌面导航（用不可见 div 包裹，手机端由 CSS 隐藏）───
+st.markdown('<div class="nav-desktop">', unsafe_allow_html=True)
+col_logo, col_menu, col_auth = st.columns([1.55, 7.6, 1.2], vertical_alignment="center")
 
-    with col_logo:
-        st.image(LOGO_IMAGE_URL, width=190)
+with col_logo:
+    st.image(LOGO_IMAGE_URL, width=190)
 
-    with col_menu:
+with col_menu:
+    if st.session_state.current_view not in ["login", "signup"]:
+        try:
+            default_idx = menu_tabs.index(st.session_state.current_view)
+        except ValueError:
+            default_idx = 0
+
+        selected_page = option_menu(
+            menu_title=None,
+            options=menu_tabs,
+            icons=menu_icons,
+            default_index=default_idx,
+            orientation="horizontal",
+            styles={
+                "container": {
+                    "padding": "6px 10px !important",
+                    "background-color": "rgba(255, 255, 255, 0.96) !important",
+                    "border": "1px solid rgba(226, 232, 240, 0.85) !important",
+                    "border-radius": "100px !important",
+                    "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
+                    "margin": "0",
+                    "width": "fit-content",
+                    "min-width": "760px",
+                    "max-width": "100%"
+                },
+                "icon": {"color": "#64748B", "font-size": "16px"},
+                "nav-link": {
+                    "font-size": "14px",
+                    "font-weight": "700",
+                    "color": "#475569",
+                    "padding": "10px 16px",
+                    "margin": "0 4px",
+                    "border-radius": "999px",
+                    "white-space": "nowrap",
+                    "transition": "all 0.25s ease"
+                },
+                "nav-link-selected": {
+                    "background-color": "#4A6D5F",
+                    "color": "#FFFFFF",
+                    "font-weight": "800",
+                    "border-radius": "999px",
+                    "box-shadow": "0 4px 12px rgba(74,109,95,0.25)"
+                },
+            }
+        )
+
+        if selected_page != st.session_state.current_view:
+            st.session_state.current_view = selected_page
+            st.rerun()
+
+with col_auth:
+    if st.session_state.is_admin:
+        if st.button("Log Out", key="desktop_logout"):
+            st.session_state.is_admin = False
+            st.session_state.current_view = "Homepage"
+            st.rerun()
+    else:
         if st.session_state.current_view not in ["login", "signup"]:
-            try:
-                default_idx = menu_tabs.index(st.session_state.current_view)
-            except ValueError:
-                default_idx = 0
-
-            selected_page = option_menu(
-                menu_title=None,
-                options=menu_tabs,
-                icons=menu_icons,
-                default_index=default_idx,
-                orientation="horizontal",
-                styles={
-                    "container": {
-                        "padding": "6px 10px !important",
-                        "background-color": "rgba(255, 255, 255, 0.96) !important",
-                        "border": "1px solid rgba(226, 232, 240, 0.85) !important",
-                        "border-radius": "100px !important",
-                        "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
-                        "margin": "0",
-                        "width": "fit-content",
-                        "min-width": "760px",
-                        "max-width": "100%"
-                    },
-                    "icon": {
-                        "color": "#64748B",
-                        "font-size": "16px"
-                    },
-                    "nav-link": {
-                        "font-size": "14px",
-                        "font-weight": "700",
-                        "color": "#475569",
-                        "padding": "10px 16px",
-                        "margin": "0 4px",
-                        "border-radius": "999px",
-                        "white-space": "nowrap",
-                        "transition": "all 0.25s ease"
-                    },
-                    "nav-link-selected": {
-                        "background-color": "#4A6D5F",
-                        "color": "#FFFFFF",
-                        "font-weight": "800",
-                        "border-radius": "999px",
-                        "box-shadow": "0 4px 12px rgba(74,109,95,0.25)"
-                    },
-                }
-            )
-
-            if selected_page != st.session_state.current_view:
-                st.session_state.current_view = selected_page
+            if st.button("Sign In", key="desktop_signin"):
+                st.session_state.current_view = "login"
                 st.rerun()
 
-    with col_auth:
+st.markdown('</div>', unsafe_allow_html=True)  # /.nav-desktop
+
+# ─── 手机导航（用不可见 div 包裹，桌面端由 CSS 隐藏）───
+st.markdown('<div class="nav-mobile">', unsafe_allow_html=True)
+st.markdown('<div class="mobile-nav-card">', unsafe_allow_html=True)
+
+top_left, top_right = st.columns([5, 2], vertical_alignment="center")
+with top_left:
+    st.image(LOGO_IMAGE_URL, width=145)
+with top_right:
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("☰", key="mobile_menu_toggle", use_container_width=True):
+            st.session_state.mobile_menu_open = not st.session_state.mobile_menu_open
+            st.rerun()
+    with b2:
         if st.session_state.is_admin:
-            if st.button("Log Out", key="desktop_logout"):
+            if st.button("⎋", key="mobile_logout", use_container_width=True):
                 st.session_state.is_admin = False
                 st.session_state.current_view = "Homepage"
+                st.session_state.mobile_menu_open = False
                 st.rerun()
         else:
             if st.session_state.current_view not in ["login", "signup"]:
-                if st.button("Sign In", key="desktop_signin"):
+                if st.button("⇥", key="mobile_signin", use_container_width=True):
                     st.session_state.current_view = "login"
-                    st.rerun()
-
-# ---- Mobile Drawer Nav ----
-with st.container():
-    # 注入隐形锚点标记以供 CSS :has 选择器使用
-    st.markdown('<span class="mobile-nav-marker"></span>', unsafe_allow_html=True)
-
-    st.markdown('<div class="mobile-nav-card">', unsafe_allow_html=True)
-
-    top_left, top_right = st.columns([5, 2], vertical_alignment="center")
-    with top_left:
-        st.image(LOGO_IMAGE_URL, width=145)
-    with top_right:
-        b1, b2 = st.columns(2)
-        with b1:
-            if st.button("☰", key="mobile_menu_toggle", use_container_width=True):
-                st.session_state.mobile_menu_open = not st.session_state.mobile_menu_open
-                st.rerun()
-        with b2:
-            if st.session_state.is_admin:
-                if st.button("⎋", key="mobile_logout", use_container_width=True):
-                    st.session_state.is_admin = False
-                    st.session_state.current_view = "Homepage"
                     st.session_state.mobile_menu_open = False
                     st.rerun()
-            else:
-                if st.session_state.current_view not in ["login", "signup"]:
-                    if st.button("⇥", key="mobile_signin", use_container_width=True):
-                        st.session_state.current_view = "login"
-                        st.session_state.mobile_menu_open = False
-                        st.rerun()
 
-    if st.session_state.current_view not in ["login", "signup"] and st.session_state.mobile_menu_open:
-        st.markdown('<div class="mobile-nav-menu">', unsafe_allow_html=True)
-
-        icon_map = {
-            "Homepage": "🏠",
-            "Browse Datasets": "🔎",
-            "Contribute Data": "☁️",
-            "About": "ℹ️",
-            "Contact": "✉️",
-            "Admin Dashboard": "🛡️"
-        }
-
-        for page in menu_tabs:
-            is_active = (st.session_state.current_view == page)
-            active_cls = "active" if is_active else ""
-            st.markdown(f'<div class="mobile-nav-item-btn {active_cls}">', unsafe_allow_html=True)
-            label = f'{icon_map.get(page, "•")}  {page}'
-            if st.button(label, key=f"mobile_nav_{page}", use_container_width=True):
-                st.session_state.current_view = page
-                st.session_state.mobile_menu_open = False
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-
+if st.session_state.current_view not in ["login", "signup"] and st.session_state.mobile_menu_open:
+    st.markdown('<div class="mobile-nav-menu">', unsafe_allow_html=True)
+    icon_map = {
+        "Homepage": "🏠", "Browse Datasets": "🔎", "Contribute Data": "☁️",
+        "About": "ℹ️", "Contact": "✉️", "Admin Dashboard": "🛡️"
+    }
+    for page in menu_tabs:
+        is_active = (st.session_state.current_view == page)
+        active_cls = "active" if is_active else ""
+        st.markdown(f'<div class="mobile-nav-item-btn {active_cls}">', unsafe_allow_html=True)
+        label = f'{icon_map.get(page, "•")}  {page}'
+        if st.button(label, key=f"mobile_nav_{page}", use_container_width=True):
+            st.session_state.current_view = page
+            st.session_state.mobile_menu_open = False
+            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)  # /.mobile-nav-menu
 
-    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)  # /.mobile-nav-card
+st.markdown('</div>', unsafe_allow_html=True)  # /.nav-mobile
+
+st.markdown('</div>', unsafe_allow_html=True)  # /.nav-wrapper
 
 # ================= 6. Google Sheets =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -661,10 +652,8 @@ if current_page == "login" and not st.session_state.is_admin:
                 "<p style='color: #64748B; font-size: 14px; margin-bottom: 24px; line-height: 1.6; text-align: center;'>Sign in to access the contributor dashboard.</p>",
                 unsafe_allow_html=True
             )
-
             st.text_input("Email address", placeholder="name@company.com")
             pwd_input = st.text_input("Password", type="password", placeholder="••••••••")
-
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Sign In", use_container_width=True):
                 if pwd_input == st.secrets.get("admin_password", ""):
@@ -674,7 +663,6 @@ if current_page == "login" and not st.session_state.is_admin:
                     st.rerun()
                 else:
                     st.error("Invalid credentials.")
-
             st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0 18px 0;'>", unsafe_allow_html=True)
             c1, c2 = st.columns(2)
             with c1:
@@ -700,15 +688,12 @@ elif current_page == "signup" and not st.session_state.is_admin:
                 "<p style='color: #64748B; font-size: 14px; margin-bottom: 24px; line-height: 1.6; text-align: center;'>Join the Open Battery Dataset Portal to contribute and track your submissions.</p>",
                 unsafe_allow_html=True
             )
-
             st.text_input("Full Name", placeholder="e.g. John Doe")
             st.text_input("Email address", placeholder="name@company.com", key="signup_email")
             st.text_input("Password", type="password", placeholder="Create a strong password", key="signup_password")
-
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Register Account", use_container_width=True):
                 st.info("Registration is temporarily closed. Please contact the administrator.")
-
             st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0 18px 0;'>", unsafe_allow_html=True)
             c3, c4 = st.columns(2)
             with c3:
@@ -795,12 +780,10 @@ elif current_page == "Browse Datasets":
             search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
                                       placeholder="e.g. Oxford, NMC, EIS...")
             st.session_state.search_kw = search_kw
-
             st.markdown("<hr style='border-color: #E2E8F0; margin: 12px 0;'>", unsafe_allow_html=True)
             sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
             sel_category = "All"
             sel_subcategory = "All"
-
             if sel_domain == "Energy":
                 sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
                 if sel_category == "Battery":
@@ -813,8 +796,7 @@ elif current_page == "Browse Datasets":
         filtered_df = public_df.copy()
 
         if search_kw:
-            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(
-                axis=1)
+            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(axis=1)
             filtered_df = filtered_df[mask]
         if sel_domain != "All" and 'Domain' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['Domain'] == sel_domain]
@@ -834,8 +816,6 @@ elif current_page == "Browse Datasets":
 
         if not filtered_df.empty:
             html_parts = []
-
-            # 桌面表格
             html_parts.append(
                 '<div class="desktop-dataset-list" style="border:1px solid #E2E8F0; border-radius:12px; overflow:hidden; background:#FFFFFF; margin-bottom:18px; box-shadow:0 4px 20px rgba(0,0,0,0.02);">'
             )
@@ -845,24 +825,18 @@ elif current_page == "Browse Datasets":
             html_parts.append(
                 '<div style="flex:2.5;">Dataset Name</div><div style="flex:1.5;">Author</div><div style="flex:1;">Domain</div><div style="flex:0.8; text-align:right;">Action</div></div>'
             )
-
             for _, row in filtered_df.iterrows():
                 raw_author, display_author = safe_author_display(row.get('Author', 'Unspecified'))
                 ds_name = row.get('Dataset Name', 'Unnamed')
                 domain = row.get('Domain', 'N/A')
-
                 html_parts.append('<div class="dataset-list-row">')
                 html_parts.append(f'<div class="ds-name" style="flex:2.5; padding-right:12px;">{ds_name}</div>')
-                html_parts.append(
-                    f'<div style="flex:1.5; color:#475569; padding-right:12px;" title="{raw_author}">{display_author}</div>')
-                html_parts.append(
-                    f'<div style="flex:1; color:#64748B;"><span style="background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;">{domain}</span></div>')
-                html_parts.append(
-                    '<div style="flex:0.8; text-align:right;"><span style="background:#F0FDF4; color:#166534; border:1px solid #DCFCE7; padding:5px 10px; border-radius:999px; font-size:11px; font-weight:700;">View ↓</span></div>')
+                html_parts.append(f'<div style="flex:1.5; color:#475569; padding-right:12px;" title="{raw_author}">{display_author}</div>')
+                html_parts.append(f'<div style="flex:1; color:#64748B;"><span style="background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;">{domain}</span></div>')
+                html_parts.append('<div style="flex:0.8; text-align:right;"><span style="background:#F0FDF4; color:#166534; border:1px solid #DCFCE7; padding:5px 10px; border-radius:999px; font-size:11px; font-weight:700;">View ↓</span></div>')
                 html_parts.append('</div>')
             html_parts.append('</div>')
 
-            # 手机卡片
             html_parts.append('<div class="mobile-dataset-list" style="display:none;">')
             for _, row in filtered_df.iterrows():
                 raw_author = str(row.get('Author', 'Unspecified'))
@@ -873,9 +847,7 @@ elif current_page == "Browse Datasets":
                 if short_desc and short_desc.lower() not in ["nan", "none"]:
                     desc_trim = short_desc[:90] + ("..." if len(short_desc) > 90 else "")
                     short_desc_html = f'<div class="mobile-meta-row">{desc_trim}</div>'
-
-                html_parts.append(
-                    f'''
+                html_parts.append(f'''
                     <div class="mobile-dataset-card">
                         <div class="mobile-dataset-title">{ds_name}</div>
                         <div class="mobile-meta-row"><strong style="color:#334155;">Author:</strong> {raw_author if raw_author not in ["", "nan"] else "Unspecified"}</div>
@@ -883,11 +855,8 @@ elif current_page == "Browse Datasets":
                         {short_desc_html}
                         <span class="mobile-action">View details ↓</span>
                     </div>
-                    '''
-                )
+                ''')
             html_parts.append('</div>')
-
-            # 控制显示
             html_parts.append("""
             <style>
             @media (max-width: 768px){
@@ -897,14 +866,10 @@ elif current_page == "Browse Datasets":
             }
             </style>
             """)
-
             st.markdown("".join(html_parts), unsafe_allow_html=True)
 
-            st.markdown('<div class="section-header header-teal"><h2>📖 Dataset Details</h2></div>',
-                        unsafe_allow_html=True)
-
-            valid_datasets = filtered_df[
-                filtered_df['Dataset Name'] != ''] if 'Dataset Name' in filtered_df.columns else filtered_df
+            st.markdown('<div class="section-header header-teal"><h2>📖 Dataset Details</h2></div>', unsafe_allow_html=True)
+            valid_datasets = filtered_df[filtered_df['Dataset Name'] != ''] if 'Dataset Name' in filtered_df.columns else filtered_df
             selected_dataset = st.selectbox(
                 "Select a dataset to view full details:",
                 ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
@@ -913,13 +878,11 @@ elif current_page == "Browse Datasets":
 
             if selected_dataset != "(Select to view)":
                 details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
-
                 details_html = (
                     '<div style="background: rgba(255,255,255,0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.65); border-radius: 18px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04); padding: 20px; margin-bottom: 18px;">'
                     f'<h2 style="font-size: 24px; font-weight:900; color:#0F172A; margin-bottom: 6px; line-height:1.25;">{selected_dataset}</h2>'
                     f'<p style="color:#64748B; font-size: 14px; margin-bottom: 16px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
                 )
-
                 link = str(details.get('Link', '')).strip()
                 if link.startswith('http'):
                     details_html += (
@@ -927,11 +890,9 @@ elif current_page == "Browse Datasets":
                         f'<a href="{link}" target="_blank" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:10px 18px; text-decoration:none; border-radius:999px; font-weight:700; font-size:13px;">🔗 Download / Visit Source</a>'
                         '</div>'
                     )
-
                 details_html += '<div class="metadata-grid">'
                 for col_name in df.columns:
-                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status',
-                                                                                                     'Dataset Name']:
+                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status', 'Dataset Name']:
                         val = str(details.get(col_name, '')).strip()
                         if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
                             details_html += (
@@ -939,7 +900,6 @@ elif current_page == "Browse Datasets":
                                 f'<div class="metadata-value">{val}</div></div>'
                             )
                 details_html += '</div>'
-
                 details_html += (
                     '<div style="margin-top:18px; padding:12px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;">'
                     '<h4 style="margin:0 0 6px 0; font-size:13px; color:#0F172A;">📚 How to Cite</h4>'
@@ -953,48 +913,35 @@ elif current_page == "Browse Datasets":
 
 # ----------------- Contribute Data -----------------
 elif current_page == "Contribute Data":
-    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>', unsafe_allow_html=True)
     tab_submit, tab_request, tab_guide = st.tabs(["Submit a Dataset", "Request a Dataset", "Submission Guidelines"])
 
     with tab_submit:
         with st.container(border=True):
-            st.write(
-                "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+            st.write("Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
             with st.form("upload_form", border=False):
                 c1, c2 = st.columns(2)
                 new_name = c1.text_input("Dataset Name *")
                 new_desc = c2.text_input("Short Description *")
-
                 c1b, c2b, c3b = st.columns(3)
-                new_domain = c1b.selectbox("Domain *",
-                                           ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
+                new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
                 new_category = c2b.text_input("Category (e.g., Battery, Grid)")
                 new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
-
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
-
                 c8, c9 = st.columns(2)
                 new_contributor = c8.text_input("Contributor Name *")
                 new_email = c9.text_input("Contact Email (Optional)")
-
                 if st.form_submit_button("Submit to Moderation Queue"):
                     if not new_name or not new_domain or not new_link or not new_contributor:
                         st.error("Please fill in all required fields marked with *")
                     else:
                         new_row = {c: "" for c in df.columns}
                         new_row.update({
-                            'Dataset Name': new_name,
-                            'Domain': new_domain,
-                            'Category': new_category,
-                            'Sub-category': new_subcat,
-                            'Short Description': new_desc,
-                            'Link': new_link,
-                            'Source Organization': new_org,
-                            'Author': new_contributor,
-                            'Contributor Email': new_email,
-                            'Status': 'Pending'
+                            'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category,
+                            'Sub-category': new_subcat, 'Short Description': new_desc, 'Link': new_link,
+                            'Source Organization': new_org, 'Author': new_contributor,
+                            'Contributor Email': new_email, 'Status': 'Pending'
                         })
                         updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
                         conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
@@ -1004,8 +951,7 @@ elif current_page == "Contribute Data":
     with tab_request:
         with st.container(border=True):
             st.markdown("### Can't find what you're looking for?")
-            st.write(
-                "Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
+            st.write("Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
             with st.form("request_form", border=False):
                 st.text_input("Requested Topic / Dataset Name *", placeholder="e.g. Real-world EV charging profiles")
                 st.text_area("Additional Details", placeholder="Specify chemistry, format, test conditions, etc.")
