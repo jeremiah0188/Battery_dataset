@@ -63,7 +63,26 @@ professional_css = """
         padding-bottom: 2rem !important; 
     }
 
-    /* 全局白卡样式 */
+    /* ================= 🚀 核心修复：外层导航去白卡化 ================= */
+    /* 精准选中包含 header-wrapper 的外层区块，强制清空背景、边框和阴影 */
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper),
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper) > [data-testid="stVerticalBlockBorderWrapper"] {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-bottom: 1rem !important;
+        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    @keyframes headerSlideDown {
+        0% { opacity: 0; transform: translateY(-40px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    /* ============================================================= */
+
+    /* 全局内容白卡样式 (仅作用于非导航部分，因为导航部分被上面排除了) */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
@@ -75,32 +94,6 @@ professional_css = """
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
-
-    /* 🚀 新增：导航条 Header Wrapper 专属去白卡与入场动画 */
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper) {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        margin-bottom: 1rem !important;
-        /* 平滑过渡与下拉入场动画 */
-        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        z-index: 99; 
-    }
-
-    /* 强制清除导航条内部可能的白卡污染 */
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper) [data-testid="stVerticalBlockBorderWrapper"] {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-    }
-
-    @keyframes headerSlideDown {
-        0% { opacity: 0; transform: translateY(-40px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
 
     /* 全局按钮 Slate Gray (#708090) */
     .stButton>button { 
@@ -201,12 +194,12 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏 (🚀 加宽并毛玻璃化 + 动画包裹) =================
+# ================= 5. 顶部导航栏 (🚀 外层彻底透明，内层胶囊实体化) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-# 使用 st.container 包裹整个导航条，并注入 header-wrapper 锚点供 CSS 识别去白卡和加动画
+# 使用 st.container 包裹，并打上 header-wrapper 的锚点
 with st.container():
-    st.markdown('<div class="header-wrapper"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="header-wrapper" style="display:none;"></div>', unsafe_allow_html=True)
 
     col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
 
@@ -224,51 +217,48 @@ with st.container():
             except ValueError:
                 default_idx = 0
 
-                # 🚀 导航栏毛玻璃宽胶囊设计（已增强白底、添加过渡动画与 Hover 标记）
-                selected_page = option_menu(
-                    menu_title=None,
-                    options=menu_tabs,
-                    icons=['house', 'search', 'cloud-upload', 'info-circle', 'envelope', 'shield-lock'],
-                    default_index=default_idx,
-                    orientation="horizontal",
-                    styles={
-                        "container": {
-                            "padding": "6px 12px !important",
-                            "background-color": "rgba(255, 255, 255, 0.95) !important",  # 增强白底，确保外层胶囊清晰可见
-                            "border": "1px solid rgba(226, 232, 240, 0.9) !important",
-                            "border-radius": "100px !important",  # 大圆角宽胶囊
-                            "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.06) !important",
-                            "margin": "0 auto",
-                            "width": "100%",
-                            "display": "flex",
-                            "align-items": "center",
-                            "justify-content": "center"
-                        },
-                        "icon": {
-                            "color": "#64748B",
-                            "font-size": "16px",
-                            "transition": "color 0.3s ease"
-                        },
-                        "nav-link": {
-                            "font-size": "15px",
-                            "font-weight": "700",
-                            "color": "#475569",
-                            "padding": "10px 20px",
-                            "margin": "0 4px",
-                            "border-radius": "50px",
-                            "transition": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",  # ✨ 加入丝滑的缩放和颜色过渡动画
-                            "--hover-color": "#F1F5F9"  # ✨ 鼠标悬浮时出现的浅灰色背景标记
-                        },
-                        "nav-link-selected": {
-                            "background-color": "#4A6D5F",
-                            "color": "#FFFFFF",
-                            "font-weight": "800",
-                            "icon-color": "#FFFFFF",
-                            "border-radius": "50px",
-                            "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
-                        },
-                    }
-                )
+            # 🚀 导航栏菜单内部样式 (悬浮动画、选中变色全部集中在这里)
+            selected_page = option_menu(
+                menu_title=None,
+                options=menu_tabs,
+                icons=['house', 'search', 'cloud-upload', 'info-circle', 'envelope', 'shield-lock'],
+                default_index=default_idx,
+                orientation="horizontal",
+                styles={
+                    "container": {
+                        "padding": "6px 12px !important",
+                        "background-color": "rgba(255, 255, 255, 0.95) !important",  # 清晰可见的白色胶囊本体
+                        "border": "1px solid rgba(226, 232, 240, 0.8) !important",
+                        "border-radius": "100px !important",  # 大圆角
+                        "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
+                        "margin": "0 auto",
+                        "width": "100%"
+                    },
+                    "icon": {
+                        "color": "#64748B",
+                        "font-size": "16px",
+                        "transition": "color 0.3s ease"
+                    },
+                    "nav-link": {
+                        "font-size": "15px",
+                        "font-weight": "700",
+                        "color": "#475569",
+                        "padding": "10px 20px",
+                        "margin": "0 4px",
+                        "border-radius": "50px",
+                        "transition": "all 0.3s ease",  # 悬浮变色过渡动画
+                        "--hover-color": "#F1F5F9"  # 鼠标悬浮时出现的浅灰色背景标记
+                    },
+                    "nav-link-selected": {
+                        "background-color": "#4A6D5F",
+                        "color": "#FFFFFF",
+                        "font-weight": "800",
+                        "icon-color": "#FFFFFF",
+                        "border-radius": "50px",
+                        "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
+                    },
+                }
+            )
             if selected_page != st.session_state.current_view:
                 st.session_state.current_view = selected_page
                 st.rerun()
