@@ -22,7 +22,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"  # 全局彻底关闭侧边栏
 )
 
-# ================= 3. 企业级专业 CSS (Qlik SaaS Style) =================
+# ================= 3. 企业级专业 CSS (高阶视觉版) =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -41,31 +41,64 @@ professional_css = """
     [data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
     .block-container { padding-top: 5rem !important; }
 
-    /* 🚀 顶部居中导航栏 (Tabs) - 巨型字体 & 加粗无图标版 */
+    /* 🚀 顶部居中导航栏 (Tabs) - 差异化超大字体与多彩设计 */
     .stTabs [data-baseweb="tab-list"] {
         justify-content: center;
         background: #FFFFFF;
-        border-radius: 16px;
-        padding: 12px 24px;
-        gap: 24px;
+        border-radius: 20px;
+        padding: 16px 30px;
+        gap: 30px;
         border: 1px solid #E2E8F0;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2.5rem;
+        align-items: baseline; /* 底部对齐以适应不同字号 */
     }
+
     .stTabs [data-baseweb="tab"] {
-        height: 64px;
-        border-radius: 12px;
         background-color: transparent;
-        color: #64748B;
-        font-weight: 800 !important; /* 超粗体 */
-        font-size: 32px !important; /* 字体加大两倍 */
-        padding: 0 24px;
-        transition: all 0.3s;
+        font-weight: 900 !important; /* 统一超粗体 */
+        padding: 10px 20px;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* 👉 第1个 Tab: Homepage */
+    .stTabs [data-baseweb="tab"]:nth-child(1) {
+        font-size: 38px !important; 
+        color: #3B82F6 !important; /* 科技蓝 */
+    }
+    /* 👉 第2个 Tab: Browse Datasets */
+    .stTabs [data-baseweb="tab"]:nth-child(2) {
+        font-size: 34px !important; 
+        color: #10B981 !important; /* 翡翠绿 */
+    }
+    /* 👉 第3个 Tab: Contribute Data */
+    .stTabs [data-baseweb="tab"]:nth-child(3) {
+        font-size: 30px !important; 
+        color: #8B5CF6 !important; /* 紫水晶 */
+    }
+    /* 👉 第4个 Tab: About */
+    .stTabs [data-baseweb="tab"]:nth-child(4) {
+        font-size: 26px !important; 
+        color: #F59E0B !important; /* 琥珀橙 */
+    }
+    /* 👉 第5个 Tab: Contact */
+    .stTabs [data-baseweb="tab"]:nth-child(5) {
+        font-size: 24px !important; 
+        color: #EC4899 !important; /* 玫瑰粉 */
+    }
+    /* 👉 第6个 Tab: Admin Dashboard (如有) */
+    .stTabs [data-baseweb="tab"]:nth-child(6) {
+        font-size: 24px !important; 
+        color: #0F172A !important; 
+    }
+
+    /* Tab 选中时的状态：统一添加极浅的灰底突出显示 */
     .stTabs [aria-selected="true"] {
         background-color: #F1F5F9 !important;
-        color: #0F172A !important;
-        box-shadow: none;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border-bottom: none !important;
     }
 
     /* 纯白内容卡片 (Research Card) */
@@ -92,13 +125,11 @@ professional_css = """
     .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.6; margin-bottom: 2rem; }
 
     .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .bento-card { border-radius: 16px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s; }
-    .bento-card:hover { transform: translateY(-5px); }
-    .card-tall { grid-row: span 2; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; min-height: 360px; }
-    .card-short-1 { background: #0F766E; color: white; min-height: 160px; }
-    .card-short-2 { background: #F1F5F9; color: #0F172A; min-height: 160px; border: 1px solid #E2E8F0;}
+    .bento-card { border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 8px 25px rgba(0,0,0,0.04); transition: transform 0.3s; border: 1px solid rgba(255,255,255,0.5); }
+    .bento-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
 
-    .chem-tag { background:#FFFFFF; padding:6px 14px; border-radius:20px; font-size:13px; font-weight:700; box-shadow:0 2px 5px rgba(0,0,0,0.05); color:#0F172A;}
+    /* 胶囊标签优化 */
+    .chem-tag { background: rgba(255,255,255,0.7); padding:6px 14px; border-radius:20px; font-size:13px; font-weight:800; box-shadow:0 2px 5px rgba(0,0,0,0.03); color:#0F172A; border: 1px solid rgba(0,0,0,0.05);}
 
     /* 区块标题 */
     .section-header { border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 24px; margin-bottom: 20px; background: #FFFFFF; }
@@ -109,7 +140,8 @@ professional_css = """
 
     /* Metadata Grid */
     .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
-    .metadata-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px; }
+    .metadata-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px; transition: 0.2s; }
+    .metadata-item:hover { background: #FFFFFF; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
@@ -117,7 +149,7 @@ professional_css = """
     .stButton>button { background-color: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; font-weight: 700; border-radius: 8px; transition: all 0.2s; height: 45px;}
     .stButton>button:hover { border-color: #0F766E; color: #0F766E; background-color: #F0FDF4; }
 
-    /* 自定义悬浮顶部导航栏 (带自定义Logo) */
+    /* 自定义悬浮顶部导航栏 */
     .custom-top-navbar {
         position: fixed; top: 0; left: 0; right: 0; height: 70px;
         background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
@@ -125,7 +157,7 @@ professional_css = """
         justify-content: space-between; padding: 0 3rem; z-index: 999999;
         box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
-    .custom-top-navbar .logo img { height: 40px; margin-top: 5px; } /* 调整 Logo 大小 */
+    .custom-top-navbar .logo img { height: 40px; margin-top: 5px; }
     .custom-top-navbar .login-btn {
         background-color: #0F172A; color: #FFFFFF; padding: 8px 24px;
         border-radius: 30px; font-weight: 700; font-size: 15px;
@@ -138,8 +170,7 @@ professional_css = """
 st.markdown(professional_css, unsafe_allow_html=True)
 
 # ================= 4. 动态渲染顶部悬浮栏 (Logo + Login 逻辑) =================
-# ⚠️⚠️⚠️ 替换下面这个 src 的链接为你在 Github 上 Logo 图片的 Raw 链接！
-LOGO_IMAGE_URL = "https://github.com/jeremiah0188/Battery_dataset/blob/main/logo.png"
+LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 if st.session_state.is_admin:
     nav_html = f"""
@@ -159,11 +190,7 @@ else:
     """
 st.markdown(nav_html, unsafe_allow_html=True)
 
-# 处理登出逻辑（如果带有 logout 参数或者需要清除状态）
-# 这里通过直接点链接刷新页面重置状态，如果是部署端，可以通过检测 query params 来处理
-
 # ================= 5. 🔗 Google Sheets 数据库配置 =================
-# ⚠️⚠️⚠️ 必须修改：把下面这行换成你真实的 Google 表格网址！
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
@@ -188,7 +215,7 @@ df = load_data()
 
 # ----------------- 页面 A：登录页 (Login) -----------------
 if current_page == "login" and not st.session_state.is_admin:
-    _, col, _ = st.columns([1, 1.2, 1])  # 居中布局
+    _, col, _ = st.columns([1, 1.2, 1])
     with col:
         st.markdown('<div style="margin-top: 4rem;"></div>', unsafe_allow_html=True)
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
@@ -204,14 +231,12 @@ if current_page == "login" and not st.session_state.is_admin:
 
         st.checkbox("Remember me")
 
-        # 使用 Streamlit columns 排列按钮
         if st.button("Sign In", type="primary", use_container_width=True):
             if not email_input:
                 st.error("Please enter your email address.")
             elif not pwd_input:
                 st.error("Please enter your password.")
             elif pwd_input == st.secrets.get("admin_password", ""):
-                # 登录成功
                 st.session_state.is_admin = True
                 st.success("Signed in successfully. Redirecting...")
                 st.markdown('<meta http-equiv="refresh" content="1;url=/?page=home">', unsafe_allow_html=True)
@@ -225,7 +250,6 @@ if current_page == "login" and not st.session_state.is_admin:
         st.markdown(
             "<div style='text-align:center; margin-top: 12px; color: #64748B;'>Don’t have an account? <a href='/?page=signup' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Create an account</a></div>",
             unsafe_allow_html=True)
-
         st.markdown(
             '<div style="margin-top:24px; padding:16px; background:#F8FAFC; border-radius:8px;"><p style="font-size:13px; color:#64748B; margin:0;"><strong>For admins:</strong> Administrators can sign in to review submissions and manage dataset records.</p></div>',
             unsafe_allow_html=True)
@@ -260,7 +284,7 @@ elif current_page == "signup" and not st.session_state.is_admin:
 
 # ----------------- 页面 C：主站 (Main App) -----------------
 else:
-    # 顶部居中导航构建 (去除了 Emoji，纯文字大号加粗)
+    # 这里直接使用文本，因为 CSS 中已经针对每个 Tab 设置了特殊的字号和颜色
     tab_names = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
     if st.session_state.is_admin:
         tab_names.append("Admin Dashboard")
@@ -270,11 +294,11 @@ else:
     # ================= TAB 1: Homepage =================
     with tabs[0]:
         public_count = len(df[df['Status'] == 'Approved'])
-        # Chemistry Tags 更新
         chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in
                                   ["NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal", "Li-S",
                                    "Mixed"]])
 
+        # 🚀 右侧方块改为了高级浅色渐变，配合深色文字
         hero_html = f"""
         <div class="hero-container">
             <div class="hero-left">
@@ -285,19 +309,19 @@ else:
                 </div>
             </div>
             <div class="hero-right">
-                <div class="bento-card card-tall">
-                    <div style="font-size: 14px; font-weight:700; opacity: 0.8; text-transform:uppercase;">Platform Metrics</div>
+                <div class="bento-card" style="grid-row:span 2; background: linear-gradient(135deg, #F0F9FF 0%, #E0E7FF 100%); min-height:320px;">
+                    <div style="font-size: 14px; font-weight:800; color: #312E81; text-transform:uppercase; opacity: 0.8;">Platform Metrics</div>
                     <div>
-                        <div style="font-size: 64px; font-weight: 900; margin-top: auto; line-height:1;">{public_count}+</div>
-                        <div style="font-size: 18px; opacity: 0.9; font-weight:600; margin-top:8px;">Curated Datasets</div>
+                        <div style="font-size: 64px; font-weight: 900; color: #1E1B4B; margin-top: auto; line-height:1;">{public_count}+</div>
+                        <div style="font-size: 18px; color: #3730A3; font-weight:700; margin-top:8px;">Curated Datasets</div>
                     </div>
                 </div>
-                <div class="bento-card card-short-1">
-                    <div style="font-size: 14px; font-weight:700; opacity: 0.9; text-transform:uppercase;">A Leader in Quality</div>
-                    <div style="font-size: 28px; font-weight: 900; margin-top: auto;">Open Access</div>
+                <div class="bento-card" style="background: linear-gradient(135deg, #ECFEFF 0%, #CCFBF1 100%); min-height: 160px;">
+                    <div style="font-size: 14px; font-weight:800; color: #115E59; text-transform:uppercase; opacity: 0.9;">A Leader in Quality</div>
+                    <div style="font-size: 28px; font-weight: 900; color: #042F2E; margin-top: auto;">Open Access</div>
                 </div>
-                <div class="bento-card card-short-2">
-                    <div style="font-size: 14px; font-weight:800; color: #64748B; text-transform:uppercase;">Supported Chemistry</div>
+                <div class="bento-card" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); min-height: 160px; border: 1px solid #FDE68A;">
+                    <div style="font-size: 14px; font-weight:800; color: #92400E; text-transform:uppercase;">Supported Chemistry</div>
                     <div style="display:flex; gap:8px; margin-top: auto; flex-wrap: wrap;">
                         {chem_tags_html}
                     </div>
@@ -321,7 +345,6 @@ else:
                 unsafe_allow_html=True)
             search_kw = st.text_input("Keyword Search", placeholder="e.g. Oxford, NMC...")
 
-            # 🚀 层级化过滤器 (Cascading Filters)
             st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
             sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
 
@@ -339,7 +362,6 @@ else:
 
         with result_col:
             filtered_df = public_df.copy()
-            # 执行层级过滤逻辑
             if search_kw:
                 mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False)).any(axis=1)
                 filtered_df = filtered_df[mask]
@@ -351,11 +373,10 @@ else:
             if sel_subcategory != "All" and 'Sub-category' in filtered_df.columns:
                 filtered_df = filtered_df[filtered_df['Sub-category'] == sel_subcategory]
 
-            st.markdown(f"**Result Counter:** {len(filtered_df)} datasets found.")
+            st.markdown(f"Result Counter: {len(filtered_df)} datasets found.")
 
             if not filtered_df.empty:
                 st.markdown('<div class="research-card" style="padding: 16px;">', unsafe_allow_html=True)
-                # 动态显示列
                 display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if
                                 c in filtered_df.columns]
                 st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
@@ -411,7 +432,6 @@ else:
             new_desc = c2.text_input("Short Description *")
 
             c1b, c2b, c3b = st.columns(3)
-            # 与搜索栏联动的层级录入
             new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
             new_category = c2b.text_input("Category (e.g., Battery, Grid)")
             new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
@@ -462,7 +482,7 @@ else:
                     unsafe_allow_html=True)
         st.write(
             "This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.")
-        st.write("**Maintained by Jian Wu**, focusing on battery data analysis and SOH estimation.")
+        st.write("Maintained by Jian Wu, focusing on battery data analysis and SOH estimation.")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with tabs[4]:
