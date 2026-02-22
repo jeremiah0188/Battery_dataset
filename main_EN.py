@@ -8,7 +8,6 @@ from streamlit_gsheets import GSheetsConnection
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
-# 获取当前页面路由 (默认是 home)
 try:
     current_page = st.query_params.get("page", "home")
 except:
@@ -35,17 +34,14 @@ professional_css = """
         color: #334155;
     }
 
-    /* 彻底隐藏 Streamlit 默认顶部、底部和侧边栏 */
     [data-testid="stHeader"] { display: none !important; }
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     #stDecoration {display:none;}
     [data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
 
-    /* 为自定义导航栏留出空间 */
     .block-container { padding-top: 6rem !important; }
 
-    /* 纯白内容卡片 (Research Card) */
     .research-card {
         background: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -55,7 +51,6 @@ professional_css = """
         margin-bottom: 24px;
     }
 
-    /* Qlik 风格 Hero Section (主页) */
     .hero-container {
         display: flex; align-items: center; justify-content: space-between;
         padding: 4rem 3rem; background-color: #FFFFFF; border-radius: 20px;
@@ -74,24 +69,20 @@ professional_css = """
 
     .chem-tag { background: rgba(255,255,255,0.7); padding:6px 14px; border-radius:20px; font-size:13px; font-weight:800; box-shadow:0 2px 5px rgba(0,0,0,0.03); color:#0F172A; border: 1px solid rgba(0,0,0,0.05);}
 
-    /* 区块标题 */
     .section-header { border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 24px; margin-bottom: 20px; background: #FFFFFF; }
     .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; }
     .header-blue { border-left: 4px solid #3b82f6; }
     .header-teal { border-left: 4px solid #0F766E; }
     .header-amber { border-left: 4px solid #f59e0b; }
 
-    /* Metadata Grid 优化，杜绝空方块 */
     .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
     .metadata-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px; }
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
-    /* 全局按钮优化 */
     .stButton>button { background-color: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; font-weight: 700; border-radius: 8px; transition: all 0.2s; height: 45px;}
     .stButton>button:hover { border-color: #0F766E; color: #0F766E; background-color: #F0FDF4; }
 
-    /* 🚀 全新悬浮顶部导航栏 (Logo + 居左菜单 + Login) */
     .custom-top-navbar {
         position: fixed; top: 0; left: 0; right: 0; height: 70px;
         background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
@@ -102,12 +93,9 @@ professional_css = """
     .nav-left-section {
         display: flex; align-items: center; gap: 2.5rem;
     }
-    .custom-top-navbar .logo img { height: 40px; }
+    .custom-top-navbar .logo img { height: 55px; }
 
-    /* 核心导航菜单样式 */
-    .nav-menu {
-        display: flex; gap: 1.8rem;
-    }
+    .nav-menu { display: flex; gap: 1.8rem; }
     .nav-menu a {
         color: #475569; font-size: 15px; font-weight: 700; 
         text-decoration: none; transition: color 0.2s;
@@ -126,8 +114,7 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 4. 动态渲染全新顶部菜单栏 =================
-# ⚠️替换这里的 Logo 链接
+# ================= 4. 动态渲染全新顶部菜单栏 (🚀修复版：避免多行缩进乱码) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 
@@ -135,40 +122,34 @@ def get_active_cls(page_name):
     return "active" if current_page == page_name else ""
 
 
-# 生成菜单 HTML
-menu_html = f"""
-    <div class="nav-menu">
-        <a href="/?page=home" class="{get_active_cls('home')}">Homepage</a>
-        <a href="/?page=browse" class="{get_active_cls('browse')}">Browse Datasets</a>
-        <a href="/?page=contribute" class="{get_active_cls('contribute')}">Contribute Data</a>
-        <a href="/?page=about" class="{get_active_cls('about')}">About</a>
-        <a href="/?page=contact" class="{get_active_cls('contact')}">Contact</a>
-"""
+# 采用单行拼接法，完全杜绝 Markdown 解析错误
+menu_html = (
+    '<div class="nav-menu">'
+    f'<a href="/?page=home" class="{get_active_cls("home")}">Homepage</a>'
+    f'<a href="/?page=browse" class="{get_active_cls("browse")}">Browse Datasets</a>'
+    f'<a href="/?page=contribute" class="{get_active_cls("contribute")}">Contribute Data</a>'
+    f'<a href="/?page=about" class="{get_active_cls("about")}">About</a>'
+    f'<a href="/?page=contact" class="{get_active_cls("contact")}">Contact</a>'
+)
 if st.session_state.is_admin:
     menu_html += f'<a href="/?page=admin" class="{get_active_cls("admin")}" style="color:#F59E0B;">Admin Dashboard</a>'
 menu_html += "</div>"
 
-# 生成完整 Navbar HTML
+fallback_logo = '<span style="font-size:24px; font-weight:900; color:#0F172A;">OpenBattery</span>'
+
 if st.session_state.is_admin:
-    nav_html = f"""
-    <div class="custom-top-navbar">
-        <div class="nav-left-section">
-            <div class="logo"><img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size:24px; font-weight:900; color:#0F172A;\\'>OpenBattery</span>';"></div>
-            {menu_html}
-        </div>
-        <a href="/?page=home" target="_self" class="logout-btn">Log Out</a>
-    </div>
-    """
+    nav_html = (
+        '<div class="custom-top-navbar"><div class="nav-left-section"><div class="logo">'
+        f'<img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML=\'{fallback_logo}\';"></div>'
+        f'{menu_html}</div><a href="/?page=home" target="_self" class="logout-btn">Log Out</a></div>'
+    )
 else:
-    nav_html = f"""
-    <div class="custom-top-navbar">
-        <div class="nav-left-section">
-            <div class="logo"><img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size:24px; font-weight:900; color:#0F172A;\\'>OpenBattery</span>';"></div>
-            {menu_html}
-        </div>
-        <a href="/?page=login" target="_self" class="login-btn">Log In</a>
-    </div>
-    """
+    nav_html = (
+        '<div class="custom-top-navbar"><div class="nav-left-section"><div class="logo">'
+        f'<img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML=\'{fallback_logo}\';"></div>'
+        f'{menu_html}</div><a href="/?page=login" target="_self" class="login-btn">Log In</a></div>'
+    )
+
 st.markdown(nav_html, unsafe_allow_html=True)
 
 # ================= 5. 🔗 Google Sheets 数据库配置 =================
@@ -251,42 +232,35 @@ elif current_page == "signup" and not st.session_state.is_admin:
             unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- 页面 C：Homepage -----------------
+# ----------------- 页面 C：Homepage (🚀修复版：避免多行缩进乱码) -----------------
 elif current_page == "home":
     public_count = len(df[df['Status'] == 'Approved'])
     chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in
                               ["NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal", "Li-S", "Mixed"]])
 
-    hero_html = f"""
-    <div class="hero-container">
-        <div class="hero-left">
-            <div class="hero-subtitle">Open Source Data & Analytics</div>
-            <div class="hero-title">Battery Data <br><span>Differently</span></div>
-            <div class="hero-desc">
-                We deliver high-fidelity, peer-reviewed battery datasets and robust metadata integration tailored to meet the evolving needs of global energy research.
-            </div>
-        </div>
-        <div class="hero-right">
-            <div class="bento-card" style="grid-row:span 2; background: linear-gradient(135deg, #F0F9FF 0%, #E0E7FF 100%); min-height:320px;">
-                <div style="font-size: 14px; font-weight:800; color: #312E81; text-transform:uppercase; opacity: 0.8;">Platform Metrics</div>
-                <div>
-                    <div style="font-size: 64px; font-weight: 900; color: #1E1B4B; margin-top: auto; line-height:1;">{public_count}+</div>
-                    <div style="font-size: 18px; color: #3730A3; font-weight:700; margin-top:8px;">Curated Datasets</div>
-                </div>
-            </div>
-            <div class="bento-card" style="background: linear-gradient(135deg, #ECFEFF 0%, #CCFBF1 100%); min-height: 160px;">
-                <div style="font-size: 14px; font-weight:800; color: #115E59; text-transform:uppercase; opacity: 0.9;">A Leader in Quality</div>
-                <div style="font-size: 28px; font-weight: 900; color: #042F2E; margin-top: auto;">Open Access</div>
-            </div>
-            <div class="bento-card" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); min-height: 160px; border: 1px solid #FDE68A;">
-                <div style="font-size: 14px; font-weight:800; color: #92400E; text-transform:uppercase;">Supported Chemistry</div>
-                <div style="display:flex; gap:8px; margin-top: auto; flex-wrap: wrap;">
-                    {chem_tags_html}
-                </div>
-            </div>
-        </div>
-    </div>
-    """
+    hero_html = (
+        '<div class="hero-container">'
+        '<div class="hero-left">'
+        '<div class="hero-subtitle">Open Source Data & Analytics</div>'
+        '<div class="hero-title">Battery Data <br><span>Differently</span></div>'
+        '<div class="hero-desc">We deliver high-fidelity, peer-reviewed battery datasets and robust metadata integration tailored to meet the evolving needs of global energy research.</div>'
+        '</div>'
+        '<div class="hero-right">'
+        '<div class="bento-card" style="grid-row:span 2; background: linear-gradient(135deg, #F0F9FF 0%, #E0E7FF 100%); min-height:320px;">'
+        '<div style="font-size: 14px; font-weight:800; color: #312E81; text-transform:uppercase; opacity: 0.8;">Platform Metrics</div>'
+        '<div>'
+        f'<div style="font-size: 64px; font-weight: 900; color: #1E1B4B; margin-top: auto; line-height:1;">{public_count}+</div>'
+        '<div style="font-size: 18px; color: #3730A3; font-weight:700; margin-top:8px;">Curated Datasets</div>'
+        '</div></div>'
+        '<div class="bento-card" style="background: linear-gradient(135deg, #ECFEFF 0%, #CCFBF1 100%); min-height: 160px;">'
+        '<div style="font-size: 14px; font-weight:800; color: #115E59; text-transform:uppercase; opacity: 0.9;">A Leader in Quality</div>'
+        '<div style="font-size: 28px; font-weight: 900; color: #042F2E; margin-top: auto;">Open Access</div>'
+        '</div>'
+        '<div class="bento-card" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); min-height: 160px; border: 1px solid #FDE68A;">'
+        '<div style="font-size: 14px; font-weight:800; color: #92400E; text-transform:uppercase;">Supported Chemistry</div>'
+        f'<div style="display:flex; gap:8px; margin-top: auto; flex-wrap: wrap;">{chem_tags_html}</div>'
+        '</div></div></div>'
+    )
     st.markdown(hero_html, unsafe_allow_html=True)
 
 # ----------------- 页面 D：Browse Datasets -----------------
@@ -351,10 +325,12 @@ elif current_page == "browse":
             if selected_dataset != "(Select to view)":
                 details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
 
-                details_html = ""
-                details_html += f'<div class="research-card">'
-                details_html += f'<h2 style="font-size: 28px; font-weight:800; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>'
-                details_html += f'<p style="color: #64748B; font-size: 15px; margin-bottom: 24px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
+                # 🚀 修复版：避免多行缩进乱码
+                details_html = (
+                    '<div class="research-card">'
+                    f'<h2 style="font-size: 28px; font-weight:800; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>'
+                    f'<p style="color: #64748B; font-size: 15px; margin-bottom: 24px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
+                )
 
                 link = details.get('Link', '')
                 if link.startswith('http'):
@@ -364,7 +340,6 @@ elif current_page == "browse":
                 for col_name in df.columns:
                     if col_name not in ['Link', 'Status', 'Dataset Name']:
                         val = details.get(col_name, 'N/A')
-                        # 🚀 严格校验：剔除 nan, None, N/A 和空字符串，彻底消灭空方框！
                         if pd.notna(val) and str(val).strip() != '' and str(val).strip().lower() not in ['nan', 'none',
                                                                                                          'n/a', 'na']:
                             details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
@@ -450,8 +425,6 @@ elif current_page == "contact":
     st.markdown('<div class="research-card" style="text-align: center; padding: 80px 20px;">', unsafe_allow_html=True)
     st.markdown('<h2 style="color:#0F172A; font-weight:900; margin-bottom:16px;">Get in Touch</h2>',
                 unsafe_allow_html=True)
-
-    # 🚀 精准满足需求：邮箱不放大，内嵌在文字后方加粗
     st.markdown(
         "<p style='font-size: 16px; color: #475569;'>For questions, dataset suggestions, collaboration, or corrections, please contact: <strong>jian.wu@utbm.fr</strong></p>",
         unsafe_allow_html=True)
