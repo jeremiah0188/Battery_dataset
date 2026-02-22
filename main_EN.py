@@ -381,9 +381,9 @@ with st.container():
 
             # 关键：给导航文字足够列宽，避免大字体换行
             if st.session_state.is_admin:
-                nav_cols = st.columns([2.6, 2.6, 2.6, 2.6, 2.6, 2.2])
+                nav_cols = st.columns([1, 1, 1, 1, 1, 1])
             else:
-                nav_cols = st.columns([2.6, 2.6, 2.6, 2.6, 2.6])
+                nav_cols = st.columns([1, 1, 1, 1, 1])
 
             def render_nav_button(col, label, page_name, key_name):
                 wrapper_cls = "nav-text-btn nav-active" if active_tab == page_name else "nav-text-btn"
@@ -396,8 +396,8 @@ with st.container():
                     st.markdown('</div>', unsafe_allow_html=True)
 
             render_nav_button(nav_cols[0], "Homepage", "Homepage", "nav_home_btn")
-            render_nav_button(nav_cols[1], "Browse Datasets", "Browse Datasets", "nav_browse_btn")
-            render_nav_button(nav_cols[2], "Contribute Data", "Contribute Data", "nav_contribute_btn")
+            render_nav_button(nav_cols[1], "Browse", "Browse Datasets", "nav_browse_btn")
+            render_nav_button(nav_cols[2], "Contribute", "Contribute Data", "nav_contribute_btn")
             render_nav_button(nav_cols[3], "About", "About", "nav_about_btn")
             render_nav_button(nav_cols[4], "Contact", "Contact", "nav_contact_btn")
 
@@ -451,6 +451,8 @@ with st.container():
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
+
+
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
