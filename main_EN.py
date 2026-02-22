@@ -115,33 +115,7 @@ professional_css = """
         padding-bottom: 2px;
     }
     .nav-menu-row::-webkit-scrollbar { height: 0; }
-
-    /* 顶部导航按钮（纯文字，无胶囊）——强覆盖版 */
-    .nav-text-btn div[data-testid="stButton"] > button {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-
-    color: #64748B !important;
-    font-weight: 700 !important;
-    font-size: 16px !important;
-    height: 42px !important;
-    min-height: 42px !important;
-
-    width: 100% !important;
-    padding: 0 4px 10px 4px !important;
-    margin: 0 !important;
-    letter-spacing: 0 !important;
-    border-bottom: 3px solid transparent !important;
-
-    white-space: nowrap !important;
-    line-height: 1 !important;
-
-    transition: all 0.25s ease !important;
-    justify-content: center !important;
-    }
+/* 顶部导航按钮（胶囊样式） */
 .nav-text-btn div[data-testid="stButton"] {
     width: 100% !important;
 }
@@ -152,19 +126,18 @@ professional_css = """
     height: 42px !important;
     min-height: 42px !important;
 
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
+    background: #F0F3F8 !important;          /* 胶囊填充色 */
+    background-color: #F0F3F8 !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08) !important;
+    border-radius: 999px !important;
 
-    color: #64748B !important;
+    color: #000000 !important;               /* 字体黑色 */
     font-weight: 700 !important;
     font-size: 16px !important;
-    padding: 0 4px 10px 4px !important;
+    padding: 0 4px !important;
     margin: 0 !important;
     letter-spacing: 0 !important;
-    border-bottom: 3px solid transparent !important;
 
     white-space: nowrap !important;
     line-height: 1 !important;
@@ -172,19 +145,23 @@ professional_css = """
     transition: all 0.25s ease !important;
 }
 
+/* 悬停态 */
 .nav-text-btn div[data-testid="stButton"] > button:hover {
-    color: #4A6D5F !important;
-    background: transparent !important;
+    color: #000000 !important;
+    background: #E9EEF5 !important;
+    border-color: #D8E1EC !important;
     transform: translateY(-1px) !important;
-    box-shadow: none !important;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10) !important;
 }
 
+/* 当前激活项 */
 .nav-active div[data-testid="stButton"] > button {
-    color: #4A6D5F !important;
+    color: #000000 !important;
     font-weight: 800 !important;
-    border-bottom-color: #4A6D5F !important;
+    background: #E6EDF6 !important;   /* 比普通态稍深一点 */
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10) !important;
 }
-
     /* 顶部搜索栏 */
     .nav-search .stTextInput input {
         border-radius: 14px !important;
@@ -230,13 +207,13 @@ professional_css = """
         transition: all 0.25s ease !important;
     }
 
-    .icon-btn-wrap .stButton > button:hover {
-        color: #4A6D5F !important;
-        background: rgba(255,255,255,0.88) !important;
-        border: 1px solid rgba(255,255,255,0.95) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10) !important;
-    }
+.nav-text-btn div[data-testid="stButton"] > button:hover {
+    color: #000000 !important;               /* ✅ 悬停仍然黑字 */
+    background: #E9EEF5 !important;          /* 可选：hover 稍微深一点 */
+    border-color: #D8E1EC !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10) !important;
+}
 
     /* emoji 居中修正 */
     .icon-btn-wrap .stButton > button p {
@@ -620,7 +597,7 @@ elif current_page == "Homepage":
             tags_html = "".join(
                 [f'<span class="chem-tag" style="background:#F1F5F9; border-color:#CBD5E1;">{t}</span>' for t in tags])
             st.markdown(f"<div>{tags_html}</div><br>", unsafe_allow_html=True)
-            st.info("💡 Tip: Use these keywords in the search bar.")
+            st.info(" Use these keywords in the search bar.")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-header header-blue"><h2>💬 Quick FAQ</h2></div>', unsafe_allow_html=True)
@@ -954,15 +931,15 @@ elif current_page == "Notifications":
         {"title": "Your dataset submission has been approved",
          "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible in the directory.",
          "time": "2 hours ago", "status": "Unread", "type": "Dataset", "icon": "✅"},
-        {"title": "Your submission is under review",
-         "msg": "Admin is currently reviewing 'LFP Cycling Data'. You will be notified once complete.",
-         "time": "1 day ago", "status": "Read", "type": "Review", "icon": "⏳"},
-        {"title": "New dataset added in Battery / EIS",
-         "msg": "Check out the newly added 'Oxford Battery Degradation' dataset published by the community.",
-         "time": "2 days ago", "status": "Read", "type": "System", "icon": "🆕"},
-        {"title": "Source link validation failed",
-         "msg": "The URL provided for 'Solid-state Tests' is unreachable. Please update the metadata.",
-         "time": "1 week ago", "status": "Read", "type": "System", "icon": "⚠️"},
+        # {"title": "Your submission is under review",
+        #  "msg": "Admin is currently reviewing 'LFP Cycling Data'. You will be notified once complete.",
+        #  "time": "1 day ago", "status": "Read", "type": "Review", "icon": "⏳"},
+        # {"title": "New dataset added in Battery / EIS",
+        #  "msg": "Check out the newly added 'Oxford Battery Degradation' dataset published by the community.",
+        #  "time": "2 days ago", "status": "Read", "type": "System", "icon": "🆕"},
+        # {"title": "Source link validation failed",
+        #  "msg": "The URL provided for 'Solid-state Tests' is unreachable. Please update the metadata.",
+        #  "time": "1 week ago", "status": "Read", "type": "System", "icon": "⚠️"},
     ]
 
     # 渲染 Inbox
