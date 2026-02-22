@@ -216,8 +216,7 @@ with st.container():
                 default_idx = menu_tabs.index(st.session_state.current_view)
             except ValueError:
                 default_idx = 0
-
-            # 🚀 导航栏菜单内部样式 (悬浮动画、选中变色全部集中在这里)
+            # 🚀 导航栏微圆角矩形设计 (加宽且边缘更方正)
             selected_page = option_menu(
                 menu_title=None,
                 options=menu_tabs,
@@ -226,10 +225,10 @@ with st.container():
                 orientation="horizontal",
                 styles={
                     "container": {
-                        "padding": "6px 12px !important",
-                        "background-color": "rgba(255, 255, 255, 0.95) !important",  # 清晰可见的白色胶囊本体
+                        "padding": "10px 16px !important", # 增加上下左右的内边距
+                        "background-color": "rgba(255, 255, 255, 0.95) !important",
                         "border": "1px solid rgba(226, 232, 240, 0.8) !important",
-                        "border-radius": "100px !important",  # 大圆角
+                        "border-radius": "16px !important",  # ✨ 改为 16px，变成圆角矩形而不是椭圆胶囊
                         "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
                         "margin": "0 auto",
                         "width": "100%"
@@ -243,18 +242,18 @@ with st.container():
                         "font-size": "15px",
                         "font-weight": "700",
                         "color": "#475569",
-                        "padding": "10px 20px",
-                        "margin": "0 4px",
-                        "border-radius": "50px",
-                        "transition": "all 0.3s ease",  # 悬浮变色过渡动画
-                        "--hover-color": "#F1F5F9"  # 鼠标悬浮时出现的浅灰色背景标记
+                        "padding": "12px 24px", # ✨ 增加左右 padding，让按钮显得更宽更舒展
+                        "margin": "0 8px",      # ✨ 增加各个按钮之间的间距
+                        "border-radius": "12px", # ✨ 配合外边框，改为小圆角 (原为 50px)
+                        "transition": "all 0.3s ease",
+                        "--hover-color": "#F1F5F9"
                     },
                     "nav-link-selected": {
                         "background-color": "#4A6D5F",
                         "color": "#FFFFFF",
                         "font-weight": "800",
                         "icon-color": "#FFFFFF",
-                        "border-radius": "50px",
+                        "border-radius": "12px", # ✨ 同样改为小圆角，保持一致
                         "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
                     },
                 }
