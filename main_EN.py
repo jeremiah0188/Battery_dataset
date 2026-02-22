@@ -114,39 +114,36 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 4. 动态渲染全新顶部菜单栏 (🚀修复版：避免多行缩进乱码) =================
+# ================= 4. 动态渲染全新顶部菜单栏 (🚀完美修复版) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
-
 
 def get_active_cls(page_name):
     return "active" if current_page == page_name else ""
 
-
-# 采用单行拼接法，完全杜绝 Markdown 解析错误
+# 🚀 必须加入 target="_self"，否则 Streamlit 会强制弹开新页面
 menu_html = (
     '<div class="nav-menu">'
-    f'<a href="/?page=home" class="{get_active_cls("home")}">Homepage</a>'
-    f'<a href="/?page=browse" class="{get_active_cls("browse")}">Browse Datasets</a>'
-    f'<a href="/?page=contribute" class="{get_active_cls("contribute")}">Contribute Data</a>'
-    f'<a href="/?page=about" class="{get_active_cls("about")}">About</a>'
-    f'<a href="/?page=contact" class="{get_active_cls("contact")}">Contact</a>'
+    f'<a href="/?page=home" target="_self" class="{get_active_cls("home")}">Homepage</a>'
+    f'<a href="/?page=browse" target="_self" class="{get_active_cls("browse")}">Browse Datasets</a>'
+    f'<a href="/?page=contribute" target="_self" class="{get_active_cls("contribute")}">Contribute Data</a>'
+    f'<a href="/?page=about" target="_self" class="{get_active_cls("about")}">About</a>'
+    f'<a href="/?page=contact" target="_self" class="{get_active_cls("contact")}">Contact</a>'
 )
 if st.session_state.is_admin:
-    menu_html += f'<a href="/?page=admin" class="{get_active_cls("admin")}" style="color:#F59E0B;">Admin Dashboard</a>'
+    menu_html += f'<a href="/?page=admin" target="_self" class="{get_active_cls("admin")}" style="color:#F59E0B;">Admin Dashboard</a>'
 menu_html += "</div>"
 
-fallback_logo = '<span style="font-size:24px; font-weight:900; color:#0F172A;">OpenBattery</span>'
-
+# 🚀 去除了会导致溢出乱码的 onerror 属性，纯净加载图片
 if st.session_state.is_admin:
     nav_html = (
         '<div class="custom-top-navbar"><div class="nav-left-section"><div class="logo">'
-        f'<img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML=\'{fallback_logo}\';"></div>'
+        f'<img src="{LOGO_IMAGE_URL}" alt="OpenBattery"></div>'
         f'{menu_html}</div><a href="/?page=home" target="_self" class="logout-btn">Log Out</a></div>'
     )
 else:
     nav_html = (
         '<div class="custom-top-navbar"><div class="nav-left-section"><div class="logo">'
-        f'<img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML=\'{fallback_logo}\';"></div>'
+        f'<img src="{LOGO_IMAGE_URL}" alt="OpenBattery"></div>'
         f'{menu_html}</div><a href="/?page=login" target="_self" class="login-btn">Log In</a></div>'
     )
 
@@ -156,17 +153,18 @@ st.markdown(nav_html, unsafe_allow_html=True)
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-
 @st.cache_data(ttl=10)
 def load_data():
     try:
         df = conn.read(spreadsheet=SPREADSHEET_URL)
-        df = df.dropna(how='all').astype(str).replace('nan', '')
+        # 🚀 极致清洗：剔除所有空行、空列
+        df = df.dropna(how='all', axis=0).dropna(how='all', axis=1)
+        df = df.fillna('')
+        df = df.astype(str)
         if 'Status' not in df.columns: df['Status'] = 'Approved'
         return df
     except:
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Domain', 'Category', 'Sub-category', 'Status'])
-
 
 df = load_data()
 
@@ -177,12 +175,8 @@ if current_page == "login" and not st.session_state.is_admin:
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.markdown(
-            "<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Sign in to your account</h2>",
-            unsafe_allow_html=True)
-        st.markdown(
-            "<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Access the dataset platform to manage submissions, review metadata, and track approval status.</p>",
-            unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Sign in to your account</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Access the dataset platform to manage submissions, review metadata, and track approval status.</p>", unsafe_allow_html=True)
 
         email_input = st.text_input("Email address", placeholder="Enter your email")
         pwd_input = st.text_input("Password", type="password", placeholder="Enter your password")
@@ -200,12 +194,8 @@ if current_page == "login" and not st.session_state.is_admin:
                 st.error("Invalid email or password. Login failed. Please try again.")
 
         st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0;'>", unsafe_allow_html=True)
-        st.markdown(
-            "<div style='text-align:center;'><a href='#' style='color: #0F766E; font-weight: 600; text-decoration: none;'>Forgot password?</a></div>",
-            unsafe_allow_html=True)
-        st.markdown(
-            "<div style='text-align:center; margin-top: 12px; color: #64748B;'>Don’t have an account? <a href='/?page=signup' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Create an account</a></div>",
-            unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center;'><a href='#' style='color: #0F766E; font-weight: 600; text-decoration: none;'>Forgot password?</a></div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; margin-top: 12px; color: #64748B;'>Don’t have an account? <a href='/?page=signup' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Create an account</a></div>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------- 页面 B：注册页 (Sign Up) -----------------
@@ -213,26 +203,20 @@ elif current_page == "signup" and not st.session_state.is_admin:
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.markdown(
-            "<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Create an account</h2>",
-            unsafe_allow_html=True)
-        st.markdown(
-            "<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Create an account to submit datasets, manage your contributions, and receive review notifications.</p>",
-            unsafe_allow_html=True)
+        st.markdown("<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Create an account</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Create an account to submit datasets, manage your contributions, and receive review notifications.</p>", unsafe_allow_html=True)
 
         st.text_input("Full Name", placeholder="Enter your full name")
         st.text_input("Email address", placeholder="Enter your email")
         st.text_input("Password", type="password", placeholder="Create a password")
 
         if st.button("Create account", type="primary", use_container_width=True):
-            st.info("Registration is temporarily closed. Please contact the administrator.")
+            st.info("Registration is temporarily closed. Please contact the administrator for account access.")
         st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0;'>", unsafe_allow_html=True)
-        st.markdown(
-            "<div style='text-align:center; color: #64748B;'>Already have an account? <a href='/?page=login' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Sign in</a></div>",
-            unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center; color: #64748B;'>Already have an account? <a href='/?page=login' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Sign in</a></div>", unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- 页面 C：Homepage (🚀修复版：避免多行缩进乱码) -----------------
+# ----------------- 页面 C：Homepage -----------------
 elif current_page == "home":
     public_count = len(df[df['Status'] == 'Approved'])
     chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in
@@ -272,8 +256,7 @@ elif current_page == "browse":
 
     with filter_col:
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.markdown("<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
-                    unsafe_allow_html=True)
+        st.markdown("<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>", unsafe_allow_html=True)
         search_kw = st.text_input("Keyword Search", placeholder="e.g. Oxford, NMC...")
 
         st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
@@ -285,9 +268,7 @@ elif current_page == "browse":
         if sel_domain == "Energy":
             sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
             if sel_category == "Battery":
-                sel_subcategory = st.selectbox("Battery Data Type",
-                                               ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark",
-                                                "Experimental", "Simulation"])
+                sel_subcategory = st.selectbox("Battery Data Type", ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark", "Experimental", "Simulation"])
 
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -308,24 +289,18 @@ elif current_page == "browse":
 
         if not filtered_df.empty:
             st.markdown('<div class="research-card" style="padding: 16px;">', unsafe_allow_html=True)
-            display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if
-                            c in filtered_df.columns]
+            display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if c in filtered_df.columns]
             st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown(
-                '<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>',
-                unsafe_allow_html=True)
+            st.markdown('<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>', unsafe_allow_html=True)
 
             valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
-            selected_dataset = st.selectbox("Select a dataset to view full details:",
-                                            ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
-                                            label_visibility="collapsed")
+            selected_dataset = st.selectbox("Select a dataset to view full details:", ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(), label_visibility="collapsed")
 
             if selected_dataset != "(Select to view)":
                 details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
 
-                # 🚀 修复版：避免多行缩进乱码
                 details_html = (
                     '<div class="research-card">'
                     f'<h2 style="font-size: 28px; font-weight:800; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>'
@@ -338,10 +313,10 @@ elif current_page == "browse":
 
                 details_html += '<div class="metadata-grid">'
                 for col_name in df.columns:
-                    if col_name not in ['Link', 'Status', 'Dataset Name']:
-                        val = details.get(col_name, 'N/A')
-                        if pd.notna(val) and str(val).strip() != '' and str(val).strip().lower() not in ['nan', 'none',
-                                                                                                         'n/a', 'na']:
+                    # 🚀 深度拦截：不仅拦截字段名，更通过严格字符串逻辑消灭任何可能产生的空数据方块
+                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status', 'Dataset Name']:
+                        val = str(details.get(col_name, '')).strip()
+                        if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
                             details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
                 details_html += '</div></div>'
 
@@ -355,8 +330,7 @@ elif current_page == "contribute":
 
     with st.form("upload_form", border=False):
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.write(
-            "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+        st.write("Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
 
         st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
         st.markdown("#### Section 1: Basic Information")
@@ -375,9 +349,7 @@ elif current_page == "contribute":
         st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
         st.markdown("#### Section 2: Technical Specifications")
         c3, c4, c5 = st.columns(3)
-        new_chem = c3.selectbox("Battery Chemistry",
-                                ["Not Applicable", "NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal",
-                                 "Li-S", "Mixed", "Other"])
+        new_chem = c3.selectbox("Battery Chemistry", ["Not Applicable", "NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal", "Li-S", "Mixed", "Other"])
         new_cell = c4.text_input("Cell / Module Type")
         new_temp = c5.text_input("Temperature Range (°C)")
 
@@ -399,8 +371,7 @@ elif current_page == "contribute":
             else:
                 new_row = {c: "" for c in df.columns}
                 new_row.update({
-                    'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category,
-                    'Sub-category': new_subcat,
+                    'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category, 'Sub-category': new_subcat,
                     'Short Description': new_desc, 'Link': new_link, 'Source Organization': new_org,
                     'Battery Chemistry': new_chem, 'Cell / Module Type': new_cell,
                     'Temperature Range': new_temp, 'Includes EIS Data': new_eis, 'Includes Aging / Cycling': new_aging,
@@ -416,18 +387,14 @@ elif current_page == "contribute":
 elif current_page == "about":
     st.markdown('<div class="research-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-header header-blue"><h2>About This Platform</h2></div>', unsafe_allow_html=True)
-    st.write(
-        "This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.")
+    st.write("This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.")
     st.write("Maintained by Jian Wu, focusing on battery data analysis and SOH estimation.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif current_page == "contact":
     st.markdown('<div class="research-card" style="text-align: center; padding: 80px 20px;">', unsafe_allow_html=True)
-    st.markdown('<h2 style="color:#0F172A; font-weight:900; margin-bottom:16px;">Get in Touch</h2>',
-                unsafe_allow_html=True)
-    st.markdown(
-        "<p style='font-size: 16px; color: #475569;'>For questions, dataset suggestions, collaboration, or corrections, please contact: <strong>jian.wu@utbm.fr</strong></p>",
-        unsafe_allow_html=True)
+    st.markdown('<h2 style="color:#0F172A; font-weight:900; margin-bottom:16px;">Get in Touch</h2>', unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 16px; color: #475569;'>For questions, dataset suggestions, collaboration, or corrections, please contact: <strong>jian.wu@utbm.fr</strong></p>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------- 页面 H：Admin Dashboard -----------------
