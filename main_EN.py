@@ -36,8 +36,7 @@ bg_gradients = {
 }
 current_bg = bg_gradients.get(current_page, "linear-gradient(135deg, #F0F9FF 0%, #F8FAFC 100%)")
 
-st.markdown(
-    f"""
+st.markdown(f"""
 <style>
 .stApp {{
     background: {current_bg} !important;
@@ -45,44 +44,22 @@ st.markdown(
     transition: background 0.8s ease-in-out !important;
 }}
 </style>
-""",
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
 
-# ================= 4. 全局 CSS（含导航修复 + 手机抽屉 + 卡片列表） =================
+# ================= 4. 核心 CSS =================
 professional_css = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 .stApp { font-family: 'Inter', -apple-system, sans-serif; color: #334155; }
 [data-testid="stHeader"] { display: none !important; }
-#MainMenu { visibility: hidden; }
-footer { visibility: hidden; }
-#stDecoration { display: none; }
-[data-testid='stSidebar'], [data-testid='collapsedControl'] { display: none !important; }
+#MainMenu {visibility: hidden;} footer {visibility: hidden;} #stDecoration {display:none;}
+[data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
 
 .block-container {
     max-width: 95% !important;
     padding-top: 1rem !important;
     padding-bottom: 2rem !important;
-}
-
-/* ===== 顶部第一块（导航块）去白卡 ===== */
-.block-container > div > div > div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"]:first-child {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    padding: 0 !important;
-    margin-bottom: 12px !important;
-}
-.block-container > div > div > div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"]:first-child [data-testid="stVerticalBlockBorderWrapper"] {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
 }
 
 /* ===== 全局内容白卡 ===== */
@@ -94,13 +71,21 @@ footer { visibility: hidden; }
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04) !important;
     padding: 24px !important;
     margin-bottom: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:hover {
     box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
 }
 
-/* 再覆盖首块，防止被全局白卡规则抢走 */
-.block-container > div > div > div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"]:first-child {
+/* ==============================================================
+   🎯 导航栏修复核心 (使用 :has 伪类精准定位)
+   ============================================================== */
+
+/* 1. 强制去除桌面导航底层的任何白卡背景（消灭矩形白块） */
+div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker),
+div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) [data-testid="stVerticalBlockBorderWrapper"],
+div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) [data-testid="stHorizontalBlock"],
+div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) div[data-testid="column"] {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -108,8 +93,33 @@ footer { visibility: hidden; }
     padding: 0 !important;
 }
 
-/* ===== 按钮统一样式 ===== */
-.stButton > button {
+/* 2. 桌面导航下拉动画 */
+div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) {
+    margin-bottom: 14px !important;
+    animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes headerSlideDown {
+    0% { opacity: 0; transform: translateY(-24px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 3. 响应式显示控制（避免双重渲染） */
+@media (max-width: 768px) {
+    /* 手机端：隐藏桌面导航 */
+    div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) {
+        display: none !important;
+    }
+}
+@media (min-width: 769px) {
+    /* 桌面端：隐藏手机导航 */
+    div[data-testid="stVerticalBlock"]:has(.mobile-nav-marker) {
+        display: none !important;
+    }
+}
+
+/* 全局按钮 */
+.stButton>button {
     background-color: #708090 !important;
     border: none !important;
     color: #FFFFFF !important;
@@ -118,9 +128,10 @@ footer { visibility: hidden; }
     transition: all 0.25s ease !important;
     height: 44px !important;
     padding: 0 20px !important;
+    letter-spacing: 0.3px;
     box-shadow: 0 4px 10px rgba(112, 128, 144, 0.28) !important;
 }
-.stButton > button:hover {
+.stButton>button:hover {
     background-color: #5c6a77 !important;
     box-shadow: 0 6px 16px rgba(112, 128, 144, 0.45) !important;
     transform: translateY(-1px) !important;
@@ -132,7 +143,10 @@ footer { visibility: hidden; }
 
 /* Tabs */
 [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 15px !important; }
-[data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; }
+[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+    background-color: #4A6D5F !important;
+    height: 3px !important;
+}
 
 /* Section */
 .section-header {
@@ -143,84 +157,185 @@ footer { visibility: hidden; }
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(10px);
 }
-.section-header h2 { margin: 0; font-size: 24px; font-weight: 800; color: #0F172A; }
+.section-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    color: #0F172A;
+}
 .header-blue { border-left: 5px solid #3B82F6; }
 .header-teal { border-left: 5px solid #4A6D5F; }
 .header-amber { border-left: 5px solid #F59E0B; }
 
 /* Hero */
 .hero-container {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 4rem 3.5rem;
     background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.42) 100%);
-    border-radius: 24px; border: 1px solid #FFFFFF;
+    border-radius: 24px;
+    border: 1px solid #FFFFFF;
     box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-    margin-bottom: 2rem; gap: 3rem; backdrop-filter: blur(10px);
+    margin-bottom: 2rem;
+    gap: 3rem;
+    backdrop-filter: blur(10px);
 }
 .hero-left { flex: 1.2; }
-.hero-subtitle { font-size: 13px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem; }
-.hero-title { font-size: 4.4rem; font-weight: 900; line-height: 1.05; color: #0F172A; margin-bottom: 1rem; letter-spacing: -2px; }
-.hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-desc { font-size: 1.15rem; color: #475569; line-height: 1.65; margin-bottom: 1.2rem; }
+.hero-subtitle {
+    font-size: 13px;
+    font-weight: 800;
+    color: #4A6D5F;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.8rem;
+}
+.hero-title {
+    font-size: 4.4rem;
+    font-weight: 900;
+    line-height: 1.05;
+    color: #0F172A;
+    margin-bottom: 1rem;
+    letter-spacing: -2px;
+}
+.hero-title span {
+    background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.hero-desc {
+    font-size: 1.15rem;
+    color: #475569;
+    line-height: 1.65;
+    margin-bottom: 1.2rem;
+}
 .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.bento-card { border-radius: 18px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.04); border: 1px solid rgba(255,255,255,0.6); }
-.chem-tag { background: rgba(255,255,255,0.85); padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 800; color: #0F172A; border: 1px solid rgba(0,0,0,0.03); display: inline-block; margin: 3px; }
+.bento-card {
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+    border: 1px solid rgba(255,255,255,0.6);
+}
+.chem-tag {
+    background: rgba(255,255,255,0.85);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #0F172A;
+    border: 1px solid rgba(0,0,0,0.03);
+    display: inline-block;
+    margin: 3px;
+}
 
 /* Dataset list */
-.dataset-list-row { display: flex; padding: 16px 20px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease; }
+.dataset-list-row {
+    display: flex;
+    padding: 16px 20px;
+    font-size: 14px;
+    border-bottom: 1px solid #F1F5F9;
+    align-items: center;
+    transition: all 0.2s ease;
+}
 .dataset-list-row:hover { background: #F8FAFC !important; }
 .dataset-list-row .ds-name { font-weight: 700; color: #0F172A; }
 
 .mobile-dataset-card {
-    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px;
-    padding: 14px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(15,23,42,0.03);
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(15,23,42,0.03);
 }
-.mobile-dataset-title { font-weight: 800; color: #0F172A; font-size: 15px; margin-bottom: 8px; line-height: 1.35; }
-.mobile-meta-row { font-size: 12px; color: #64748B; margin-bottom: 6px; line-height: 1.4; }
-.mobile-pill { display: inline-block; background: #F1F5F9; border: 1px solid #E2E8F0; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #475569; }
-.mobile-action { display: inline-block; margin-top: 8px; background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+.mobile-dataset-title {
+    font-weight: 800;
+    color: #0F172A;
+    font-size: 15px;
+    margin-bottom: 8px;
+    line-height: 1.35;
+}
+.mobile-meta-row {
+    font-size: 12px;
+    color: #64748B;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+.mobile-pill {
+    display: inline-block;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+}
+.mobile-action {
+    display: inline-block;
+    margin-top: 8px;
+    background: #F0FDF4;
+    color: #166534;
+    border: 1px solid #DCFCE7;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+}
 
-.metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 16px; }
-.metadata-item { background: rgba(255,255,255,0.55); border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; }
-.metadata-label { font-size: 11px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
-.metadata-value { font-size: 14px; font-weight: 600; color: #0F172A; word-break: break-word; }
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+.metadata-item {
+    background: rgba(255,255,255,0.55);
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px;
+}
+.metadata-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 5px;
+}
+.metadata-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F172A;
+    word-break: break-word;
+}
 
-.custom-footer { width: 100%; padding: 34px 16px 16px 16px; margin-top: 32px; color: #64748B; font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 10px; }
-.footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font-weight: 600; }
+.custom-footer {
+    width: 100%;
+    padding: 34px 16px 16px 16px;
+    margin-top: 32px;
+    color: #64748B;
+    font-size: 14px;
+    border-top: 1px solid #E2E8F0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.footer-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-weight: 600;
+}
 .footer-links a { color: #475569; text-decoration: none; }
 .footer-separator { color: #CBD5E1; }
 .footer-copyright { color: #94A3B8; font-size: 12px; }
 
-/* ===== 关键修复：用 anchor 精准控制桌面/手机导航显示 ===== */
-/* 默认：显示桌面导航，隐藏手机导航 */
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) { display: block !important; }
-div[data-testid="stVerticalBlock"]:has(.mobile-nav-anchor) { display: none !important; }
-
-/* 去掉桌面导航整行的长白底块（列容器背景） */
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) [data-testid="stHorizontalBlock"] > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
-/* 再清掉桌面导航内部 wrapper */
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) [data-testid="stVerticalBlockBorderWrapper"] {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-/* 中间菜单列靠近 Logo（左对齐） */
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) [data-testid="stHorizontalBlock"] > div:nth-child(2) {
-    display: flex !important;
-    justify-content: flex-start !important;
-}
-
-/* 手机抽屉卡片 */
+/* 手机抽屉导航 UI 样式 */
 .mobile-nav-card {
     background: rgba(255,255,255,0.96);
     border: 1px solid rgba(226,232,240,0.85);
@@ -228,7 +343,11 @@ div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) [data-testid="stHori
     box-shadow: 0 8px 24px rgba(15,23,42,0.05);
     padding: 10px 12px;
 }
-.mobile-nav-menu { margin-top: 10px; padding-top: 10px; border-top: 1px solid #E2E8F0; }
+.mobile-nav-menu {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #E2E8F0;
+}
 .mobile-nav-item-btn button {
     width: 100% !important;
     justify-content: flex-start !important;
@@ -246,47 +365,94 @@ div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) [data-testid="stHori
     color: #FFFFFF !important;
     border-color: #4A6D5F !important;
 }
-.mobile-nav-compact-btn button {
-    height: 38px !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
-}
 
-/* ===== 响应式 ===== */
+/* ===== 其它响应式调整 ===== */
 @media (max-width: 1024px) {
-    .hero-container { flex-direction: column !important; align-items: stretch !important; gap: 1.2rem !important; padding: 2rem 1.4rem !important; }
+    .hero-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1.2rem !important;
+        padding: 2rem 1.4rem !important;
+    }
     .hero-right { width: 100% !important; }
     .hero-title { font-size: 2.8rem !important; }
     .hero-desc { font-size: 1rem !important; }
 }
 
 @media (max-width: 768px) {
-    .block-container { max-width: 100% !important; padding: 0.55rem !important; }
-    [data-testid="stVerticalBlockBorderWrapper"] { padding: 14px !important; margin-bottom: 14px !important; border-radius: 16px !important; }
+    .block-container {
+        max-width: 100% !important;
+        padding: 0.55rem !important;
+    }
 
-    /* 手机端：隐藏桌面导航，显示手机导航 */
-    div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) { display: none !important; }
-    div[data-testid="stVerticalBlock"]:has(.mobile-nav-anchor) { display: block !important; }
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        padding: 14px !important;
+        margin-bottom: 14px !important;
+        border-radius: 16px !important;
+    }
 
-    .hero-container { padding: 1.2rem 0.9rem !important; border-radius: 16px !important; gap: 0.8rem !important; }
-    .hero-subtitle { font-size: 10px !important; letter-spacing: 1px !important; margin-bottom: 0.4rem !important; }
-    .hero-title { font-size: 2rem !important; letter-spacing: -1px !important; margin-bottom: 0.5rem !important; }
-    .hero-desc { font-size: 0.92rem !important; line-height: 1.5 !important; margin-bottom: 0.5rem !important; }
+    .hero-container {
+        padding: 1.2rem 0.9rem !important;
+        border-radius: 16px !important;
+        gap: 0.8rem !important;
+    }
+    .hero-subtitle {
+        font-size: 10px !important;
+        letter-spacing: 1px !important;
+        margin-bottom: 0.4rem !important;
+    }
+    .hero-title {
+        font-size: 2rem !important;
+        letter-spacing: -1px !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .hero-desc {
+        font-size: 0.92rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 0.5rem !important;
+    }
     .hero-right { grid-template-columns: 1fr !important; gap: 0.7rem !important; }
-    .bento-card { padding: 14px !important; border-radius: 12px !important; min-height: auto !important; }
-    .bento-card[style*="grid-row:span 2"] { grid-row: auto !important; min-height: auto !important; }
+    .bento-card {
+        padding: 14px !important;
+        border-radius: 12px !important;
+        min-height: auto !important;
+    }
+    .bento-card[style*="grid-row:span 2"] {
+        grid-row: auto !important;
+        min-height: auto !important;
+    }
 
-    .section-header { padding: 10px 12px !important; border-radius: 12px !important; margin-bottom: 10px !important; }
-    .section-header h2 { font-size: 16px !important; line-height: 1.25 !important; }
+    .section-header {
+        padding: 10px 12px !important;
+        border-radius: 12px !important;
+        margin-bottom: 10px !important;
+    }
+    .section-header h2 {
+        font-size: 16px !important;
+        line-height: 1.25 !important;
+    }
 
-    .stButton > button { height: 40px !important; font-size: 14px !important; padding: 0 14px !important; }
+    .stButton>button {
+        height: 40px !important;
+        font-size: 14px !important;
+        padding: 0 14px !important;
+    }
 
     [data-baseweb="tab"] p { font-size: 13px !important; }
-    [data-testid="stTabs"] [data-baseweb="tab-list"] { overflow-x: auto !important; white-space: nowrap !important; }
+    [data-testid="stTabs"] [data-baseweb="tab-list"] {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+    }
 
-    .metadata-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .metadata-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
 
-    .custom-footer { padding: 20px 8px 10px 8px !important; gap: 8px !important; }
+    .custom-footer {
+        padding: 20px 8px 10px 8px !important;
+        gap: 8px !important;
+    }
     .footer-links { gap: 6px !important; font-size: 12px !important; }
     .footer-copyright { font-size: 11px !important; }
 }
@@ -294,25 +460,26 @@ div[data-testid="stVerticalBlock"]:has(.desktop-nav-anchor) [data-testid="stHori
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航（桌面 + 手机，使用 anchor 容器修复双渲染） =================
+# ================= 5. 顶部导航栏（桌面 + 手机抽屉） =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-base_icons = ["house", "search", "cloud-upload", "info-circle", "envelope"]
+base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
 if st.session_state.is_admin:
     menu_tabs.append("Admin Dashboard")
-    menu_icons = base_icons + ["shield-lock"]
+    menu_icons = base_icons + ['shield-lock']
 else:
     menu_icons = base_icons
 
-# ---- Desktop Nav (独立容器 + anchor) ----
+# ---- Desktop Nav ----
 with st.container():
-    st.markdown('<div class="desktop-nav-anchor" style="display:none;"></div>', unsafe_allow_html=True)
+    # 注入隐形锚点标记以供 CSS :has 选择器使用
+    st.markdown('<span class="desktop-nav-marker"></span>', unsafe_allow_html=True)
 
-    col_logo, col_menu, col_auth = st.columns([1.6, 7.2, 1.2], vertical_alignment="center")
+    col_logo, col_menu, col_auth = st.columns([1.55, 7.6, 1.2], vertical_alignment="center")
 
     with col_logo:
-        st.image(LOGO_IMAGE_URL, width=230)
+        st.image(LOGO_IMAGE_URL, width=190)
 
     with col_menu:
         if st.session_state.current_view not in ["login", "signup"]:
@@ -351,8 +518,7 @@ with st.container():
                         "margin": "0 4px",
                         "border-radius": "999px",
                         "white-space": "nowrap",
-                        "transition": "all 0.25s ease",
-                        "--hover-color": "#F1F5F9"
+                        "transition": "all 0.25s ease"
                     },
                     "nav-link-selected": {
                         "background-color": "#4A6D5F",
@@ -380,25 +546,23 @@ with st.container():
                     st.session_state.current_view = "login"
                     st.rerun()
 
-# ---- Mobile Drawer Nav (独立容器 + anchor) ----
+# ---- Mobile Drawer Nav ----
 with st.container():
-    st.markdown('<div class="mobile-nav-anchor" style="display:none;"></div>', unsafe_allow_html=True)
+    # 注入隐形锚点标记以供 CSS :has 选择器使用
+    st.markdown('<span class="mobile-nav-marker"></span>', unsafe_allow_html=True)
 
     st.markdown('<div class="mobile-nav-card">', unsafe_allow_html=True)
 
-    left, right = st.columns([5, 2], vertical_alignment="center")
-    with left:
-        st.image(LOGO_IMAGE_URL, width=170)
-    with right:
+    top_left, top_right = st.columns([5, 2], vertical_alignment="center")
+    with top_left:
+        st.image(LOGO_IMAGE_URL, width=145)
+    with top_right:
         b1, b2 = st.columns(2)
         with b1:
-            st.markdown('<div class="mobile-nav-compact-btn">', unsafe_allow_html=True)
             if st.button("☰", key="mobile_menu_toggle", use_container_width=True):
                 st.session_state.mobile_menu_open = not st.session_state.mobile_menu_open
                 st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
         with b2:
-            st.markdown('<div class="mobile-nav-compact-btn">', unsafe_allow_html=True)
             if st.session_state.is_admin:
                 if st.button("⎋", key="mobile_logout", use_container_width=True):
                     st.session_state.is_admin = False
@@ -411,7 +575,6 @@ with st.container():
                         st.session_state.current_view = "login"
                         st.session_state.mobile_menu_open = False
                         st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
     if st.session_state.current_view not in ["login", "signup"] and st.session_state.mobile_menu_open:
         st.markdown('<div class="mobile-nav-menu">', unsafe_allow_html=True)
@@ -422,14 +585,15 @@ with st.container():
             "Contribute Data": "☁️",
             "About": "ℹ️",
             "Contact": "✉️",
-            "Admin Dashboard": "🛡️",
+            "Admin Dashboard": "🛡️"
         }
 
         for page in menu_tabs:
-            is_active = st.session_state.current_view == page
+            is_active = (st.session_state.current_view == page)
             active_cls = "active" if is_active else ""
             st.markdown(f'<div class="mobile-nav-item-btn {active_cls}">', unsafe_allow_html=True)
-            if st.button(f'{icon_map.get(page, "•")}  {page}', key=f"mobile_nav_{page}", use_container_width=True):
+            label = f'{icon_map.get(page, "•")}  {page}'
+            if st.button(label, key=f"mobile_nav_{page}", use_container_width=True):
                 st.session_state.current_view = page
                 st.session_state.mobile_menu_open = False
                 st.rerun()
@@ -439,40 +603,44 @@ with st.container():
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ================= 6. Google Sheets 数据 =================
+# ================= 6. Google Sheets =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
+
 
 @st.cache_data(ttl=10)
 def load_data():
     try:
         _df = conn.read(spreadsheet=SPREADSHEET_URL)
-        _df = _df.dropna(how="all", axis=0).dropna(how="all", axis=1)
-        _df = _df.fillna("")
+        _df = _df.dropna(how='all', axis=0).dropna(how='all', axis=1)
+        _df = _df.fillna('')
         _df = _df.astype(str)
-        if "Status" not in _df.columns:
-            _df["Status"] = "Approved"
+        if 'Status' not in _df.columns:
+            _df['Status'] = 'Approved'
         return _df
     except Exception:
-        return pd.DataFrame(columns=["Dataset Name", "Author", "Domain", "Category", "Sub-category", "Status"])
+        return pd.DataFrame(columns=['Dataset Name', 'Author', 'Domain', 'Category', 'Sub-category', 'Status'])
+
 
 df = load_data()
-public_df = df[df["Status"] == "Approved"] if "Status" in df.columns else df.copy()
+public_df = df[df['Status'] == 'Approved'] if 'Status' in df.columns else df.copy()
+
 
 # ================= 工具函数 =================
 def safe_author_display(raw_author):
     raw_author = str(raw_author).strip()
-    if raw_author in ["Unspecified", "N/A", "", "nan"]:
+    if raw_author in ['Unspecified', 'N/A', '', 'nan']:
         return raw_author, '<span style="color:#94A3B8; font-style:italic;">Unspecified</span>'
-    if "," in raw_author:
-        first_author = raw_author.split(",")[0].strip()
+    if ',' in raw_author:
+        first_author = raw_author.split(',')[0].strip()
         return raw_author, f"{first_author} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
-    if " and " in raw_author:
-        first_author = raw_author.split(" and ")[0].strip()
+    if ' and ' in raw_author:
+        first_author = raw_author.split(' and ')[0].strip()
         return raw_author, f"{first_author} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
     if len(raw_author) > 25:
         return raw_author, raw_author[:22] + "..."
     return raw_author, raw_author
+
 
 # ================= 7. 页面内容 =================
 
@@ -495,7 +663,7 @@ if current_page == "login" and not st.session_state.is_admin:
             pwd_input = st.text_input("Password", type="password", placeholder="••••••••")
 
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Sign In", use_container_width=True, key="login_submit"):
+            if st.button("Sign In", use_container_width=True):
                 if pwd_input == st.secrets.get("admin_password", ""):
                     st.session_state.is_admin = True
                     st.session_state.current_view = "Homepage"
@@ -530,12 +698,12 @@ elif current_page == "signup" and not st.session_state.is_admin:
                 unsafe_allow_html=True
             )
 
-            st.text_input("Full Name", placeholder="e.g. John Doe", key="signup_fullname")
+            st.text_input("Full Name", placeholder="e.g. John Doe")
             st.text_input("Email address", placeholder="name@company.com", key="signup_email")
             st.text_input("Password", type="password", placeholder="Create a strong password", key="signup_password")
 
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Register Account", use_container_width=True, key="signup_submit"):
+            if st.button("Register Account", use_container_width=True):
                 st.info("Registration is temporarily closed. Please contact the administrator.")
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0 18px 0;'>", unsafe_allow_html=True)
@@ -551,7 +719,8 @@ elif current_page == "signup" and not st.session_state.is_admin:
 
 # ----------------- Homepage -----------------
 elif current_page == "Homepage":
-    chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in ["NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]])
+    chem_tags_html = "".join(
+        [f'<span class="chem-tag">{c}</span>' for c in ["NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]])
 
     hero_html = (
         '<div class="hero-container">'
@@ -580,12 +749,13 @@ elif current_page == "Homepage":
 
     c_left, c_right = st.columns([2, 1])
     with c_left:
-        st.markdown('<div class="section-header header-teal"><h2>🌟 Latest Additions</h2></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header header-teal"><h2>🌟 Latest Additions</h2></div>',
+                    unsafe_allow_html=True)
         latest_datasets = public_df.tail(3)
         if not latest_datasets.empty:
             for _, row in latest_datasets.iterrows():
                 with st.container(border=True):
-                    st.markdown(f"**{row.get('Dataset Name', 'Unnamed')}**")
+                    st.markdown(f"{row.get('Dataset Name', 'Unnamed')}")
                     st.caption(
                         f"Domain: {row.get('Domain', 'N/A')} | Chem: {row.get('Battery Chemistry', 'N/A')} | Added by: {row.get('Author', 'Unknown')}"
                     )
@@ -596,7 +766,8 @@ elif current_page == "Homepage":
         st.markdown('<div class="section-header header-amber"><h2>🔥 Popular Tags</h2></div>', unsafe_allow_html=True)
         with st.container(border=True):
             tags = ["EIS", "SOH", "RUL", "Time-Series", "Aging", "Simulation"]
-            tags_html = "".join([f'<span class="chem-tag" style="background:#F1F5F9; border-color:#CBD5E1;">{t}</span>' for t in tags])
+            tags_html = "".join(
+                [f'<span class="chem-tag" style="background:#F1F5F9; border-color:#CBD5E1;">{t}</span>' for t in tags])
             st.markdown(tags_html, unsafe_allow_html=True)
             st.info("💡 Tip: Use these keywords in the search bar.")
 
@@ -618,7 +789,8 @@ elif current_page == "Browse Datasets":
                 "<h3 style='font-size:17px; font-weight:800; color:#0F172A; margin-bottom:12px;'>🔍 Filters</h3>",
                 unsafe_allow_html=True
             )
-            search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw, placeholder="e.g. Oxford, NMC, EIS...")
+            search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
+                                      placeholder="e.g. Oxford, NMC, EIS...")
             st.session_state.search_kw = search_kw
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 12px 0;'>", unsafe_allow_html=True)
@@ -638,31 +810,29 @@ elif current_page == "Browse Datasets":
         filtered_df = public_df.copy()
 
         if search_kw:
-            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(axis=1)
+            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(
+                axis=1)
             filtered_df = filtered_df[mask]
-        if sel_domain != "All" and "Domain" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["Domain"] == sel_domain]
-        if sel_category != "All" and "Category" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["Category"] == sel_category]
-        if sel_subcategory != "All" and "Sub-category" in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df["Sub-category"] == sel_subcategory]
+        if sel_domain != "All" and 'Domain' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['Domain'] == sel_domain]
+        if sel_category != "All" and 'Category' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['Category'] == sel_category]
+        if sel_subcategory != "All" and 'Sub-category' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['Sub-category'] == sel_subcategory]
 
-        st.markdown(
-            f"""
-<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; background:rgba(255,255,255,0.7); padding:10px 14px; border-radius:12px; border:1px solid #E2E8F0; margin-bottom:14px;">
-  <div style="font-size:14px; font-weight:700; color:#0F172A;">
-    <span style="background:#4A6D5F; color:white; padding:4px 10px; border-radius:999px; font-size:12px; margin-right:6px;">{len(filtered_df)}</span> Datasets Found
-  </div>
-  <div style="font-size:12px; color:#64748B; font-weight:600;">Sort by: <span style="color:#0F172A;">Most Recent</span></div>
-</div>
-""",
-            unsafe_allow_html=True
-        )
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; background:rgba(255,255,255,0.7); padding:10px 14px; border-radius:12px; border:1px solid #E2E8F0; margin-bottom:14px;">
+            <div style="font-size:14px; font-weight:700; color:#0F172A;">
+                <span style="background:#4A6D5F; color:white; padding:4px 10px; border-radius:999px; font-size:12px; margin-right:6px;">{len(filtered_df)}</span> Datasets Found
+            </div>
+            <div style="font-size:12px; color:#64748B; font-weight:600;">Sort by: <span style="color:#0F172A;">Most Recent</span></div>
+        </div>
+        """, unsafe_allow_html=True)
 
         if not filtered_df.empty:
             html_parts = []
 
-            # Desktop table
+            # 桌面表格
             html_parts.append(
                 '<div class="desktop-dataset-list" style="border:1px solid #E2E8F0; border-radius:12px; overflow:hidden; background:#FFFFFF; margin-bottom:18px; box-shadow:0 4px 20px rgba(0,0,0,0.02);">'
             )
@@ -674,68 +844,72 @@ elif current_page == "Browse Datasets":
             )
 
             for _, row in filtered_df.iterrows():
-                raw_author, display_author = safe_author_display(row.get("Author", "Unspecified"))
-                ds_name = row.get("Dataset Name", "Unnamed")
-                domain = row.get("Domain", "N/A")
+                raw_author, display_author = safe_author_display(row.get('Author', 'Unspecified'))
+                ds_name = row.get('Dataset Name', 'Unnamed')
+                domain = row.get('Domain', 'N/A')
 
                 html_parts.append('<div class="dataset-list-row">')
                 html_parts.append(f'<div class="ds-name" style="flex:2.5; padding-right:12px;">{ds_name}</div>')
-                html_parts.append(f'<div style="flex:1.5; color:#475569; padding-right:12px;" title="{raw_author}">{display_author}</div>')
-                html_parts.append(f'<div style="flex:1; color:#64748B;"><span style="background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;">{domain}</span></div>')
-                html_parts.append('<div style="flex:0.8; text-align:right;"><span style="background:#F0FDF4; color:#166534; border:1px solid #DCFCE7; padding:5px 10px; border-radius:999px; font-size:11px; font-weight:700;">View ↓</span></div>')
-                html_parts.append("</div>")
-            html_parts.append("</div>")
+                html_parts.append(
+                    f'<div style="flex:1.5; color:#475569; padding-right:12px;" title="{raw_author}">{display_author}</div>')
+                html_parts.append(
+                    f'<div style="flex:1; color:#64748B;"><span style="background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600;">{domain}</span></div>')
+                html_parts.append(
+                    '<div style="flex:0.8; text-align:right;"><span style="background:#F0FDF4; color:#166534; border:1px solid #DCFCE7; padding:5px 10px; border-radius:999px; font-size:11px; font-weight:700;">View ↓</span></div>')
+                html_parts.append('</div>')
+            html_parts.append('</div>')
 
-            # Mobile cards
+            # 手机卡片
             html_parts.append('<div class="mobile-dataset-list" style="display:none;">')
             for _, row in filtered_df.iterrows():
-                raw_author = str(row.get("Author", "Unspecified"))
-                ds_name = str(row.get("Dataset Name", "Unnamed"))
-                domain = str(row.get("Domain", "N/A"))
-                short_desc = str(row.get("Short Description", "")).strip()
+                raw_author = str(row.get('Author', 'Unspecified'))
+                ds_name = str(row.get('Dataset Name', 'Unnamed'))
+                domain = str(row.get('Domain', 'N/A'))
+                short_desc = str(row.get('Short Description', '')).strip()
                 short_desc_html = ""
                 if short_desc and short_desc.lower() not in ["nan", "none"]:
-                    trimmed = short_desc[:90] + ("..." if len(short_desc) > 90 else "")
-                    short_desc_html = f'<div class="mobile-meta-row">{trimmed}</div>'
+                    desc_trim = short_desc[:90] + ("..." if len(short_desc) > 90 else "")
+                    short_desc_html = f'<div class="mobile-meta-row">{desc_trim}</div>'
 
                 html_parts.append(
-                    f"""
-<div class="mobile-dataset-card">
-  <div class="mobile-dataset-title">{ds_name}</div>
-  <div class="mobile-meta-row"><strong style="color:#334155;">Author:</strong> {raw_author if raw_author not in ["", "nan"] else "Unspecified"}</div>
-  <div class="mobile-meta-row"><strong style="color:#334155;">Domain:</strong> <span class="mobile-pill">{domain}</span></div>
-  {short_desc_html}
-  <span class="mobile-action">View details ↓</span>
-</div>
-"""
+                    f'''
+                    <div class="mobile-dataset-card">
+                        <div class="mobile-dataset-title">{ds_name}</div>
+                        <div class="mobile-meta-row"><strong style="color:#334155;">Author:</strong> {raw_author if raw_author not in ["", "nan"] else "Unspecified"}</div>
+                        <div class="mobile-meta-row"><strong style="color:#334155;">Domain:</strong> <span class="mobile-pill">{domain}</span></div>
+                        {short_desc_html}
+                        <span class="mobile-action">View details ↓</span>
+                    </div>
+                    '''
                 )
-            html_parts.append("</div>")
+            html_parts.append('</div>')
 
-            html_parts.append(
-                """
-<style>
-@media (max-width: 768px){
-  .desktop-dataset-list { display:none !important; }
-  .mobile-dataset-list { display:block !important; }
-  .dataset-list-header { display:none !important; }
-}
-</style>
-"""
-            )
+            # 控制显示
+            html_parts.append("""
+            <style>
+            @media (max-width: 768px){
+                .desktop-dataset-list { display:none !important; }
+                .mobile-dataset-list { display:block !important; }
+                .dataset-list-header { display:none !important; }
+            }
+            </style>
+            """)
 
             st.markdown("".join(html_parts), unsafe_allow_html=True)
 
-            st.markdown('<div class="section-header header-teal"><h2>📖 Dataset Details</h2></div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-header header-teal"><h2>📖 Dataset Details</h2></div>',
+                        unsafe_allow_html=True)
 
-            valid_datasets = filtered_df[filtered_df["Dataset Name"] != ""] if "Dataset Name" in filtered_df.columns else filtered_df
+            valid_datasets = filtered_df[
+                filtered_df['Dataset Name'] != ''] if 'Dataset Name' in filtered_df.columns else filtered_df
             selected_dataset = st.selectbox(
                 "Select a dataset to view full details:",
-                ["(Select to view)"] + valid_datasets["Dataset Name"].tolist(),
+                ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
                 label_visibility="collapsed"
             )
 
             if selected_dataset != "(Select to view)":
-                details = valid_datasets[valid_datasets["Dataset Name"] == selected_dataset].iloc[0]
+                details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
 
                 details_html = (
                     '<div style="background: rgba(255,255,255,0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.65); border-radius: 18px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04); padding: 20px; margin-bottom: 18px;">'
@@ -743,52 +917,55 @@ elif current_page == "Browse Datasets":
                     f'<p style="color:#64748B; font-size: 14px; margin-bottom: 16px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
                 )
 
-                link = str(details.get("Link", "")).strip()
-                if link.startswith("http"):
+                link = str(details.get('Link', '')).strip()
+                if link.startswith('http'):
                     details_html += (
                         '<div style="margin-bottom: 16px;">'
                         f'<a href="{link}" target="_blank" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:10px 18px; text-decoration:none; border-radius:999px; font-weight:700; font-size:13px;">🔗 Download / Visit Source</a>'
-                        "</div>"
+                        '</div>'
                     )
 
                 details_html += '<div class="metadata-grid">'
                 for col_name in df.columns:
-                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ["Link", "Status", "Dataset Name"]:
-                        val = str(details.get(col_name, "")).strip()
-                        if val and val.lower() not in ["nan", "none", "n/a", "na", "null", ""]:
+                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status',
+                                                                                                     'Dataset Name']:
+                        val = str(details.get(col_name, '')).strip()
+                        if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
                             details_html += (
                                 f'<div class="metadata-item"><div class="metadata-label">{col_name}</div>'
                                 f'<div class="metadata-value">{val}</div></div>'
                             )
-                details_html += "</div>"
+                details_html += '</div>'
 
                 details_html += (
                     '<div style="margin-top:18px; padding:12px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;">'
                     '<h4 style="margin:0 0 6px 0; font-size:13px; color:#0F172A;">📚 How to Cite</h4>'
                     f'<p style="margin:0; font-size:12px; color:#475569;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p>'
-                    "</div>"
+                    '</div>'
                 )
-                details_html += "</div>"
-
+                details_html += '</div>'
                 st.markdown(details_html, unsafe_allow_html=True)
         else:
             st.warning("No datasets match your filters.")
 
 # ----------------- Contribute Data -----------------
 elif current_page == "Contribute Data":
-    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
+                unsafe_allow_html=True)
     tab_submit, tab_request, tab_guide = st.tabs(["Submit a Dataset", "Request a Dataset", "Submission Guidelines"])
 
     with tab_submit:
         with st.container(border=True):
-            st.write("Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+            st.write(
+                "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
             with st.form("upload_form", border=False):
                 c1, c2 = st.columns(2)
                 new_name = c1.text_input("Dataset Name *")
                 new_desc = c2.text_input("Short Description *")
 
                 c1b, c2b, c3b = st.columns(3)
-                new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
+                new_domain = c1b.selectbox("Domain *",
+                                           ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
                 new_category = c2b.text_input("Category (e.g., Battery, Grid)")
                 new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
 
@@ -805,16 +982,16 @@ elif current_page == "Contribute Data":
                     else:
                         new_row = {c: "" for c in df.columns}
                         new_row.update({
-                            "Dataset Name": new_name,
-                            "Domain": new_domain,
-                            "Category": new_category,
-                            "Sub-category": new_subcat,
-                            "Short Description": new_desc,
-                            "Link": new_link,
-                            "Source Organization": new_org,
-                            "Author": new_contributor,
-                            "Contributor Email": new_email,
-                            "Status": "Pending"
+                            'Dataset Name': new_name,
+                            'Domain': new_domain,
+                            'Category': new_category,
+                            'Sub-category': new_subcat,
+                            'Short Description': new_desc,
+                            'Link': new_link,
+                            'Source Organization': new_org,
+                            'Author': new_contributor,
+                            'Contributor Email': new_email,
+                            'Status': 'Pending'
                         })
                         updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
                         conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
@@ -824,7 +1001,8 @@ elif current_page == "Contribute Data":
     with tab_request:
         with st.container(border=True):
             st.markdown("### Can't find what you're looking for?")
-            st.write("Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
+            st.write(
+                "Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
             with st.form("request_form", border=False):
                 st.text_input("Requested Topic / Dataset Name *", placeholder="e.g. Real-world EV charging profiles")
                 st.text_area("Additional Details", placeholder="Specify chemistry, format, test conditions, etc.")
@@ -835,39 +1013,31 @@ elif current_page == "Contribute Data":
     with tab_guide:
         with st.container(border=True):
             st.markdown("### 📖 Curation Policy & Metadata Standards")
-            st.write(
-                """
-* **Public Domain Only:** Ensure the dataset is publicly available or you have rights to share it.  
-* **URL Validity:** Prefer direct links to GitHub / Zenodo / Mendeley / official repositories.  
-* **Metadata Quality:** Fill chemistry, category, and data type accurately for better discoverability.  
-"""
-            )
+            st.write("""
+* Public Domain Only: Ensure the dataset is publicly available or you have rights to share it.  
+* URL Validity: Prefer direct links to GitHub / Zenodo / Mendeley / official repositories.  
+* Metadata Quality: Fill chemistry, category, and data type accurately for better discoverability.  
+            """)
 
 # ----------------- About -----------------
 elif current_page == "About":
-    st.markdown(
-        """
-<div style="background: rgba(255,255,255,0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.65); border-radius: 18px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04); padding: 24px;">
-    <div class="section-header header-blue"><h2 style="margin:0;">About This Platform</h2></div>
-    <p style="margin-top:14px; font-size: 15px; line-height: 1.7; color: #475569;">This website is a curated platform for organizing and sharing public datasets. It improves dataset discoverability, metadata standardization, and reuse in research and engineering workflows.</p>
-    <p style="font-size: 15px; line-height: 1.7; color: #475569;">Maintained by <strong style="color:#0F172A;">Jian Wu</strong>, focusing on battery data analysis and SOH estimation.</p>
-</div>
-""",
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <div style="background: rgba(255,255,255,0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.65); border-radius: 18px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04); padding: 24px;">
+        <div class="section-header header-blue"><h2 style="margin:0;">About This Platform</h2></div>
+        <p style="margin-top:14px; font-size: 15px; line-height: 1.7; color: #475569;">This website is a curated platform for organizing and sharing public datasets. It improves dataset discoverability, metadata standardization, and reuse in research and engineering workflows.</p>
+        <p style="font-size: 15px; line-height: 1.7; color: #475569;">Maintained by <strong style="color:#0F172A;">Jian Wu</strong>, focusing on battery data analysis and SOH estimation.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ----------------- Contact -----------------
 elif current_page == "Contact":
-    st.markdown(
-        """
-<div style="background: rgba(255,255,255,0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.65); border-radius: 18px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04); text-align: center; padding: 56px 16px;">
-    <h2 style="color:#0F172A; font-weight:900; margin-bottom:12px; font-size: 30px;">Get in Touch</h2>
-    <p style='font-size: 15px; color: #475569; margin-bottom: 20px;'>For questions, dataset suggestions, collaboration, or corrections, please contact:</p>
-    <a href="mailto:jian.wu@utbm.fr" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:12px 20px; text-decoration:none; border-radius:999px; font-weight:800; font-size:15px;">✉️ jian.wu@utbm.fr</a>
-</div>
-""",
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <div style="background: rgba(255,255,255,0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.65); border-radius: 18px; box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04); text-align: center; padding: 56px 16px;">
+        <h2 style="color:#0F172A; font-weight:900; margin-bottom:12px; font-size: 30px;">Get in Touch</h2>
+        <p style='font-size: 15px; color: #475569; margin-bottom: 20px;'>For questions, dataset suggestions, collaboration, or corrections, please contact:</p>
+        <a href="mailto:jian.wu@utbm.fr" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:12px 20px; text-decoration:none; border-radius:999px; font-weight:800; font-size:15px;">✉️ jian.wu@utbm.fr</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ----------------- Admin Dashboard -----------------
 elif current_page == "Admin Dashboard" and st.session_state.is_admin:
@@ -888,8 +1058,7 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.cache_data.clear()
 
 # ================= 8. Footer =================
-st.markdown(
-    """
+st.markdown("""
 <div class="custom-footer">
     <div class="footer-links">
         <a href="#">Citation Policy</a> <span class="footer-separator">/</span>
@@ -898,6 +1067,4 @@ st.markdown(
     </div>
     <div class="footer-copyright">© 2026 Open Battery Dataset Portal. Maintained by Jian Wu.</div>
 </div>
-""",
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
