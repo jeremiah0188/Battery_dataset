@@ -63,6 +63,7 @@ professional_css = """
         padding-bottom: 2rem !important; 
     }
 
+    /* 全局白卡样式 */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
@@ -74,6 +75,32 @@ professional_css = """
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
+
+    /* 🚀 新增：导航条 Header Wrapper 专属去白卡与入场动画 */
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper) {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin-bottom: 1rem !important;
+        /* 平滑过渡与下拉入场动画 */
+        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        z-index: 99; 
+    }
+
+    /* 强制清除导航条内部可能的白卡污染 */
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper) [data-testid="stVerticalBlockBorderWrapper"] {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    @keyframes headerSlideDown {
+        0% { opacity: 0; transform: translateY(-40px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
 
     /* 全局按钮 Slate Gray (#708090) */
     .stButton>button { 
@@ -100,14 +127,14 @@ professional_css = """
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
     [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; border-radius: 3px 3px 0 0; }
 
-    /* 🚀 新增：文字层级悬浮微动画 */
+    /* 文字层级悬浮微动画 */
     .section-header h2 { 
         font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; 
-        transition: all 0.3s ease; /* 平滑过渡 */
+        transition: all 0.3s ease; 
     }
     .section-header:hover h2 {
-        color: #4A6D5F; /* 悬浮变品牌青色 */
-        transform: translateX(6px); /* 悬浮向右微移 */
+        color: #4A6D5F; 
+        transform: translateX(6px); 
     }
 
     .hero-title { 
@@ -116,7 +143,7 @@ professional_css = """
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
     }
     .hero-title:hover {
-        transform: scale(1.02); /* 首页大标题呼吸感放大 */
+        transform: scale(1.02); 
     }
 
     /* 无边框列表行 Hover 样式 */
@@ -131,7 +158,7 @@ professional_css = """
         background-color: #F8FAFC !important; 
     }
     .dataset-list-row:hover .ds-name {
-        color: #4A6D5F !important; /* 悬浮行时，标题字变色 */
+        color: #4A6D5F !important; 
     }
 
     .hero-container {
@@ -174,71 +201,74 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏 (🚀 加宽并毛玻璃化) =================
+# ================= 5. 顶部导航栏 (🚀 加宽并毛玻璃化 + 动画包裹) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-# 改变列宽分配，给中间的菜单更大的空间（从 7 扩大到 8.5），从而加宽导航条
-col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
+# 使用 st.container 包裹整个导航条，并注入 header-wrapper 锚点供 CSS 识别去白卡和加动画
+with st.container():
+    st.markdown('<div class="header-wrapper"></div>', unsafe_allow_html=True)
 
-with col_logo:
-    st.image(LOGO_IMAGE_URL, width=190)
+    col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
 
-with col_menu:
-    if st.session_state.current_view not in ["login", "signup"]:
-        menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-        if st.session_state.is_admin:
-            menu_tabs.append("Admin Dashboard")
+    with col_logo:
+        st.image(LOGO_IMAGE_URL, width=190)
 
-        try:
-            default_idx = menu_tabs.index(st.session_state.current_view)
-        except ValueError:
-            default_idx = 0
-
-        # 🚀 导航栏毛玻璃宽胶囊设计
-        selected_page = option_menu(
-            menu_title=None,
-            options=menu_tabs,
-            icons=['house', 'search', 'cloud-upload', 'info-circle', 'envelope', 'shield-lock'],
-            default_index=default_idx,
-            orientation="horizontal",
-            styles={
-                "container": {
-                    "padding": "8px 24px !important",
-                    "background": "rgba(255, 255, 255, 0.6) !important",  # 半透明白底
-                    "backdrop-filter": "blur(12px) !important",  # 毛玻璃滤镜
-                    "border": "1px solid rgba(255, 255, 255, 0.8) !important",
-                    "border-radius": "100px !important",  # 大圆角宽胶囊
-                    "box-shadow": "0 4px 20px rgba(0,0,0,0.03) !important",
-                    "margin": "0 auto",
-                    "width": "100%"
-                },
-                "icon": {"color": "#64748B", "font-size": "16px"},
-                "nav-link": {
-                    "font-size": "15px", "font-weight": "700", "color": "#475569",
-                    "padding": "8px 24px", "margin": "0 4px",
-                    "--hover-color": "rgba(255,255,255,0.7)", "border-radius": "50px"
-                },
-                "nav-link-selected": {
-                    "background-color": "#4A6D5F", "color": "white",
-                    "icon-color": "white", "box-shadow": "0 4px 12px rgba(74,109,95,0.25)"
-                },
-            }
-        )
-        if selected_page != st.session_state.current_view:
-            st.session_state.current_view = selected_page
-            st.rerun()
-
-with col_auth:
-    if st.session_state.is_admin:
-        if st.button("Log Out"):
-            st.session_state.is_admin = False
-            st.session_state.current_view = "Homepage"
-            st.rerun()
-    else:
+    with col_menu:
         if st.session_state.current_view not in ["login", "signup"]:
-            if st.button("Sign In"):
-                st.session_state.current_view = "login"
+            menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
+            if st.session_state.is_admin:
+                menu_tabs.append("Admin Dashboard")
+
+            try:
+                default_idx = menu_tabs.index(st.session_state.current_view)
+            except ValueError:
+                default_idx = 0
+
+            # 🚀 导航栏毛玻璃宽胶囊设计（现在脱离了外层白卡的束缚，显得更悬浮独立）
+            selected_page = option_menu(
+                menu_title=None,
+                options=menu_tabs,
+                icons=['house', 'search', 'cloud-upload', 'info-circle', 'envelope', 'shield-lock'],
+                default_index=default_idx,
+                orientation="horizontal",
+                styles={
+                    "container": {
+                        "padding": "8px 24px !important",
+                        "background": "rgba(255, 255, 255, 0.6) !important",  # 半透明白底
+                        "backdrop-filter": "blur(12px) !important",  # 毛玻璃滤镜
+                        "border": "1px solid rgba(255, 255, 255, 0.8) !important",
+                        "border-radius": "100px !important",  # 大圆角宽胶囊
+                        "box-shadow": "0 4px 20px rgba(0,0,0,0.03) !important",
+                        "margin": "0 auto",
+                        "width": "100%"
+                    },
+                    "icon": {"color": "#64748B", "font-size": "16px"},
+                    "nav-link": {
+                        "font-size": "15px", "font-weight": "700", "color": "#475569",
+                        "padding": "8px 24px", "margin": "0 4px",
+                        "--hover-color": "rgba(255,255,255,0.7)", "border-radius": "50px"
+                    },
+                    "nav-link-selected": {
+                        "background-color": "#4A6D5F", "color": "white",
+                        "icon-color": "white", "box-shadow": "0 4px 12px rgba(74,109,95,0.25)"
+                    },
+                }
+            )
+            if selected_page != st.session_state.current_view:
+                st.session_state.current_view = selected_page
                 st.rerun()
+
+    with col_auth:
+        if st.session_state.is_admin:
+            if st.button("Log Out"):
+                st.session_state.is_admin = False
+                st.session_state.current_view = "Homepage"
+                st.rerun()
+        else:
+            if st.session_state.current_view not in ["login", "signup"]:
+                if st.button("Sign In"):
+                    st.session_state.current_view = "login"
+                    st.rerun()
 
 # ================= 6. 🔗 Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -369,7 +399,7 @@ elif current_page == "Homepage":
         if not latest_datasets.empty:
             for _, row in latest_datasets.iterrows():
                 with st.container(border=True):
-                    st.markdown(f"**{row.get('Dataset Name', 'Unnamed')}**")
+                    st.markdown(f"{row.get('Dataset Name', 'Unnamed')}")
                     st.caption(
                         f"Domain: {row.get('Domain', 'N/A')} | Chem: {row.get('Battery Chemistry', 'N/A')} | Added by: {row.get('Author', 'Unknown')}")
         else:
@@ -515,7 +545,6 @@ elif current_page == "Browse Datasets":
                             details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
                 details_html += '</div>'
 
-                # 🚀 统一字体：去掉了 font-family:monospace，现在它和全站默认字体一致
                 details_html += f'<div style="margin-top:32px; padding:16px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;"><h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4><p style="margin:0; font-size:13px; color:#475569;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p></div>'
                 details_html += '</div>'
 
@@ -583,9 +612,9 @@ elif current_page == "Contribute Data":
         with st.container(border=True):
             st.markdown("### 📖 Curation Policy & Metadata Standards")
             st.write("""
-            * **Public Domain Only:** Ensure the dataset you are submitting is publicly available or you hold the rights to share it.
-            * **URL Validity:** Provide direct links to repositories (GitHub, Mendeley, Zenodo) rather than generic homepages.
-            * **Accuracy:** Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.
+            * Public Domain Only: Ensure the dataset you are submitting is publicly available or you hold the rights to share it.
+            * URL Validity: Provide direct links to repositories (GitHub, Mendeley, Zenodo) rather than generic homepages.
+            * Accuracy: Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.
             """)
 
 # ----------------- 页面 F & G：About & Contact -----------------
