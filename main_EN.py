@@ -66,7 +66,6 @@ professional_css = """
         padding-bottom: 2rem !important;
     }
 
-    /* ================= 全局内容白卡样式 ================= */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
@@ -82,7 +81,7 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域（原生文字导航，无白底） ================= */
+    /* ================= 顶部导航区域（纯文字导航） ================= */
     .nav-shell { width: 100%; display: block; }
 
     div[data-testid="stVerticalBlock"]:has(.nav-shell),
@@ -109,106 +108,89 @@ professional_css = """
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* 文字导航按钮（仅顶部导航使用） */
-    .nav-btn-wrap {
+    .top-nav {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
-        gap: 4px;
+        gap: 18px;
         flex-wrap: nowrap;
-        white-space: nowrap;
         overflow-x: auto;
-        padding: 0;
-        margin-top: 4px;
+        white-space: nowrap;
+        padding-top: 4px;
     }
-    .nav-btn-wrap::-webkit-scrollbar { height: 0; }
+    .top-nav::-webkit-scrollbar { height: 0; }
 
-    .nav-btn {
-        display: inline-block;
-        background: transparent;
-        border: none;
+    .top-nav a {
         color: #64748B;
+        text-decoration: none !important;
         font-weight: 700;
         font-size: 15px;
-        padding: 6px 10px 8px 10px;
-        margin-right: 8px;
-        cursor: default;
-        border-bottom: 2px solid transparent;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        text-decoration: none;
-        white-space: nowrap;
+        padding: 6px 2px 10px 2px;
+        border-bottom: 3px solid transparent;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
     }
-    .nav-btn:hover {
+    .top-nav a:hover {
         color: #4A6D5F;
         transform: translateY(-1px);
     }
-    .nav-btn-active {
+    .top-nav a.active {
         color: #4A6D5F !important;
+        border-bottom-color: #4A6D5F !important;
         font-weight: 800 !important;
-        border-bottom: 2px solid #4A6D5F !important;
     }
 
-    /* 点击层（透明按钮覆盖到文字下面） */
-    .nav-click-row {
-        margin-top: -32px;
-        margin-bottom: 8px;
-    }
-    .nav-click-row .stButton > button {
-        width: 100% !important;
-        height: 34px !important;
-        min-height: 34px !important;
-        padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        color: transparent !important;
-        border-radius: 0 !important;
-    }
-    .nav-click-row .stButton > button:hover {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        transform: none !important;
-    }
-
-    /* === 顶部搜索栏特供样式（仅导航） === */
+    /* 顶部搜索栏 */
     .nav-search .stTextInput input {
-        border-radius: 50px !important;
+        border-radius: 14px !important;
         background-color: #F1F5F9 !important;
         border: 1px solid transparent !important;
-        padding: 10px 20px !important;
+        padding: 10px 16px !important;
         font-size: 14px !important;
         transition: all 0.3s ease;
     }
     .nav-search .stTextInput input:focus {
         background-color: #FFFFFF !important;
         border-color: #4A6D5F !important;
-        box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.15) !important;
+        box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.12) !important;
     }
 
-    /* === 顶部图标按钮样式（settings / notifications） === */
-    .icon-buttons .stButton>button {
-        background-color: transparent !important;
-        border: none !important;
+    /* 顶部图标按钮容器 */
+    .icon-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 2px;
+    }
+
+    /* 只给顶部图标按钮定制，不影响全局按钮 */
+    .icon-btn-wrap .stButton > button {
+        width: 54px !important;
+        height: 54px !important;
+        min-width: 54px !important;
+        min-height: 54px !important;
+        padding: 0 !important;
+        border-radius: 12px !important;
+        background: rgba(255,255,255,0.75) !important;
+        border: 1px solid #D1D5DB !important;
         box-shadow: none !important;
-        color: #64748B !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
         font-size: 22px !important;
-        height: auto !important;
-        padding: 6px !important;
-        min-width: 0 !important;
-        width: auto !important;
-        margin: 0 auto !important;
-        display: block !important;
-        border-radius: 50% !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        color: #64748B !important;
+        transition: all 0.25s ease !important;
     }
-    .icon-buttons .stButton>button:hover {
+    .icon-btn-wrap .stButton > button:hover {
         color: #4A6D5F !important;
-        transform: scale(1.15) translateY(-2px) !important;
-        background-color: transparent !important;
+        border-color: #BFC7D2 !important;
+        background: rgba(255,255,255,0.95) !important;
+        transform: translateY(-1px) !important;
     }
 
-    /* 顶部登录按钮保留你的风格 */
+    /* 顶部登录按钮 */
     .nav-auth .stButton>button {
         background-color: #708090 !important;
         border: none !important;
@@ -317,29 +299,35 @@ professional_css = """
     .footer-links a:hover { color: #4A6D5F; }
     .footer-separator { color: #CBD5E1; font-weight: 400; }
     .footer-copyright { color: #94A3B8; font-size: 13px; }
-
-    @media (max-width: 768px) {
-        .nav-btn-wrap { overflow-x: auto; }
-    }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
-
 # ================= 5. 顶部导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-
-def _nav_go(page_name: str):
-    st.session_state.current_view = page_name
-    st.session_state.last_menu_selection = page_name
-    st.rerun()
-
+# 读取导航 query 参数（点击 HTML 导航链接后切页）
+qp = st.query_params
+if "nav" in qp:
+    nav_target = qp["nav"]
+    valid_pages = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact", "Admin Dashboard", "Settings", "Notifications"]
+    if nav_target in valid_pages:
+        # Admin Dashboard 仅管理员可进
+        if nav_target == "Admin Dashboard" and not st.session_state.is_admin:
+            st.session_state.current_view = "Homepage"
+            st.session_state.last_menu_selection = "Homepage"
+        else:
+            st.session_state.current_view = nav_target
+            if nav_target in ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact", "Admin Dashboard"]:
+                st.session_state.last_menu_selection = nav_target
+        # 清掉参数，避免刷新重复触发
+        del st.query_params["nav"]
+        st.rerun()
 
 with st.container():
     st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
 
     col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
-        [1.35, 6.8, 2.3, 0.9, 1.15],
+        [1.35, 6.8, 2.3, 1.0, 1.15],
         vertical_alignment="center"
     )
 
@@ -358,42 +346,12 @@ with st.container():
                 else st.session_state.last_menu_selection
             )
 
-            nav_html = '<div class="nav-btn-wrap">'
+            nav_html = '<div class="top-nav">'
             for tab in menu_tabs:
-                active_cls = " nav-btn-active" if tab == active_tab else ""
-                nav_html += f'<span class="nav-btn{active_cls}">{tab}</span>'
+                cls = "active" if tab == active_tab else ""
+                nav_html += f'<a class="{cls}" href="?nav={tab}">{tab}</a>'
             nav_html += '</div>'
             st.markdown(nav_html, unsafe_allow_html=True)
-
-            # 透明按钮点击层（与上方文字对齐）
-            st.markdown('<div class="nav-click-row">', unsafe_allow_html=True)
-            if st.session_state.is_admin:
-                nav_cols = st.columns([1.25, 1.8, 1.9, 0.9, 1.0, 1.8])
-            else:
-                nav_cols = st.columns([1.25, 1.8, 1.9, 0.9, 1.0])
-
-            with nav_cols[0]:
-                if st.button(" ", key="nav_home_btn_txt"):
-                    _nav_go("Homepage")
-            with nav_cols[1]:
-                if st.button(" ", key="nav_browse_btn_txt"):
-                    _nav_go("Browse Datasets")
-            with nav_cols[2]:
-                if st.button(" ", key="nav_contribute_btn_txt"):
-                    _nav_go("Contribute Data")
-            with nav_cols[3]:
-                if st.button(" ", key="nav_about_btn_txt"):
-                    _nav_go("About")
-            with nav_cols[4]:
-                if st.button(" ", key="nav_contact_btn_txt"):
-                    _nav_go("Contact")
-
-            if st.session_state.is_admin:
-                with nav_cols[5]:
-                    if st.button(" ", key="nav_admin_btn_txt"):
-                        _nav_go("Admin Dashboard")
-
-            st.markdown('</div>', unsafe_allow_html=True)
 
     with col_search:
         if st.session_state.current_view not in ["login", "signup"]:
@@ -409,15 +367,22 @@ with st.container():
     with col_icons:
         if st.session_state.current_view not in ["login", "signup"]:
             st.markdown('<div class="icon-buttons">', unsafe_allow_html=True)
-            ic1, ic2 = st.columns(2)
-            with ic1:
-                if st.button("⚙️", help="Settings", key="nav_settings_btn"):
+
+            c_icon1, c_icon2 = st.columns(2)
+            with c_icon1:
+                st.markdown('<div class="icon-btn-wrap">', unsafe_allow_html=True)
+                if st.button("⚙", help="Settings", key="nav_settings_btn"):
                     st.session_state.current_view = "Settings"
                     st.rerun()
-            with ic2:
+                st.markdown('</div>', unsafe_allow_html=True)
+
+            with c_icon2:
+                st.markdown('<div class="icon-btn-wrap">', unsafe_allow_html=True)
                 if st.button("🔔", help="Notifications", key="nav_notifications_btn"):
                     st.session_state.current_view = "Notifications"
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+
             st.markdown('</div>', unsafe_allow_html=True)
 
     with col_auth:
@@ -436,7 +401,6 @@ with st.container():
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
-
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
