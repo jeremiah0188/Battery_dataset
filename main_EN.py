@@ -63,32 +63,27 @@ professional_css = """
         padding-bottom: 2rem !important; 
     }
 
-    /* ================= 🚀 核心修复：彻底扒掉外层导航的多层白卡 ================= */
-    /* 1. 外层容器透明化 */
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper) {
+    /* ================= 🚀 核心修复：外层导航去白卡化 ================= */
+    /* 精准选中包含 header-wrapper 的外层区块，强制清空背景、边框和阴影 */
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper),
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper) > [data-testid="stVerticalBlockBorderWrapper"] {
         background: transparent !important;
+        backdrop-filter: none !important;
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
+        margin-bottom: 1rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        z-index: 999;
-    }
-
-    /* 2. 暴力清除内部所有子容器(包括Columns)的背景，解决"好几层"的问题 */
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper) * {
-        background-color: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
     }
 
     @keyframes headerSlideDown {
         0% { opacity: 0; transform: translateY(-40px); }
         100% { opacity: 1; transform: translateY(0); }
     }
-    /* ========================================================================= */
+    /* ============================================================= */
 
-    /* 全局内容白卡样式 (这里避开了 header-wrapper，只作用于内容区) */
-    [data-testid="stVerticalBlockBorderWrapper"]:not(:has(.header-wrapper)) {
+    /* 全局内容白卡样式 (仅作用于非导航部分，因为导航部分被上面排除了) */
+    [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(255, 255, 255, 0.6) !important;
@@ -98,9 +93,7 @@ professional_css = """
         margin-bottom: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    [data-testid="stVerticalBlockBorderWrapper"]:not(:has(.header-wrapper)):hover { 
-        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; 
-    }
+    [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
 
     /* 全局按钮 Slate Gray (#708090) */
     .stButton>button { 
@@ -204,7 +197,7 @@ st.markdown(professional_css, unsafe_allow_html=True)
 # ================= 5. 顶部导航栏 (🚀 外层彻底透明，内层胶囊实体化) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-# 外层包裹：这里的 header-wrapper 能让上面的 CSS 生效，强制去掉了这里所有的边框和背景
+# 使用 st.container 包裹，并打上 header-wrapper 的锚点
 with st.container():
     st.markdown('<div class="header-wrapper" style="display:none;"></div>', unsafe_allow_html=True)
 
@@ -223,8 +216,7 @@ with st.container():
                 default_idx = menu_tabs.index(st.session_state.current_view)
             except ValueError:
                 default_idx = 0
-
-            # 🚀 移除了 !important 和复杂的 rgba，让 React 组件能正常解析并渲染独立白底和动画
+            # 🚀 导航栏菜单内部样式 (悬浮动画、选中变色全部集中在这里)
             selected_page = option_menu(
                 menu_title=None,
                 options=menu_tabs,
@@ -233,18 +225,18 @@ with st.container():
                 orientation="horizontal",
                 styles={
                     "container": {
-                        "padding": "10px",
-                        "background-color": "#ffffff",
-                        "border": "1px solid #E2E8F0",
-                        "border-radius": "100px",
-                        "box-shadow": "0 6px 20px rgba(0,0,0,0.06)",
-                        "width": "100%",
-                        "display": "flex",
-                        "justify-content": "center"
+                        "padding": "6px 12px !important",
+                        "background-color": "rgba(255, 255, 255, 0.95) !important",  # 清晰可见的白色胶囊本体
+                        "border": "1px solid rgba(226, 232, 240, 0.8) !important",
+                        "border-radius": "100px !important",  # 大圆角
+                        "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
+                        "margin": "0 auto",
+                        "width": "100%"
                     },
                     "icon": {
                         "color": "#64748B",
-                        "font-size": "16px"
+                        "font-size": "16px",
+                        "transition": "color 0.3s ease"
                     },
                     "nav-link": {
                         "font-size": "15px",
@@ -253,14 +245,16 @@ with st.container():
                         "padding": "10px 20px",
                         "margin": "0 4px",
                         "border-radius": "50px",
-                        "transition": "background-color 0.3s ease, color 0.3s ease",
-                        "--hover-color": "#F1F5F9"  # ✨ 现在这里生效了，鼠标放上会有浅灰底色！
+                        "transition": "all 0.3s ease",  # 悬浮变色过渡动画
+                        "--hover-color": "#F1F5F9"  # 鼠标悬浮时出现的浅灰色背景标记
                     },
                     "nav-link-selected": {
                         "background-color": "#4A6D5F",
-                        "color": "#ffffff",
+                        "color": "#FFFFFF",
                         "font-weight": "800",
-                        "border-radius": "50px"
+                        "icon-color": "#FFFFFF",
+                        "border-radius": "50px",
+                        "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
                     },
                 }
             )
