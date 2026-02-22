@@ -21,27 +21,47 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= 3. 极致现代视觉 CSS (包含新模块样式) =================
+current_page = st.session_state.current_view
+
+# ================= 3. 动态背景引擎 (每个页面专属渐变色) =================
+bg_gradients = {
+    "Homepage": "linear-gradient(135deg, #F0F9FF 0%, #F8FAFC 45%, #EEF2FF 100%)",
+    "Browse Datasets": "linear-gradient(135deg, #F0FDF4 0%, #F8FAFC 50%, #ECFEFF 100%)",
+    "Contribute Data": "linear-gradient(135deg, #FFFBEB 0%, #F8FAFC 50%, #FEF3C7 100%)",
+    "About": "linear-gradient(135deg, #F5F3FF 0%, #F8FAFC 50%, #E0E7FF 100%)",
+    "Contact": "linear-gradient(135deg, #FEF2F2 0%, #F8FAFC 50%, #FFEDD5 100%)",
+    "login": "linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)",
+    "signup": "linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%)",
+    "Admin Dashboard": "linear-gradient(135deg, #F1F5F9 0%, #CBD5E1 100%)"
+}
+current_bg = bg_gradients.get(current_page, "linear-gradient(135deg, #F0F9FF 0%, #F8FAFC 100%)")
+
+dynamic_css = f"""
+<style>
+    .stApp {{
+        background: {current_bg} !important;
+        background-attachment: fixed !important; 
+        transition: background 0.8s ease-in-out !important; 
+    }}
+</style>
+"""
+st.markdown(dynamic_css, unsafe_allow_html=True)
+
+# ================= 4. 企业级专业 CSS =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-    .stApp {
-        background: linear-gradient(135deg, #F0F9FF 0%, #F8FAFC 45%, #EEF2FF 100%) !important;
-        font-family: 'Inter', -apple-system, sans-serif;
-        color: #334155;
-    }
-
+    .stApp { font-family: 'Inter', -apple-system, sans-serif; color: #334155; }
     [data-testid="stHeader"] { display: none !important; }
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    #stDecoration {display:none;}
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} #stDecoration {display:none;}
     [data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
 
+    /* 缩小底部 padding，因为页脚不再悬浮挡内容了 */
     .block-container { 
         max-width: 95% !important; 
         padding-top: 1.5rem !important; 
-        padding-bottom: 6rem !important; /* 给 Footer 留空间 */
+        padding-bottom: 2rem !important; 
     }
 
     [data-testid="stVerticalBlockBorderWrapper"] {
@@ -54,9 +74,7 @@ professional_css = """
         margin-bottom: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    [data-testid="stVerticalBlockBorderWrapper"]:hover {
-        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
-    }
+    [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
 
     .stButton>button { 
         background-color: #FFFFFF !important; 
@@ -65,32 +83,31 @@ professional_css = """
         font-weight: 700 !important; 
         border-radius: 50px !important; 
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; 
-        height: 48px !important;
+        height: 44px !important;
+        padding: 0 24px !important; 
         letter-spacing: 0.5px;
         box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02) !important;
     }
     .stButton>button:hover { 
-        border-color: #0F766E !important; 
-        color: #0F766E !important; 
+        border-color: #4A6D5F !important; 
+        color: #4A6D5F !important; 
         background-color: #F8FAFC !important; 
-        box-shadow: 0 6px 16px rgba(15, 118, 110, 0.12) !important;
+        box-shadow: 0 6px 16px rgba(74, 109, 95, 0.15) !important;
         transform: translateY(-2px) !important;
     }
 
-    /* 首页卡片样式 */
     .hero-container {
         display: flex; align-items: center; justify-content: space-between;
         padding: 4.5rem 4rem; 
-        background: radial-gradient(circle at top left, #FFFFFF 0%, #F8FAFC 100%);
-        border-radius: 24px;
-        border: 1px solid #FFFFFF; 
+        background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.4) 100%);
+        border-radius: 24px; border: 1px solid #FFFFFF; 
         box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-        margin-bottom: 2rem; gap: 4rem;
+        margin-bottom: 2rem; gap: 4rem; backdrop-filter: blur(10px);
     }
     .hero-left { flex: 1.2; }
-    .hero-subtitle { font-size: 14px; font-weight: 800; color: #0F766E; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
+    .hero-subtitle { font-size: 14px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
     .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; }
-    .hero-title span { background: linear-gradient(135deg, #0F766E 0%, #3B82F6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.7; margin-bottom: 2rem; }
 
     .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -102,32 +119,51 @@ professional_css = """
     .section-header { border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
     .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; }
     .header-blue { border-left: 5px solid #3B82F6; }
-    .header-teal { border-left: 5px solid #0F766E; }
+    .header-teal { border-left: 5px solid #4A6D5F; }
     .header-amber { border-left: 5px solid #F59E0B; }
 
     .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
-    .metadata-item { background: rgba(248, 250, 252, 0.6); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: background 0.3s; }
+    .metadata-item { background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: background 0.3s; }
     .metadata-item:hover { background: #FFFFFF; }
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
-    /* 全局自定义页脚 */
+    /* 全局自定义页脚 (Qlik 流式极简风格) */
     .custom-footer {
-        position: fixed; left: 0; bottom: 0; width: 100%;
-        background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
-        color: #94A3B8; padding: 16px 48px; display: flex; justify-content: space-between;
-        align-items: center; font-size: 13px; z-index: 999; border-top: 1px solid #334155;
+        width: 100%;
+        padding: 40px 16px 20px 16px; /* 增加上部留白，与正文隔开 */
+        margin-top: 40px;
+        color: #64748B;
+        font-size: 14px;
+        border-top: 1px solid #E2E8F0; /* 顶部极浅分割线 */
+        display: flex;
+        flex-direction: column;
+        gap: 16px; /* 链接和版权之间的间距 */
     }
-    .custom-footer a { color: #CBD5E1; text-decoration: none; margin-left: 24px; transition: color 0.2s; font-weight: 500;}
-    .custom-footer a:hover { color: #38BDF8; }
+    .footer-links {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-weight: 600;
+    }
+    .footer-links a {
+        color: #475569;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .footer-links a:hover { color: #4A6D5F; }
+    .footer-separator { color: #CBD5E1; font-weight: 400; }
+    .footer-copyright { color: #94A3B8; font-size: 13px; }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 4. 顶部无刷新导航栏 (保持5个完美核心) =================
+# ================= 5. 顶部完美居中导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-col_logo, col_menu, col_auth = st.columns([1.5, 6.5, 1.5])
+col_logo, col_menu, col_auth = st.columns([1.5, 7, 1.2], vertical_alignment="center")
+
 with col_logo:
     st.image(LOGO_IMAGE_URL, width=190)
 
@@ -149,13 +185,24 @@ with col_menu:
             default_index=default_idx,
             orientation="horizontal",
             styles={
-                "container": {"padding": "0!important", "background-color": "transparent", "border": "none",
-                              "margin-top": "8px"},
+                "container": {
+                    "padding": "6px 16px !important",
+                    "background": "linear-gradient(90deg, #FFFFFF 0%, rgba(74, 109, 95, 0.12) 100%)",
+                    "border": "1px solid rgba(74, 109, 95, 0.25)",
+                    "border-radius": "50px",
+                    "box-shadow": "0 4px 15px rgba(0,0,0,0.03)",
+                    "margin": "0 auto"
+                },
                 "icon": {"color": "#64748B", "font-size": "16px"},
-                "nav-link": {"font-size": "15px", "font-weight": "700", "color": "#475569", "margin": "0 10px",
-                             "--hover-color": "rgba(255,255,255,0.5)", "border-radius": "30px"},
-                "nav-link-selected": {"background-color": "#0F766E", "color": "white", "icon-color": "white",
-                                      "box-shadow": "0 4px 10px rgba(15,118,110,0.2)"},
+                "nav-link": {
+                    "font-size": "15px", "font-weight": "700", "color": "#475569",
+                    "padding": "8px 22px", "margin": "0 4px",
+                    "--hover-color": "rgba(255,255,255,0.7)", "border-radius": "50px"
+                },
+                "nav-link-selected": {
+                    "background-color": "#4A6D5F", "color": "white",
+                    "icon-color": "white", "box-shadow": "0 4px 12px rgba(74,109,95,0.25)"
+                },
             }
         )
         if selected_page != st.session_state.current_view:
@@ -163,22 +210,18 @@ with col_menu:
             st.rerun()
 
 with col_auth:
-    st.write("")
     if st.session_state.is_admin:
-        # 管理员登录后，可以显示 My Submissions 或直接退出
-        if st.button("Log Out", use_container_width=True):
+        if st.button("Log Out"):
             st.session_state.is_admin = False
             st.session_state.current_view = "Homepage"
             st.rerun()
     else:
         if st.session_state.current_view not in ["login", "signup"]:
-            if st.button("Log In", use_container_width=True):
+            if st.button("Sign In"):
                 st.session_state.current_view = "login"
                 st.rerun()
 
-current_page = st.session_state.current_view
-
-# ================= 5. 🔗 Google Sheets 数据库配置 =================
+# ================= 6. 🔗 Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
@@ -199,7 +242,7 @@ def load_data():
 df = load_data()
 public_df = df[df['Status'] == 'Approved']
 
-# ================= 6. 核心路由与页面内容渲染 =================
+# ================= 7. 核心路由与页面内容渲染 =================
 
 # ----------------- 页面 A：登录页 (Login) -----------------
 if current_page == "login" and not st.session_state.is_admin:
@@ -228,9 +271,8 @@ if current_page == "login" and not st.session_state.is_admin:
                 st.session_state.current_view = "Homepage"
                 st.rerun()
 
-# ----------------- 页面 B：注册页 (Sign Up) (略，如果需要可以保持原样) -----------------
+# ----------------- 页面 B：注册页 (Sign Up) -----------------
 elif current_page == "signup" and not st.session_state.is_admin:
-    # 保持原代码逻辑即可，为精简演示这里省略内部代码，直接跳转回 login
     st.session_state.current_view = "login"
     st.rerun()
 
@@ -263,13 +305,10 @@ elif current_page == "Homepage":
     )
     st.markdown(hero_html, unsafe_allow_html=True)
 
-    # ======== 新增模块 1 & 2：Latest Additions 与 Popular Tags ========
     c_left, c_right = st.columns([2, 1])
-
     with c_left:
         st.markdown('<div class="section-header header-teal"><h2>🌟 Latest Additions</h2></div>',
                     unsafe_allow_html=True)
-        # 提取最新通过的 3 个数据集展示
         latest_datasets = public_df.tail(3)
         if not latest_datasets.empty:
             for _, row in latest_datasets.iterrows():
@@ -287,9 +326,8 @@ elif current_page == "Homepage":
             tags_html = "".join(
                 [f'<span class="chem-tag" style="background:#F1F5F9; border-color:#CBD5E1;">{t}</span>' for t in tags])
             st.markdown(f"<div>{tags_html}</div><br>", unsafe_allow_html=True)
-            st.info("💡 Tip: Use these keywords in the 'Browse Datasets' search bar.")
+            st.info("💡 Tip: Use these keywords in the search bar.")
 
-    # ======== 新增模块 3：简版 FAQ ========
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-header header-blue"><h2>💬 Quick FAQ</h2></div>', unsafe_allow_html=True)
     with st.expander("Do I need an account to download data?"):
@@ -302,7 +340,6 @@ elif current_page == "Homepage":
 # ----------------- 页面 D：Browse Datasets -----------------
 elif current_page == "Browse Datasets":
     st.markdown('<div class="section-header header-blue"><h2>Dataset Directory</h2></div>', unsafe_allow_html=True)
-
     filter_col, result_col = st.columns([1, 3])
 
     with filter_col:
@@ -312,11 +349,10 @@ elif current_page == "Browse Datasets":
                 unsafe_allow_html=True)
             search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
                                       placeholder="e.g. Oxford, NMC, EIS...")
-            st.session_state.search_kw = search_kw  # 保持状态
+            st.session_state.search_kw = search_kw
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
             sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
-
             sel_category = "All"
             sel_subcategory = "All"
             if sel_domain == "Energy":
@@ -365,7 +401,7 @@ elif current_page == "Browse Datasets":
 
                 link = details.get('Link', '')
                 if link.startswith('http'):
-                    details_html += f'<div style="margin-bottom: 24px;"><a href="{link}" target="_blank" style="display:inline-block; background:linear-gradient(135deg, #0F766E 0%, #115E59 100%); color:#FFF; padding:12px 28px; text-decoration:none; border-radius:50px; font-weight:700; font-size:14px; box-shadow: 0 4px 10px rgba(15,118,110,0.2); transition: transform 0.2s;">🔗 Download / Visit Source</a></div>'
+                    details_html += f'<div style="margin-bottom: 24px;"><a href="{link}" target="_blank" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:12px 28px; text-decoration:none; border-radius:50px; font-weight:700; font-size:14px; box-shadow: 0 4px 10px rgba(74,109,95,0.2); transition: transform 0.2s;">🔗 Download / Visit Source</a></div>'
 
                 details_html += '<div class="metadata-grid">'
                 for col_name in df.columns:
@@ -376,20 +412,18 @@ elif current_page == "Browse Datasets":
                             details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
                 details_html += '</div>'
 
-                # ======== 新增模块 4：Citation 引用指南 ========
-                details_html += f'<div style="margin-top:32px; padding:16px; background:#F8FAFC; border-left:4px solid #0F766E; border-radius:8px;"><h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4><p style="margin:0; font-size:13px; color:#475569; font-family:monospace;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p></div>'
+                details_html += f'<div style="margin-top:32px; padding:16px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;"><h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4><p style="margin:0; font-size:13px; color:#475569; font-family:monospace;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p></div>'
                 details_html += '</div>'
 
                 st.markdown(details_html, unsafe_allow_html=True)
         else:
             st.warning("No datasets match your filters.")
 
-# ----------------- 页面 E：Contribute Data (加入 Tabs 分栏) -----------------
+# ----------------- 页面 E：Contribute Data -----------------
 elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
                 unsafe_allow_html=True)
 
-    # ======== 新增模块 5：利用 Tabs 整理提交、心愿单和指南 ========
     tab_submit, tab_request, tab_guide = st.tabs(
         ["📤 Submit a Dataset", "🙋 Request a Dataset", "📖 Submission Guidelines"])
 
@@ -447,8 +481,8 @@ elif current_page == "Contribute Data":
             st.markdown("### 📖 Curation Policy & Metadata Standards")
             st.write("""
             * **Public Domain Only:** Ensure the dataset you are submitting is publicly available or you hold the rights to share it.
-            * **URL Validity:** Provide direct links to repositories (GitHub, Mendeley, Zenodo, NASA Dash) rather than generic homepages.
-            * **Accuracy:** Fill out the Chemistry and Data Type fields as accurately as possible to help researchers filter effectively.
+            * **URL Validity:** Provide direct links to repositories (GitHub, Mendeley, Zenodo) rather than generic homepages.
+            * **Accuracy:** Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.
             """)
 
 # ----------------- 页面 F & G：About & Contact -----------------
@@ -467,7 +501,7 @@ elif current_page == "Contact":
     <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); text-align: center; padding: 100px 20px;">
         <h2 style="color:#0F172A; font-weight:900; margin-bottom:16px; font-size: 42px;">Get in Touch</h2>
         <p style='font-size: 18px; color: #475569; margin-bottom: 32px;'>For questions, dataset suggestions, collaboration, or corrections, please contact:</p>
-        <a href="mailto:jian.wu@utbm.fr" style="display:inline-block; background:linear-gradient(135deg, #0F766E 0%, #115E59 100%); color:#FFF; padding:16px 40px; text-decoration:none; border-radius:50px; font-weight:800; font-size:18px; box-shadow: 0 6px 20px rgba(15,118,110,0.25); transition: transform 0.2s;">✉️ jian.wu@utbm.fr</a>
+        <a href="mailto:jian.wu@utbm.fr" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:16px 40px; text-decoration:none; border-radius:50px; font-weight:800; font-size:18px; box-shadow: 0 6px 20px rgba(74,109,95,0.25); transition: transform 0.2s;">✉️ jian.wu@utbm.fr</a>
     </div>
     """
     st.markdown(contact_html, unsafe_allow_html=True)
@@ -485,14 +519,16 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.success("Synchronized successfully!")
                 st.cache_data.clear()
 
-# ======== 7. 全局自定义 Footer (页脚) ========
+# ======== 8. 全局自定义 Footer (流式排版，完美跟在内容尾部) ========
 st.markdown("""
 <div class="custom-footer">
-    <div>© 2026 Open Battery Dataset Portal. Maintained by Jian Wu.</div>
-    <div>
-        <a href="#">Citation Policy</a>
-        <a href="#">Changelog</a>
+    <div class="footer-links">
+        <a href="#">Citation Policy</a> <span class="footer-separator">/</span>
+        <a href="#">Changelog</a> <span class="footer-separator">/</span>
         <a href="#">Terms & Privacy</a>
+    </div>
+    <div class="footer-copyright">
+        © 2026 Open Battery Dataset Portal. Maintained by Jian Wu.
     </div>
 </div>
 """, unsafe_allow_html=True)
