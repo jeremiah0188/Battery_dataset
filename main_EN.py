@@ -8,6 +8,8 @@ if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 if "current_view" not in st.session_state:
     st.session_state.current_view = "Homepage"
+if "last_menu_selection" not in st.session_state:
+    st.session_state.last_menu_selection = "Homepage"
 if "search_kw" not in st.session_state:
     st.session_state.search_kw = ""
 
@@ -79,16 +81,17 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域：利用锚点彻底清洗内部白卡 ================= */
-    .nav-shell {
-        width: 100%;
-        display: block;
-    }
+    /* ================= 顶部导航区域：强制透明、去除白底 ================= */
+    .nav-shell { width: 100%; display: block; }
 
+    /* 暴力清除 iframe 外层和列包裹层的所有背景与阴影 */
+    div[data-testid="stVerticalBlock"]:has(.nav-shell),
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) > div,
     div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stVerticalBlockBorderWrapper"],
     div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stHorizontalBlock"],
     div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="column"] {
         background: transparent !important;
+        background-color: transparent !important;
         border: none !important;
         backdrop-filter: none !important;
         box-shadow: none !important;
@@ -96,10 +99,12 @@ professional_css = """
         margin: 0 !important;
     }
 
-    .nav-shell, .nav-shell * { box-shadow: none !important; }
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) iframe {
+        background-color: transparent !important;
+    }
 
     div[data-testid="stVerticalBlock"]:has(.nav-shell) {
-        margin-bottom: 1rem !important;
+        margin-bottom: 1.5rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
 
@@ -108,21 +113,11 @@ professional_css = """
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* === 导航栏文字动画增强 === */
-    .nav-shell [data-testid="stVerticalBlock"] ul li a {
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease !important;
-    }
-    .nav-shell [data-testid="stVerticalBlock"] ul li a:hover {
-        color: #4A6D5F !important;
-        transform: translateY(-2px) scale(1.05) !important;
-        background: transparent !important;
-    }
-
     /* === 顶部搜索栏特供样式 === */
     .nav-shell .stTextInput input {
         border-radius: 50px !important;
-        background-color: #F8FAFC !important;
-        border: 1px solid #E2E8F0 !important;
+        background-color: #F1F5F9 !important;
+        border: 1px solid transparent !important;
         padding: 10px 20px !important;
         font-size: 14px !important;
         transition: all 0.3s ease;
@@ -147,7 +142,7 @@ professional_css = """
         margin: 0 auto !important;
         display: block !important;
         border-radius: 50% !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     .icon-buttons .stButton>button:hover {
         color: #4A6D5F !important;
@@ -174,39 +169,20 @@ professional_css = """
         transform: translateY(-2px) !important;
     }
 
-    .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
-        border-radius: 12px !important;
-    }
+    .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div { border-radius: 12px !important; }
 
     [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
-    [data-baseweb="tab"] p {
-        font-weight: 800 !important;
-        font-size: 16px !important;
-        color: #64748B;
-        transition: color 0.3s;
-    }
+    [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 16px !important; color: #64748B; transition: color 0.3s; }
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
-    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
-        background-color: #4A6D5F !important;
-        height: 3px !important;
-        border-radius: 3px 3px 0 0;
-    }
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; border-radius: 3px 3px 0 0; }
 
-    .section-header h2 {
-        font-size: 24px;
-        font-weight: 800;
-        color: #0F172A;
-        margin: 0;
-        transition: all 0.3s ease;
-    }
+    .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; transition: all 0.3s ease; }
     .section-header:hover h2 { color: #4A6D5F; transform: translateX(6px); }
 
     .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     .hero-title:hover { transform: scale(1.02); }
 
-    .dataset-list-row {
-        display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease; background-color: transparent;
-    }
+    .dataset-list-row { display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease; background-color: transparent; }
     .dataset-list-row .ds-name { transition: color 0.2s ease; }
     .dataset-list-row:hover { background-color: #F8FAFC !important; }
     .dataset-list-row:hover .ds-name { color: #4A6D5F !important; }
@@ -231,12 +207,6 @@ professional_css = """
     .header-teal { border-left: 5px solid #4A6D5F; }
     .header-amber { border-left: 5px solid #F59E0B; }
 
-    .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
-    .metadata-item { background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: background 0.3s; }
-    .metadata-item:hover { background: #FFFFFF; }
-    .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
-
     .custom-footer { width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B; font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; }
     .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
     .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
@@ -253,8 +223,7 @@ LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset
 with st.container():
     st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
 
-    # 重新划分布局权重：Logo 1.2, 菜单 5.0(靠左), 搜索栏 1.6, 图标 0.8, Auth 1.0
-    col_logo, col_menu, col_search, col_icons, col_auth = st.columns([1.2, 5.0, 1.6, 0.8, 1.0],
+    col_logo, col_menu, col_search, col_icons, col_auth = st.columns([1.2, 5.0, 1.8, 0.8, 1.0],
                                                                      vertical_alignment="center")
 
     with col_logo:
@@ -270,12 +239,15 @@ with st.container():
             else:
                 menu_icons = base_icons
 
+            # 核心路由逻辑：防止 option_menu 覆盖独立页面 (Settings/Notifications)
             try:
-                default_idx = menu_tabs.index(st.session_state.current_view)
+                if st.session_state.current_view in menu_tabs:
+                    default_idx = menu_tabs.index(st.session_state.current_view)
+                else:
+                    default_idx = menu_tabs.index(st.session_state.last_menu_selection)
             except ValueError:
                 default_idx = 0
 
-            # 样式更新：移除底框与胶囊背景，仅保留文字、下划线动画
             selected_page = option_menu(
                 menu_title=None,
                 options=menu_tabs,
@@ -285,11 +257,12 @@ with st.container():
                 styles={
                     "container": {
                         "padding": "0 !important",
+                        "background": "transparent !important",
                         "background-color": "transparent !important",
                         "border": "none !important",
                         "box-shadow": "none !important",
-                        "margin": "0 !important",  # 强制靠左
-                        "width": "fit-content",
+                        "margin": "0 !important",
+                        "width": "100%",
                         "display": "flex",
                         "justify-content": "flex-start",
                         "align-items": "center"
@@ -297,18 +270,20 @@ with st.container():
                     "icon": {
                         "color": "#94A3B8",
                         "font-size": "15px",
-                        "margin-right": "4px"
+                        "margin-right": "6px",
+                        "transition": "color 0.3s ease"
                     },
                     "nav-link": {
                         "font-size": "15px",
                         "font-weight": "700",
                         "color": "#64748B",
-                        "padding": "8px 12px",
+                        "padding": "8px 16px",
                         "margin": "0 2px",
-                        "border-radius": "0",
+                        "border-radius": "12px",
                         "background": "transparent",
                         "white-space": "nowrap",
-                        "--hover-color": "transparent"
+                        "transition": "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                        "--hover-color": "rgba(74, 109, 95, 0.08)"  # 非常柔和的绿色底作为悬浮态过渡
                     },
                     "nav-link-selected": {
                         "background-color": "transparent",
@@ -321,13 +296,14 @@ with st.container():
                 }
             )
 
-            if selected_page != st.session_state.current_view:
+            # 仅当用户真正点击菜单时，才触发跳转 (绕过默认渲染的检测)
+            if selected_page != st.session_state.last_menu_selection:
                 st.session_state.current_view = selected_page
+                st.session_state.last_menu_selection = selected_page
                 st.rerun()
 
     with col_search:
         if st.session_state.current_view not in ["login", "signup"]:
-            # 新增的搜索栏
             st.text_input("Global Search", placeholder="Search datasets...", label_visibility="collapsed",
                           key="global_nav_search")
 
@@ -336,11 +312,11 @@ with st.container():
             st.markdown('<div class="icon-buttons">', unsafe_allow_html=True)
             ic1, ic2 = st.columns(2)
             with ic1:
-                if st.button("⚙️", key="nav_settings", help="Settings"):
+                if st.button("⚙️", help="Settings"):
                     st.session_state.current_view = "Settings"
                     st.rerun()
             with ic2:
-                if st.button("🔔", key="nav_notif", help="Notifications"):
+                if st.button("🔔", help="Notifications"):
                     st.session_state.current_view = "Notifications"
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
@@ -350,6 +326,7 @@ with st.container():
             if st.button("Log Out"):
                 st.session_state.is_admin = False
                 st.session_state.current_view = "Homepage"
+                st.session_state.last_menu_selection = "Homepage"
                 st.rerun()
         else:
             if st.session_state.current_view not in ["login", "signup"]:
@@ -368,9 +345,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 def load_data():
     try:
         df = conn.read(spreadsheet=SPREADSHEET_URL)
-        df = df.dropna(how='all', axis=0).dropna(how='all', axis=1)
-        df = df.fillna('')
-        df = df.astype(str)
+        df = df.dropna(how='all', axis=0).dropna(how='all', axis=1).fillna('').astype(str)
         if 'Status' not in df.columns:
             df['Status'] = 'Approved'
         return df
@@ -403,6 +378,7 @@ if current_page == "login" and not st.session_state.is_admin:
                 if pwd_input == st.secrets.get("admin_password", ""):
                     st.session_state.is_admin = True
                     st.session_state.current_view = "Homepage"
+                    st.session_state.last_menu_selection = "Homepage"
                     st.rerun()
                 else:
                     st.error("Invalid credentials.")
@@ -580,11 +556,9 @@ elif current_page == "Browse Datasets":
                     display_author = '<span style="color:#94A3B8; font-style:italic;">Unspecified</span>'
                 else:
                     if ',' in raw_author:
-                        first_author = raw_author.split(',')[0].strip()
-                        display_author = f"{first_author} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
+                        display_author = f"{raw_author.split(',')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
                     elif ' and ' in raw_author:
-                        first_author = raw_author.split(' and ')[0].strip()
-                        display_author = f"{first_author} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
+                        display_author = f"{raw_author.split(' and ')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
                     elif len(raw_author) > 25:
                         display_author = raw_author[:22] + "..."
                     else:
@@ -677,19 +651,29 @@ elif current_page == "Contribute Data":
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
 
+                # 新增的本地文件上传选项
+                st.markdown(
+                    "<h5 style='font-size:15px; margin-top:10px; color:#334155;'>Upload Local Files (Optional)</h5>",
+                    unsafe_allow_html=True)
+                uploaded_file = st.file_uploader("Attach a dataset file (CSV, Excel, JSON, ZIP, H5)",
+                                                 type=["csv", "xlsx", "json", "zip", "h5"])
+
                 c8, c9 = st.columns(2)
                 new_contributor = c8.text_input("Contributor Name *")
                 new_email = c9.text_input("Contact Email (Optional)")
 
                 if st.form_submit_button("Submit to Moderation Queue"):
-                    if not new_name or not new_domain or not new_link or not new_contributor:
-                        st.error("Please fill in all required fields marked with *")
+                    if not new_name or not new_domain or (not new_link and not uploaded_file) or not new_contributor:
+                        st.error("Please fill in all required fields marked with * and provide either a URL or a file.")
                     else:
                         new_row = {c: "" for c in df.columns}
+
+                        file_status = f"Local File: {uploaded_file.name}" if uploaded_file else new_link
+
                         new_row.update({
                             'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category,
                             'Sub-category': new_subcat,
-                            'Short Description': new_desc, 'Link': new_link, 'Source Organization': new_org,
+                            'Short Description': new_desc, 'Link': file_status, 'Source Organization': new_org,
                             'Author': new_contributor, 'Contributor Email': new_email, 'Status': 'Pending'
                         })
                         updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
@@ -780,7 +764,7 @@ elif current_page == "Settings":
     with tab_prefs:
         with st.container(border=True):
             st.markdown("### General Settings")
-            st.selectbox("Default page on login", ["Homepage", "Browse Datasets", "Contribute Data"])
+            st.selectbox("Default page", ["Homepage", "Browse Datasets", "Contribute Data"])
             st.radio("Theme", ["Light", "Auto"], horizontal=True)
             st.slider("Items per page", min_value=10, max_value=100, value=20, step=10)
             st.selectbox("Language", ["English", "中文"])
@@ -790,9 +774,9 @@ elif current_page == "Settings":
     with tab_data_prefs:
         with st.container(border=True):
             st.markdown("### Dataset Customization")
-            st.selectbox("Preferred Domain", ["All", "Energy", "Battery", "Healthcare", "Manufacturing"])
-            st.selectbox("Preferred Chemistry", ["All", "NMC", "LFP", "NCA", "LCO", "Solid-state"])
-            st.selectbox("Default sort order", ["Most Recent", "A-Z", "Most Popular"])
+            st.selectbox("Preferred domain", ["All", "Energy", "Battery", "Healthcare", "Manufacturing"])
+            st.selectbox("Preferred chemistry", ["All", "NMC", "LFP", "NCA", "LCO", "Solid-state"])
+            st.selectbox("Default sort", ["Most Recent", "A-Z", "Most Popular"])
             if st.button("Save Dataset Preferences"):
                 st.success("Dataset preferences updated!")
 
@@ -810,7 +794,7 @@ elif current_page == "Settings":
 elif current_page == "Notifications":
     st.markdown('<div class="section-header header-blue"><h2>🔔 Notifications</h2></div>', unsafe_allow_html=True)
 
-    # 顶部控制栏
+    # 顶部操作按钮
     col_btn, col_filter, _ = st.columns([3, 2, 5])
     with col_btn:
         b1, b2 = st.columns(2)
@@ -821,7 +805,7 @@ elif current_page == "Notifications":
 
     st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0 24px 0;'>", unsafe_allow_html=True)
 
-    # 模拟通知数据
+    # Inbox 样式数据列表
     notifications = [
         {"title": "Your dataset submission has been approved",
          "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible in the directory.",
@@ -837,7 +821,7 @@ elif current_page == "Notifications":
          "time": "1 week ago", "status": "Read", "type": "System", "icon": "⚠️"},
     ]
 
-    # 渲染 Inbox 样式列表
+    # 渲染 Inbox
     for n in notifications:
         bg_color = "#F8FAFC" if n["status"] == "Read" else "#FFFFFF"
         border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
