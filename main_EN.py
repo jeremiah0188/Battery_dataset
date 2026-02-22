@@ -40,14 +40,14 @@ dynamic_css = f"""
 <style>
     .stApp {{
         background: {current_bg} !important;
-        background-attachment: fixed !important; 
-        transition: background 0.8s ease-in-out !important; 
+        background-attachment: fixed !important;
+        transition: background 0.8s ease-in-out !important;
     }}
 </style>
 """
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
-# ================= 4. 企业级专业 CSS (包含全新微动画) =================
+# ================= 4. 企业级专业 CSS（含 sticky header + glass） =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -57,13 +57,75 @@ professional_css = """
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} #stDecoration {display:none;}
     [data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
 
-    .block-container { 
-        max-width: 95% !important; 
-        padding-top: 1.5rem !important; 
-        padding-bottom: 2rem !important; 
+    .block-container {
+        max-width: 95% !important;
+        padding-top: 0.75rem !important; /* 给 sticky header 留出舒适空间 */
+        padding-bottom: 2rem !important;
     }
 
-    /* 全局白卡样式 */
+    /* ================= Header Wrapper（导航专属，覆盖全局白卡）================= */
+    .header-wrapper {
+        position: sticky;
+        top: 8px;
+        z-index: 999;
+        margin: 0 0 18px 0;
+        padding: 8px 10px;
+        border-radius: 18px;
+        background: rgba(248, 250, 252, 0.55);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        border: 1px solid rgba(255,255,255,0.65);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+        animation: headerFadeIn 0.55s ease-out;
+        transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .header-wrapper:hover {
+        background: rgba(248, 250, 252, 0.68);
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+        border-color: rgba(255,255,255,0.82);
+    }
+
+    .header-inner {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+    }
+
+    .nav-shell-anim {
+        animation: navSlideIn 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform 0.25s ease;
+    }
+    .nav-shell-anim:hover { transform: translateY(-1px); }
+
+    .header-auth-wrap {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        min-height: 52px;
+        animation: authFadeIn 0.65s ease-out;
+    }
+
+    /* 顶部 sticky 间隔占位（可选） */
+    .header-spacer {
+        height: 4px;
+    }
+
+    /* 顶部进入动画 */
+    @keyframes headerFadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes navSlideIn {
+        from { opacity: 0; transform: translateY(-8px) scale(0.995); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes authFadeIn {
+        from { opacity: 0; transform: translateX(8px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* 全局白卡样式（内容区） */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
@@ -74,201 +136,353 @@ professional_css = """
         margin-bottom: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
-
-    /* 🚀 新增：导航条 Header Wrapper 专属去白卡与入场动画 */
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper) {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        margin-bottom: 1rem !important;
-        /* 平滑过渡与下拉入场动画 */
-        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        z-index: 99; 
+    [data-testid="stVerticalBlockBorderWrapper"]:hover {
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* 强制清除导航条内部可能的白卡污染 */
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper) [data-testid="stVerticalBlockBorderWrapper"] {
-        background: transparent !important;
-        backdrop-filter: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-    }
-
-    @keyframes headerSlideDown {
-        0% { opacity: 0; transform: translateY(-40px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-
-    /* 全局按钮 Slate Gray (#708090) */
-    .stButton>button { 
-        background-color: #708090 !important; 
-        border: none !important; 
-        color: #FFFFFF !important; 
-        font-weight: 700 !important; 
-        border-radius: 50px !important; 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; 
+    /* 按钮：全局 Slate Gray */
+    .stButton>button {
+        background-color: #708090 !important;
+        border: 1px solid rgba(112,128,144,0.15) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        border-radius: 999px !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
         height: 44px !important;
-        padding: 0 24px !important; 
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 10px rgba(112, 128, 144, 0.3) !important;
+        padding: 0 24px !important;
+        letter-spacing: 0.3px;
+        box-shadow: 0 4px 10px rgba(112, 128, 144, 0.25) !important;
     }
-    .stButton>button:hover { 
-        background-color: #5c6a77 !important; 
-        box-shadow: 0 6px 16px rgba(112, 128, 144, 0.5) !important;
-        transform: translateY(-2px) !important;
+    .stButton>button:hover {
+        background-color: #5c6a77 !important;
+        box-shadow: 0 8px 18px rgba(112, 128, 144, 0.35) !important;
+        transform: translateY(-1px) !important;
     }
 
-    /* Tabs 强制加粗 */
+    /* Tabs */
     [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
-    [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 16px !important; color: #64748B; transition: color 0.3s; }
+    [data-baseweb="tab"] p {
+        font-weight: 800 !important;
+        font-size: 16px !important;
+        color: #64748B;
+        transition: color 0.3s;
+    }
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
-    [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; border-radius: 3px 3px 0 0; }
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+        background-color: #4A6D5F !important;
+        height: 3px !important;
+        border-radius: 3px 3px 0 0;
+    }
 
-    /* 文字层级悬浮微动画 */
-    .section-header h2 { 
-        font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; 
-        transition: all 0.3s ease; 
+    /* Section Header 微动画 */
+    .section-header h2 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #0F172A;
+        margin: 0;
+        transition: all 0.3s ease;
     }
     .section-header:hover h2 {
-        color: #4A6D5F; 
-        transform: translateX(6px); 
+        color: #4A6D5F;
+        transform: translateX(6px);
     }
 
-    .hero-title { 
-        font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; 
-        margin-bottom: 1.5rem; letter-spacing: -2px; 
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    .hero-title {
+        font-size: 4.8rem;
+        font-weight: 900;
+        line-height: 1.1;
+        color: #0F172A;
+        margin-bottom: 1.5rem;
+        letter-spacing: -2px;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .hero-title:hover {
-        transform: scale(1.02); 
-    }
+    .hero-title:hover { transform: scale(1.02); }
 
-    /* 无边框列表行 Hover 样式 */
+    /* 数据集列表行 */
     .dataset-list-row {
-        display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9;
-        align-items: center; transition: all 0.2s ease; background-color: transparent;
+        display: flex;
+        padding: 16px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid #F1F5F9;
+        align-items: center;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+        background: rgba(255,255,255,0.72);
     }
+    .dataset-list-row:last-child { border-bottom: none; }
     .dataset-list-row .ds-name {
         transition: color 0.2s ease;
+        font-weight: 700;
+        color: #0F172A;
+        line-height: 1.35;
     }
-    .dataset-list-row:hover { 
-        background-color: #F8FAFC !important; 
+    .dataset-list-row:hover {
+        background-color: #F8FAFC !important;
     }
     .dataset-list-row:hover .ds-name {
-        color: #4A6D5F !important; 
+        color: #4A6D5F !important;
     }
 
     .hero-container {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 4.5rem 4rem; 
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 4.5rem 4rem;
         background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.4) 100%);
-        border-radius: 24px; border: 1px solid #FFFFFF; 
+        border-radius: 24px;
+        border: 1px solid #FFFFFF;
         box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-        margin-bottom: 2rem; gap: 4rem; backdrop-filter: blur(10px);
+        margin-bottom: 2rem;
+        gap: 4rem;
+        backdrop-filter: blur(10px);
     }
     .hero-left { flex: 1.2; }
-    .hero-subtitle { font-size: 14px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
-    .hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.7; margin-bottom: 2rem; }
+    .hero-subtitle {
+        font-size: 14px;
+        font-weight: 800;
+        color: #4A6D5F;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 1rem;
+    }
+    .hero-title span {
+        background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+        font-size: 1.25rem;
+        color: #475569;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+    }
 
-    .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .bento-card { border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.5);}
-    .bento-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+    .hero-right {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    .bento-card {
+        border-radius: 20px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
+        border: 1px solid rgba(255,255,255,0.5);
+    }
+    .bento-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 38px rgba(0,0,0,0.07);
+    }
 
-    .chem-tag { background: rgba(255,255,255,0.8); padding:8px 16px; border-radius:30px; font-size:13px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,0.04); color:#0F172A; border: 1px solid rgba(0,0,0,0.02); display: inline-block; margin: 4px;}
+    .chem-tag {
+        background: rgba(255,255,255,0.8);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 800;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        color: #0F172A;
+        border: 1px solid rgba(0,0,0,0.02);
+        display: inline-block;
+        margin: 4px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .chem-tag:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
 
-    .section-header { border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); transition: all 0.3s;}
+    .section-header {
+        border: 1px solid #FFFFFF;
+        border-radius: 16px;
+        padding: 16px 24px;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s;
+    }
     .header-blue { border-left: 5px solid #3B82F6; }
     .header-teal { border-left: 5px solid #4A6D5F; }
     .header-amber { border-left: 5px solid #F59E0B; }
 
-    .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
-    .metadata-item { background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: background 0.3s; }
+    .metadata-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+    }
+    .metadata-item {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 16px;
+        transition: background 0.3s;
+    }
     .metadata-item:hover { background: #FFFFFF; }
-    .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
+    .metadata-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .metadata-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #0F172A;
+        word-wrap: break-word;
+    }
 
-    .custom-footer { width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B; font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; }
-    .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
-    .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
+    .custom-footer {
+        width: 100%;
+        padding: 40px 16px 20px 16px;
+        margin-top: 40px;
+        color: #64748B;
+        font-size: 14px;
+        border-top: 1px solid #E2E8F0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .footer-links {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-weight: 600;
+    }
+    .footer-links a {
+        color: #475569;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
     .footer-links a:hover { color: #4A6D5F; }
     .footer-separator { color: #CBD5E1; font-weight: 400; }
     .footer-copyright { color: #94A3B8; font-size: 13px; }
+
+    /* 小屏响应：避免 sticky 导航挤压 */
+    @media (max-width: 900px) {
+        .header-wrapper {
+            top: 4px;
+            padding: 6px 6px;
+            border-radius: 14px;
+        }
+        .hero-container {
+            flex-direction: column;
+            gap: 2rem;
+            padding: 2rem 1.25rem;
+        }
+        .hero-title {
+            font-size: 2.6rem;
+            letter-spacing: -1px;
+        }
+        .hero-right {
+            width: 100%;
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏 (🚀 加宽并毛玻璃化 + 动画包裹) =================
+# ================= 5. 顶部导航栏（Sticky + Header Wrapper + Glass） =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-# 使用 st.container 包裹整个导航条，并注入 header-wrapper 锚点供 CSS 识别去白卡和加动画
-with st.container():
-    st.markdown('<div class="header-wrapper"></div>', unsafe_allow_html=True)
+# header wrapper（避免导航被全局白卡“套娃”）
+st.markdown('<div class="header-wrapper">', unsafe_allow_html=True)
 
-    col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
+# 顶部三列
+col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
 
-    with col_logo:
-        st.image(LOGO_IMAGE_URL, width=190)
+with col_logo:
+    st.image(LOGO_IMAGE_URL, width=190)
 
-    with col_menu:
-        if st.session_state.current_view not in ["login", "signup"]:
-            menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-            if st.session_state.is_admin:
-                menu_tabs.append("Admin Dashboard")
+with col_menu:
+    if st.session_state.current_view not in ["login", "signup"]:
+        st.markdown('<div class="nav-shell-anim">', unsafe_allow_html=True)
 
-            try:
-                default_idx = menu_tabs.index(st.session_state.current_view)
-            except ValueError:
-                default_idx = 0
-
-            # 🚀 导航栏毛玻璃宽胶囊设计（现在脱离了外层白卡的束缚，显得更悬浮独立）
-            selected_page = option_menu(
-                menu_title=None,
-                options=menu_tabs,
-                icons=['house', 'search', 'cloud-upload', 'info-circle', 'envelope', 'shield-lock'],
-                default_index=default_idx,
-                orientation="horizontal",
-                styles={
-                    "container": {
-                        "padding": "8px 24px !important",
-                        "background": "rgba(255, 255, 255, 0.6) !important",  # 半透明白底
-                        "backdrop-filter": "blur(12px) !important",  # 毛玻璃滤镜
-                        "border": "1px solid rgba(255, 255, 255, 0.8) !important",
-                        "border-radius": "100px !important",  # 大圆角宽胶囊
-                        "box-shadow": "0 4px 20px rgba(0,0,0,0.03) !important",
-                        "margin": "0 auto",
-                        "width": "100%"
-                    },
-                    "icon": {"color": "#64748B", "font-size": "16px"},
-                    "nav-link": {
-                        "font-size": "15px", "font-weight": "700", "color": "#475569",
-                        "padding": "8px 24px", "margin": "0 4px",
-                        "--hover-color": "rgba(255,255,255,0.7)", "border-radius": "50px"
-                    },
-                    "nav-link-selected": {
-                        "background-color": "#4A6D5F", "color": "white",
-                        "icon-color": "white", "box-shadow": "0 4px 12px rgba(74,109,95,0.25)"
-                    },
-                }
-            )
-            if selected_page != st.session_state.current_view:
-                st.session_state.current_view = selected_page
-                st.rerun()
-
-    with col_auth:
+        menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
         if st.session_state.is_admin:
-            if st.button("Log Out"):
-                st.session_state.is_admin = False
-                st.session_state.current_view = "Homepage"
+            menu_tabs.append("Admin Dashboard")
+
+        try:
+            default_idx = menu_tabs.index(st.session_state.current_view)
+        except ValueError:
+            default_idx = 0
+
+        selected_page = option_menu(
+            menu_title=None,
+            options=menu_tabs,
+            icons=['house', 'search', 'cloud-upload', 'info-circle', 'envelope', 'shield-lock'],
+            default_index=default_idx,
+            orientation="horizontal",
+            styles={
+                "container": {
+                    "padding": "8px 16px !important",
+                    "background": "rgba(255,255,255,0.78) !important",
+                    "backdrop-filter": "blur(12px) saturate(140%) !important",
+                    "border": "1px solid rgba(255,255,255,0.8) !important",
+                    "border-radius": "999px !important",
+                    "box-shadow": "0 8px 22px rgba(15,23,42,0.05) !important",
+                    "margin": "0 auto",
+                    "width": "100%",
+                    "transition": "all 0.25s ease"
+                },
+                "icon": {
+                    "color": "#64748B",
+                    "font-size": "16px",
+                    "transition": "all 0.2s ease"
+                },
+                "nav-link": {
+                    "font-size": "15px",
+                    "font-weight": "700",
+                    "color": "#475569",
+                    "padding": "6px 18px",
+                    "margin": "0 2px",
+                    "--hover-color": "#F8FAFC",
+                    "border-radius": "999px",
+                    "transition": "all 0.22s ease"
+                },
+                "nav-link-selected": {
+                    "background-color": "#4A6D5F",
+                    "color": "white",
+                    "icon-color": "white",
+                    "box-shadow": "0 4px 10px rgba(74,109,95,0.20)",
+                    "transition": "all 0.22s ease"
+                },
+            }
+        )
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        if selected_page != st.session_state.current_view:
+            st.session_state.current_view = selected_page
+            st.rerun()
+
+with col_auth:
+    st.markdown('<div class="header-auth-wrap">', unsafe_allow_html=True)
+
+    if st.session_state.is_admin:
+        if st.button("Log Out"):
+            st.session_state.is_admin = False
+            st.session_state.current_view = "Homepage"
+            st.rerun()
+    else:
+        if st.session_state.current_view not in ["login", "signup"]:
+            if st.button("Sign In"):
+                st.session_state.current_view = "login"
                 st.rerun()
-        else:
-            if st.session_state.current_view not in ["login", "signup"]:
-                if st.button("Sign In"):
-                    st.session_state.current_view = "login"
-                    st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# 小间隔（可调）
+st.markdown('<div class="header-spacer"></div>', unsafe_allow_html=True)
 
 # ================= 6. 🔗 Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -282,9 +496,10 @@ def load_data():
         df = df.dropna(how='all', axis=0).dropna(how='all', axis=1)
         df = df.fillna('')
         df = df.astype(str)
-        if 'Status' not in df.columns: df['Status'] = 'Approved'
+        if 'Status' not in df.columns:
+            df['Status'] = 'Approved'
         return df
-    except:
+    except Exception:
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Domain', 'Category', 'Sub-category', 'Status'])
 
 
@@ -364,8 +579,8 @@ elif current_page == "signup" and not st.session_state.is_admin:
 
 # ----------------- 页面 C：Homepage -----------------
 elif current_page == "Homepage":
-    chem_tags_html = "".join(
-        [f'<span class="chem-tag">{c}</span>' for c in ["NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]])
+    chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in ["NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]])
+
     hero_html = (
         '<div class="hero-container">'
         '<div class="hero-left">'
@@ -393,15 +608,15 @@ elif current_page == "Homepage":
 
     c_left, c_right = st.columns([2, 1])
     with c_left:
-        st.markdown('<div class="section-header header-teal"><h2>🌟 Latest Additions</h2></div>',
-                    unsafe_allow_html=True)
+        st.markdown('<div class="section-header header-teal"><h2>🌟 Latest Additions</h2></div>', unsafe_allow_html=True)
         latest_datasets = public_df.tail(3)
         if not latest_datasets.empty:
             for _, row in latest_datasets.iterrows():
                 with st.container(border=True):
-                    st.markdown(f"{row.get('Dataset Name', 'Unnamed')}")
+                    st.markdown(f"**{row.get('Dataset Name', 'Unnamed')}**")
                     st.caption(
-                        f"Domain: {row.get('Domain', 'N/A')} | Chem: {row.get('Battery Chemistry', 'N/A')} | Added by: {row.get('Author', 'Unknown')}")
+                        f"Domain: {row.get('Domain', 'N/A')} | Chem: {row.get('Battery Chemistry', 'N/A')} | Added by: {row.get('Author', 'Unknown')}"
+                    )
         else:
             st.info("No datasets available yet.")
 
@@ -410,18 +625,17 @@ elif current_page == "Homepage":
         with st.container(border=True):
             tags = ["EIS", "SOH", "RUL", "Time-Series", "Aging", "Simulation"]
             tags_html = "".join(
-                [f'<span class="chem-tag" style="background:#F1F5F9; border-color:#CBD5E1;">{t}</span>' for t in tags])
+                [f'<span class="chem-tag" style="background:#F1F5F9; border-color:#CBD5E1;">{t}</span>' for t in tags]
+            )
             st.markdown(f"<div>{tags_html}</div><br>", unsafe_allow_html=True)
             st.info("💡 Tip: Use these keywords in the search bar.")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-header header-blue"><h2>💬 Quick FAQ</h2></div>', unsafe_allow_html=True)
     with st.expander("Do I need an account to download data?"):
-        st.write(
-            "No. All curated datasets on our platform are open-access and do not require an account to browse or download source files.")
+        st.write("No. All curated datasets on our platform are open-access and do not require an account to browse or download source files.")
     with st.expander("How long does the moderation review take?"):
-        st.write(
-            "Our admin team typically reviews submitted datasets within 48-72 hours to ensure metadata quality and source validity.")
+        st.write("Our admin team typically reviews submitted datasets within 48-72 hours to ensure metadata quality and source validity.")
 
 # ----------------- 页面 D：Browse Datasets -----------------
 elif current_page == "Browse Datasets":
@@ -430,11 +644,8 @@ elif current_page == "Browse Datasets":
 
     with filter_col:
         with st.container(border=True):
-            st.markdown(
-                "<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
-                unsafe_allow_html=True)
-            search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
-                                      placeholder="e.g. Oxford, NMC, EIS...")
+            st.markdown("<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>", unsafe_allow_html=True)
+            search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw, placeholder="e.g. Oxford, NMC, EIS...")
             st.session_state.search_kw = search_kw
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
@@ -444,9 +655,10 @@ elif current_page == "Browse Datasets":
             if sel_domain == "Energy":
                 sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
                 if sel_category == "Battery":
-                    sel_subcategory = st.selectbox("Battery Data Type",
-                                                   ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark",
-                                                    "Experimental", "Simulation"])
+                    sel_subcategory = st.selectbox(
+                        "Battery Data Type",
+                        ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark", "Experimental", "Simulation"]
+                    )
 
     with result_col:
         filtered_df = public_df.copy()
@@ -474,11 +686,14 @@ elif current_page == "Browse Datasets":
         if not filtered_df.empty:
             html_parts = []
             html_parts.append(
-                '<div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">')
+                '<div style="border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); margin-bottom: 24px; box-shadow: 0 8px 24px rgba(15,23,42,0.04);">'
+            )
             html_parts.append(
-                '<div style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">')
+                '<div style="display:flex; align-items:center; background:linear-gradient(180deg, #FAFCFF 0%, #F8FAFC 100%); padding: 12px 20px; font-size: 12px; font-weight: 700; color: #64748B; border-bottom: 1px solid #EEF2F7; text-transform: uppercase; letter-spacing: 0.08em;">'
+            )
             html_parts.append(
-                '<div style="flex: 2.5;">Dataset Name</div><div style="flex: 1.5;">Author</div><div style="flex: 1;">Domain</div><div style="flex: 0.8; text-align: right;">Action</div></div>')
+                '<div style="flex: 2.5;">Dataset Name</div><div style="flex: 1.5;">Author</div><div style="flex: 1;">Domain</div><div style="flex: 0.8; text-align: right;">Action</div></div>'
+            )
 
             for _, row in filtered_df.iterrows():
                 raw_author = str(row.get('Author', 'Unspecified')).strip()
@@ -500,28 +715,31 @@ elif current_page == "Browse Datasets":
                 domain = row.get('Domain', 'N/A')
 
                 html_parts.append('<div class="dataset-list-row">')
-                # 🚀 将标题赋予 ds-name class，响应 CSS 悬浮变色
                 html_parts.append(
-                    f'<div class="ds-name" style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
+                    f'<div class="ds-name" style="flex: 2.5; padding-right: 16px;">{ds_name}</div>'
+                )
                 html_parts.append(
-                    f'<div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>')
+                    f'<div style="flex: 1.5; color: #475569; padding-right: 16px; font-size:13px; line-height:1.35;" title="{raw_author}">{display_author}</div>'
+                )
                 html_parts.append(
-                    f'<div style="flex: 1; color: #64748B;"><span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span></div>')
+                    f'<div style="flex: 1; color: #64748B;"><span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span></div>'
+                )
                 html_parts.append(
-                    '<div style="flex: 0.8; text-align: right;"><span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: default;">View ↓</span></div>')
+                    '<div style="flex: 0.8; text-align: right;"><span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;">Details →</span></div>'
+                )
                 html_parts.append('</div>')
 
             html_parts.append('</div>')
             final_list_html = "".join(html_parts)
             st.markdown(final_list_html, unsafe_allow_html=True)
 
-            st.markdown(
-                '<div class="section-header header-teal" style="margin-top: 32px;"><h2>📖 Dataset Details</h2></div>',
-                unsafe_allow_html=True)
+            st.markdown('<div class="section-header header-teal" style="margin-top: 32px;"><h2>📖 Dataset Details</h2></div>', unsafe_allow_html=True)
             valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
-            selected_dataset = st.selectbox("Select a dataset to view full details:",
-                                            ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
-                                            label_visibility="collapsed")
+            selected_dataset = st.selectbox(
+                "Select a dataset to view full details:",
+                ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
+                label_visibility="collapsed"
+            )
 
             if selected_dataset != "(Select to view)":
                 details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
@@ -533,13 +751,12 @@ elif current_page == "Browse Datasets":
                 )
 
                 link = details.get('Link', '')
-                if link.startswith('http'):
+                if str(link).startswith('http'):
                     details_html += f'<div style="margin-bottom: 24px;"><a href="{link}" target="_blank" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:12px 28px; text-decoration:none; border-radius:50px; font-weight:700; font-size:14px; box-shadow: 0 4px 10px rgba(74,109,95,0.2); transition: transform 0.2s;">🔗 Download / Visit Source</a></div>'
 
                 details_html += '<div class="metadata-grid">'
                 for col_name in df.columns:
-                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status',
-                                                                                                     'Dataset Name']:
+                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status', 'Dataset Name']:
                         val = str(details.get(col_name, '')).strip()
                         if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
                             details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
@@ -554,23 +771,20 @@ elif current_page == "Browse Datasets":
 
 # ----------------- 页面 E：Contribute Data -----------------
 elif current_page == "Contribute Data":
-    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
-                unsafe_allow_html=True)
+    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>', unsafe_allow_html=True)
 
     tab_submit, tab_request, tab_guide = st.tabs(["Submit a Dataset", "Request a Dataset", "Submission Guidelines"])
 
     with tab_submit:
         with st.container(border=True):
-            st.write(
-                "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+            st.write("Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
             with st.form("upload_form", border=False):
                 c1, c2 = st.columns(2)
                 new_name = c1.text_input("Dataset Name *")
                 new_desc = c2.text_input("Short Description *")
 
                 c1b, c2b, c3b = st.columns(3)
-                new_domain = c1b.selectbox("Domain *",
-                                           ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
+                new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
                 new_category = c2b.text_input("Category (e.g., Battery, Grid)")
                 new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
 
@@ -586,10 +800,18 @@ elif current_page == "Contribute Data":
                         st.error("Please fill in all required fields marked with *")
                     else:
                         new_row = {c: "" for c in df.columns}
-                        new_row.update({'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category,
-                                        'Sub-category': new_subcat, 'Short Description': new_desc, 'Link': new_link,
-                                        'Source Organization': new_org, 'Author': new_contributor,
-                                        'Contributor Email': new_email, 'Status': 'Pending'})
+                        new_row.update({
+                            'Dataset Name': new_name,
+                            'Domain': new_domain,
+                            'Category': new_category,
+                            'Sub-category': new_subcat,
+                            'Short Description': new_desc,
+                            'Link': new_link,
+                            'Source Organization': new_org,
+                            'Author': new_contributor,
+                            'Contributor Email': new_email,
+                            'Status': 'Pending'
+                        })
                         updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
                         conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
                         st.success("Successfully submitted to the moderation queue!")
@@ -598,12 +820,10 @@ elif current_page == "Contribute Data":
     with tab_request:
         with st.container(border=True):
             st.markdown("### Can't find what you're looking for?")
-            st.write(
-                "Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
+            st.write("Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
             with st.form("request_form", border=False):
                 st.text_input("Requested Topic / Dataset Name *", placeholder="e.g. Real-world EV charging profiles")
-                st.text_area("Additional Details",
-                             placeholder="Specify any required parameters, chemistry, or format...")
+                st.text_area("Additional Details", placeholder="Specify any required parameters, chemistry, or format...")
                 st.text_input("Your Email (to notify you if found)")
                 if st.form_submit_button("Submit Request"):
                     st.success("Request submitted successfully! We will keep an eye out for this data.")
@@ -617,7 +837,7 @@ elif current_page == "Contribute Data":
             * Accuracy: Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.
             """)
 
-# ----------------- 页面 F & G：About & Contact -----------------
+# ----------------- 页面 F：About -----------------
 elif current_page == "About":
     about_html = """
     <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); padding: 40px; margin-bottom: 24px;">
@@ -628,6 +848,7 @@ elif current_page == "About":
     """
     st.markdown(about_html, unsafe_allow_html=True)
 
+# ----------------- 页面 G：Contact -----------------
 elif current_page == "Contact":
     contact_html = """
     <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); text-align: center; padding: 100px 20px;">
@@ -643,9 +864,14 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
     st.markdown('<div class="section-header header-amber"><h2>Moderation Queue</h2></div>', unsafe_allow_html=True)
     with st.container(border=True):
         with st.form("admin_form", border=False):
-            edited_df = st.data_editor(df, column_config={
-                "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])},
-                                       use_container_width=True, num_rows="dynamic")
+            edited_df = st.data_editor(
+                df,
+                column_config={
+                    "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])
+                },
+                use_container_width=True,
+                num_rows="dynamic"
+            )
             if st.form_submit_button("💾 Synchronize Cloud Data"):
                 conn.update(spreadsheet=SPREADSHEET_URL, data=edited_df)
                 st.success("Synchronized successfully!")
