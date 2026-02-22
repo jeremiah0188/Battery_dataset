@@ -51,6 +51,7 @@ dynamic_css = f"""
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
 # ================= 4. 专业 CSS =================
+# ================= 4. 专业 CSS（仅替换顶部相关样式，其他样式保持你原来的） =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -80,7 +81,7 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域 ================= */
+    /* ================= 顶部导航区域（关键修复版） ================= */
     .nav-shell { width: 100%; display: block; }
 
     div[data-testid="stVerticalBlock"]:has(.nav-shell),
@@ -97,55 +98,63 @@ professional_css = """
         margin: 0 !important;
     }
 
+    /* 去掉每次切换页面都重新掉下来的动画，切换更快 */
     div[data-testid="stVerticalBlock"]:has(.nav-shell) {
-        margin-bottom: 1.5rem !important;
-        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        margin-bottom: 1.2rem !important;
     }
 
-    @keyframes headerSlideDown {
-        0% { opacity: 0; transform: translateY(-40px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-
-    /* 导航按钮容器 */
+    /* 导航菜单横向一行 */
     .nav-menu-row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: nowrap;
         overflow-x: auto;
         white-space: nowrap;
         padding-top: 4px;
+        padding-bottom: 2px;
     }
     .nav-menu-row::-webkit-scrollbar { height: 0; }
 
-    /* 顶部导航按钮（纯文字，无胶囊） */
-    .nav-text-btn .stButton > button {
+    /* 顶部导航按钮（纯文字，无胶囊）——强覆盖版 */
+    .nav-text-btn div[data-testid="stButton"] > button {
         background: transparent !important;
+        background-color: transparent !important;
         border: none !important;
         box-shadow: none !important;
         border-radius: 0 !important;
+
         color: #64748B !important;
         font-weight: 700 !important;
-        font-size: 18px !important;   /* ✅ 导航字体大小在这里调 */
-        height: 36px !important;
-        min-height: 36px !important;
-        padding: 0 4px 8px 4px !important;
+        font-size: 18px !important;   /* 导航字体大小在这里调 */
+        height: 40px !important;
+        min-height: 40px !important;
+        width: 100% !important;
+        min-width: max-content !important;
+
+        padding: 0 6px 10px 6px !important;
         margin: 0 !important;
         letter-spacing: 0 !important;
         border-bottom: 3px solid transparent !important;
+
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        overflow-wrap: normal !important;
+        line-height: 1.1 !important;
+
         transition: all 0.25s ease !important;
         justify-content: center !important;
     }
-    .nav-text-btn .stButton > button:hover {
+
+    .nav-text-btn div[data-testid="stButton"] > button:hover {
         color: #4A6D5F !important;
         background: transparent !important;
+        background-color: transparent !important;
         transform: translateY(-1px) !important;
         box-shadow: none !important;
     }
 
-    /* 当前激活项（给不同 key 单独套 class） */
-    .nav-active .stButton > button {
+    .nav-active div[data-testid="stButton"] > button {
         color: #4A6D5F !important;
         font-weight: 800 !important;
         border-bottom-color: #4A6D5F !important;
@@ -166,50 +175,67 @@ professional_css = """
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.12) !important;
     }
 
-    /* 顶部图标按钮 */
     /* 顶部图标按钮 - 样式3（玻璃拟态） */
-.icon-btn-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .icon-btn-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.icon-btn-wrap .stButton > button {
-    width: 50px !important;
-    height: 50px !important;
-    min-width: 50px !important;
-    min-height: 50px !important;
-    padding: 0 !important;
-    border-radius: 14px !important;
+    .icon-btn-wrap .stButton > button {
+        width: 50px !important;
+        height: 50px !important;
+        min-width: 50px !important;
+        min-height: 50px !important;
+        padding: 0 !important;
+        border-radius: 14px !important;
 
-    background: rgba(255,255,255,0.55) !important;
-    backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255,255,255,0.85) !important;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+        background: rgba(255,255,255,0.55) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255,255,255,0.85) !important;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
 
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
 
-    color: #64748B !important;
-    font-size: 18px !important;
-    line-height: 1 !important;
-    transition: all 0.25s ease !important;
-}
+        color: #64748B !important;
+        font-size: 18px !important;
+        line-height: 1 !important;
+        transition: all 0.25s ease !important;
+    }
 
-.icon-btn-wrap .stButton > button:hover {
-    color: #4A6D5F !important;
-    background: rgba(255,255,255,0.88) !important;
-    border: 1px solid rgba(255,255,255,0.95) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10) !important;
-}
+    .icon-btn-wrap .stButton > button:hover {
+        color: #4A6D5F !important;
+        background: rgba(255,255,255,0.88) !important;
+        border: 1px solid rgba(255,255,255,0.95) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10) !important;
+    }
 
-/* 让 emoji 在按钮里更居中一点（解决你之前偏移问题） */
-.icon-btn-wrap .stButton > button p {
-    margin: 0 !important;
-    line-height: 1 !important;
-}
+    /* emoji 居中修正 */
+    .icon-btn-wrap .stButton > button p {
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* 通知红点（可选但推荐） */
+    .icon-btn-wrap.notify-dot {
+        position: relative;
+    }
+    .icon-btn-wrap.notify-dot::after {
+        content: "";
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 8px;
+        height: 8px;
+        background: #EF4444;
+        border: 2px solid rgba(255,255,255,0.95);
+        border-radius: 999px;
+        z-index: 20;
+        pointer-events: none;
+    }
 
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
@@ -228,7 +254,7 @@ professional_css = """
         transform: translateY(-2px) !important;
     }
 
-    /* 其他全局保持不变 */
+    /* 全局按钮（保留） */
     .stButton>button {
         background-color: #708090 !important;
         border: none !important;
@@ -324,24 +350,20 @@ professional_css = """
 st.markdown(professional_css, unsafe_allow_html=True)
 
 
-# ================= 5. 顶部导航栏 =================
+# ================= 5. 顶部导航栏（完整替换版） =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 with st.container():
     st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
 
-    # 这里调布局宽度（菜单、搜索、图标、登录按钮占比）
+    # 顶部整体布局：logo / 菜单 / 搜索 / 图标 / 登录
     col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
-        [2.1, 7.0, 2.1, 1.0, 1.2],
+        [2.3, 6.8, 2.1, 1.2, 1.2],
         vertical_alignment="center"
     )
-    # col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
-    #     [1.45, 6.9, 2.35, 1.1, 1.2],
-    #     vertical_alignment="center"
-    # )
 
     with col_logo:
-        st.image(LOGO_IMAGE_URL, width=200)  # ✅ logo 大小在这里调（比如 170 / 185 / 200）
+        st.image(LOGO_IMAGE_URL, width=200)  # logo 大小在这里调
 
     with col_menu:
         if st.session_state.current_view not in ["login", "signup"]:
@@ -357,11 +379,11 @@ with st.container():
 
             st.markdown('<div class="nav-menu-row">', unsafe_allow_html=True)
 
-            # 为了让文字按钮精确对齐，按文字长度给不同列宽
+            # 关键：给导航文字足够列宽，避免大字体换行
             if st.session_state.is_admin:
-                nav_cols = st.columns([2.6, 2.6, 2.6, 2.6, 2.6, 2.6])
+                nav_cols = st.columns([1.8, 2.6, 2.7, 1.3, 1.3, 2.2])
             else:
-                nav_cols = st.columns([1.35, 2.05, 2.15, 1.0, 1.0])
+                nav_cols = st.columns([1.8, 2.6, 2.7, 1.3, 1.3])
 
             def render_nav_button(col, label, page_name, key_name):
                 wrapper_cls = "nav-text-btn nav-active" if active_tab == page_name else "nav-text-btn"
@@ -397,7 +419,7 @@ with st.container():
 
     with col_icons:
         if st.session_state.current_view not in ["login", "signup"]:
-            c_icon1, c_icon2 = st.columns(2)
+            c_icon1, c_icon2 = st.columns([1, 1])
 
             with c_icon1:
                 st.markdown('<div class="icon-btn-wrap">', unsafe_allow_html=True)
@@ -407,7 +429,7 @@ with st.container():
                 st.markdown('</div>', unsafe_allow_html=True)
 
             with c_icon2:
-                st.markdown('<div class="icon-btn-wrap">', unsafe_allow_html=True)
+                st.markdown('<div class="icon-btn-wrap notify-dot">', unsafe_allow_html=True)
                 if st.button("🔔", help="Notifications", key="nav_notifications_btn"):
                     st.session_state.current_view = "Notifications"
                     st.rerun()
@@ -429,7 +451,6 @@ with st.container():
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
-
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
