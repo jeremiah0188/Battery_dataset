@@ -10,6 +10,8 @@ if "current_view" not in st.session_state:
     st.session_state.current_view = "Homepage"
 if "search_kw" not in st.session_state:
     st.session_state.search_kw = ""
+if "global_search" not in st.session_state:
+    st.session_state.global_search = ""
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
@@ -57,7 +59,7 @@ professional_css = """
 
     .block-container {
         max-width: 95% !important;
-        padding-top: 1.2rem !important;
+        padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }
 
@@ -72,32 +74,31 @@ professional_css = """
         margin-bottom: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-
     [data-testid="stVerticalBlockBorderWrapper"]:hover {
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 🎯 终极杀器：强制消除顶层导航区白底 ================= */
-    /* 锁定页面最顶部的水平列（即导航栏所在区域），强行清空它继承的全局白卡样式！ */
-    [data-testid="stHorizontalBlock"]:first-of-type [data-testid="stVerticalBlockBorderWrapper"],
-    [data-testid="stHorizontalBlock"]:first-of-type iframe {
+    /* ================= 顶部全局搜索框美化 ================= */
+    div[data-testid="stTextInput"] input {
+        border-radius: 50px !important;
+        padding: 12px 24px !important;
+        border: 1px solid rgba(226, 232, 240, 0.8) !important;
+        box-shadow: 0 8px 25px rgba(15, 23, 42, 0.04) !important;
+        font-size: 15px !important;
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        transition: all 0.3s ease !important;
+    }
+    div[data-testid="stTextInput"] input:focus {
+        border-color: #4A6D5F !important;
+        box-shadow: 0 8px 30px rgba(74, 109, 95, 0.15) !important;
+        background-color: #FFFFFF !important;
+    }
+
+    /* 去除导航栏容器本身的白底干扰 */
+    .nav-container-wrapper > div > div {
         background: transparent !important;
-        background-color: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        backdrop-filter: none !important;
-        padding: 0 !important;
-    }
-
-    /* 导航区入场动画 */
-    [data-testid="stHorizontalBlock"]:first-of-type {
-        margin-bottom: 1rem !important;
-        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-
-    @keyframes headerSlideDown {
-        0% { opacity: 0; transform: translateY(-40px); }
-        100% { opacity: 1; transform: translateY(0); }
     }
 
     /* ================= 其他全局 UI ================= */
@@ -119,7 +120,7 @@ professional_css = """
         transform: translateY(-2px) !important;
     }
 
-    .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
+    .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
         border-radius: 12px !important;
     }
 
@@ -137,136 +138,56 @@ professional_css = """
         border-radius: 3px 3px 0 0;
     }
 
-    .section-header h2 {
-        font-size: 24px;
-        font-weight: 800;
-        color: #0F172A;
-        margin: 0;
-        transition: all 0.3s ease;
-    }
-    .section-header:hover h2 {
-        color: #4A6D5F;
-        transform: translateX(6px);
-    }
-
-    .hero-title {
-        font-size: 4.8rem;
-        font-weight: 900;
-        line-height: 1.1;
-        color: #0F172A;
-        margin-bottom: 1.5rem;
-        letter-spacing: -2px;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .hero-title:hover { transform: scale(1.02); }
+    .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; transition: all 0.3s ease; }
+    .section-header:hover h2 { color: #4A6D5F; transform: translateX(6px); }
 
     .dataset-list-row {
-        display: flex;
-        padding: 18px 24px;
-        font-size: 14px;
-        border-bottom: 1px solid #F1F5F9;
-        align-items: center;
-        transition: all 0.2s ease;
-        background-color: transparent;
+        display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease;
     }
-    .dataset-list-row .ds-name { transition: color 0.2s ease; }
     .dataset-list-row:hover { background-color: #F8FAFC !important; }
     .dataset-list-row:hover .ds-name { color: #4A6D5F !important; }
 
     .hero-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 4.5rem 4rem;
+        display: flex; align-items: center; justify-content: space-between; padding: 4.5rem 4rem;
         background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.4) 100%);
-        border-radius: 24px;
-        border: 1px solid #FFFFFF;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-        margin-bottom: 2rem;
-        gap: 4rem;
-        backdrop-filter: blur(10px);
+        border-radius: 24px; border: 1px solid #FFFFFF; box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        margin-bottom: 2rem; gap: 4rem; backdrop-filter: blur(10px);
     }
     .hero-left { flex: 1.2; }
-    .hero-subtitle {
-        font-size: 14px;
-        font-weight: 800;
-        color: #4A6D5F;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        margin-bottom: 1rem;
-    }
-    .hero-title span {
-        background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+    .hero-subtitle { font-size: 14px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
+    .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; }
+    .hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.7; margin-bottom: 2rem; }
 
     .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     .bento-card {
-        border-radius: 20px;
-        padding: 28px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid rgba(255,255,255,0.5);
+        border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid rgba(255,255,255,0.5); transition: transform 0.4s;
     }
     .bento-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
 
     .chem-tag {
-        background: rgba(255,255,255,0.8);
-        padding:8px 16px;
-        border-radius:30px;
-        font-size:13px;
-        font-weight:800;
-        box-shadow:0 2px 8px rgba(0,0,0,0.04);
-        color:#0F172A;
-        border: 1px solid rgba(0,0,0,0.02);
-        display: inline-block;
-        margin: 4px;
+        background: rgba(255,255,255,0.8); padding:8px 16px; border-radius:30px; font-size:13px; font-weight:800;
+        box-shadow:0 2px 8px rgba(0,0,0,0.04); color:#0F172A; border: 1px solid rgba(0,0,0,0.02); display: inline-block; margin: 4px;
     }
 
-    .metadata-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 16px;
-        margin-top: 20px;
+    .section-header {
+        border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
     }
-    .metadata-item {
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 16px;
-        transition: background 0.3s;
-    }
+    .header-blue { border-left: 5px solid #3B82F6; }
+    .header-teal { border-left: 5px solid #4A6D5F; }
+    .header-amber { border-left: 5px solid #F59E0B; }
+
+    .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
+    .metadata-item { background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: background 0.3s; }
     .metadata-item:hover { background: #FFFFFF; }
-    .metadata-label {
-        font-size: 12px;
-        font-weight: 800;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 6px;
-    }
-    .metadata-value {
-        font-size: 15px;
-        font-weight: 600;
-        color: #0F172A;
-        word-wrap: break-word;
-    }
+    .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
     .custom-footer {
-        width: 100%;
-        padding: 40px 16px 20px 16px;
-        margin-top: 40px;
-        color: #64748B;
-        font-size: 14px;
-        border-top: 1px solid #E2E8F0;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B; font-size: 14px;
+        border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px;
     }
     .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
     .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
@@ -276,193 +197,130 @@ professional_css = """
 
     /* ================= 📱 移动端响应式适配 ================= */
     @media (max-width: 1024px) {
-        .hero-container {
-            flex-direction: column !important;
-            align-items: stretch !important;
-            gap: 2rem !important;
-            padding: 2rem 1.5rem !important;
-        }
+        .hero-container { flex-direction: column !important; align-items: stretch !important; gap: 2rem !important; padding: 2rem 1.5rem !important; }
         .hero-right { width: 100% !important; }
     }
-
     @media (max-width: 768px) {
-        .block-container {
-            max-width: 100% !important;
-            padding: 0.6rem !important;
-        }
-
-        [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 16px !important;
-            border-radius: 16px !important;
-            margin-bottom: 16px !important;
-        }
-
-        .hero-container {
-            flex-direction: column !important;
-            padding: 1.5rem 1rem !important;
-            gap: 1.2rem !important;
-            border-radius: 16px !important;
-        }
-        .hero-title {
-            font-size: 2.1rem !important;
-            letter-spacing: -1px !important;
-            margin-bottom: 0.8rem !important;
-        }
-        .hero-subtitle {
-            font-size: 11px !important;
-            letter-spacing: 1.2px !important;
-            margin-bottom: 0.5rem !important;
-        }
-        .hero-desc {
-            font-size: 0.95rem !important;
-            line-height: 1.55 !important;
-            margin-bottom: 0.8rem !important;
-        }
-        .hero-right {
-            grid-template-columns: 1fr !important;
-            gap: 0.8rem !important;
-            width: 100% !important;
-        }
-        .bento-card {
-            min-height: auto !important;
-            padding: 16px !important;
-            border-radius: 14px !important;
-        }
-        .bento-card[style*="grid-row:span 2"] {
-            grid-row: auto !important;
-            min-height: auto !important;
-        }
-        .chem-tag {
-            font-size: 11px !important;
-            padding: 5px 10px !important;
-            margin: 3px !important;
-        }
-
-        .dataset-list-header { display: none !important; }
-        .dataset-list-row {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 10px !important;
-            padding: 14px !important;
-        }
-        .dataset-list-row > div {
-            width: 100% !important;
-            text-align: left !important;
-            padding-right: 0 !important;
-        }
-        .dataset-list-row > div:last-child {
-            text-align: left !important;
-        }
-
-        .section-header {
-            padding: 12px 14px !important;
-            border-radius: 12px !important;
-            margin-bottom: 12px !important;
-        }
-        .section-header h2 {
-            font-size: 17px !important;
-            line-height: 1.25 !important;
-        }
-
-        .stButton>button {
-            height: 40px !important;
-            font-size: 14px !important;
-            padding: 0 16px !important;
-        }
-
-        [data-testid="stTabs"] [data-baseweb="tab-list"] {
-            overflow-x: auto !important;
-            white-space: nowrap !important;
-            gap: 6px !important;
-        }
+        .block-container { padding: 0.6rem !important; }
+        [data-testid="stVerticalBlockBorderWrapper"] { padding: 16px !important; border-radius: 16px !important; margin-bottom: 16px !important; }
+        .hero-title { font-size: 2.1rem !important; }
+        .bento-card { padding: 16px !important; border-radius: 14px !important; }
     }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏 =================
+# ================= 5. 全新布局：顶栏 (Logo + 搜索 + 登录) & 底栏 (独立胶囊导航) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
+# --- 第一行：顶栏区 ---
 with st.container():
-    col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
+    col_logo, col_search, col_auth = st.columns([1.5, 6, 1.5], vertical_alignment="center")
 
     with col_logo:
         st.image(LOGO_IMAGE_URL, width=180)
 
-    with col_menu:
-        if st.session_state.current_view not in ["login", "signup"]:
-            menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-            base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
-            if st.session_state.is_admin:
-                menu_tabs.append("Admin Dashboard")
-                menu_icons = base_icons + ['shield-lock']
-            else:
-                menu_icons = base_icons
+    with col_search:
+        # 全局搜索联动逻辑
+        def submit_global_search():
+            if st.session_state.global_search_input:
+                st.session_state.search_kw = st.session_state.global_search_input
+                st.session_state.current_view = "Browse Datasets"
 
-            try:
-                default_idx = menu_tabs.index(st.session_state.current_view)
-            except ValueError:
-                default_idx = 0
 
-            selected_page = option_menu(
-                menu_title=None,
-                options=menu_tabs,
-                icons=menu_icons,
-                default_index=default_idx,
-                orientation="horizontal",
-                styles={
-                    "container": {
-                        "padding": "6px 10px !important",
-                        "background-color": "rgba(255, 255, 255, 0.96) !important",
-                        "border": "1px solid rgba(226, 232, 240, 0.8) !important",
-                        "border-radius": "999px !important",
-                        "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
-                        "margin": "0 auto",
-                        "width": "fit-content",  # 改回 Python 正确的注释规范
-                        "display": "flex",
-                        "justify-content": "center",
-                        "align-items": "center"
-                    },
-                    "icon": {
-                        "color": "#64748B",
-                        "font-size": "16px",
-                    },
-                    "nav-link": {
-                        "font-size": "15px",
-                        "font-weight": "700",
-                        "color": "#475569",
-                        "padding": "10px 18px",
-                        "margin": "0 3px",
-                        "border-radius": "50px",
-                        "transition": "all 0.3s ease",
-                        "--hover-color": "#F1F5F9",
-                        "white-space": "nowrap"
-                    },
-                    "nav-link-selected": {
-                        "background-color": "#4A6D5F",
-                        "color": "#FFFFFF",
-                        "font-weight": "800",
-                        "border-radius": "50px",
-                        "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
-                    },
-                }
-            )
-
-            if selected_page != st.session_state.current_view:
-                st.session_state.current_view = selected_page
-                st.rerun()
+        st.text_input(
+            "Global Search",
+            key="global_search_input",
+            label_visibility="collapsed",
+            placeholder="🔍 Search datasets globally (e.g., LFP, Oxford, EIS...) and hit Enter",
+            on_change=submit_global_search
+        )
 
     with col_auth:
         if st.session_state.is_admin:
-            if st.button("Log Out"):
+            if st.button("Log Out", use_container_width=True):
                 st.session_state.is_admin = False
                 st.session_state.current_view = "Homepage"
                 st.rerun()
         else:
             if st.session_state.current_view not in ["login", "signup"]:
-                if st.button("Sign In"):
+                if st.button("Sign In", use_container_width=True):
                     st.session_state.current_view = "login"
                     st.rerun()
+
+st.markdown("<div style='margin-bottom: 0.8rem;'></div>", unsafe_allow_html=True)
+
+# --- 第二行：独立导航区 ---
+if st.session_state.current_view not in ["login", "signup"]:
+    # 使用一个特制容器来包裹导航栏，防止样式干扰
+    st.markdown('<div class="nav-container-wrapper">', unsafe_allow_html=True)
+
+    menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
+    base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
+
+    if st.session_state.is_admin:
+        menu_tabs.append("Admin Dashboard")
+        menu_icons = base_icons + ['shield-lock']
+    else:
+        menu_icons = base_icons
+
+    try:
+        default_idx = menu_tabs.index(st.session_state.current_view)
+    except ValueError:
+        default_idx = 0
+
+    selected_page = option_menu(
+        menu_title=None,
+        options=menu_tabs,
+        icons=menu_icons,
+        default_index=default_idx,
+        orientation="horizontal",
+        styles={
+            "container": {
+                "padding": "6px 12px !important",
+                "background-color": "rgba(255, 255, 255, 0.96) !important",
+                "border": "1px solid rgba(226, 232, 240, 0.8) !important",
+                "border-radius": "999px !important",
+                "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
+                "margin": "0 auto",
+                "width": "fit-content",  # 紧贴文字的胶囊效果
+                "display": "flex",
+                "justify-content": "center",
+                "align-items": "center"
+            },
+            "icon": {
+                "color": "#64748B",
+                "font-size": "16px",
+            },
+            "nav-link": {
+                "font-size": "15px",
+                "font-weight": "700",
+                "color": "#475569",
+                "padding": "10px 18px",
+                "margin": "0 4px",
+                "border-radius": "50px",
+                "transition": "all 0.3s ease",
+                "--hover-color": "#F1F5F9",
+                "white-space": "nowrap"
+            },
+            "nav-link-selected": {
+                "background-color": "#4A6D5F",
+                "color": "#FFFFFF",
+                "font-weight": "800",
+                "border-radius": "50px",
+                "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
+            },
+        }
+    )
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if selected_page != st.session_state.current_view:
+        st.session_state.current_view = selected_page
+        st.rerun()
+
+st.markdown("<hr style='border: none; border-top: 1px solid rgba(226, 232, 240, 0.6); margin: 0 0 24px 0;'>",
+            unsafe_allow_html=True)
 
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -634,8 +492,11 @@ elif current_page == "Browse Datasets":
             st.markdown(
                 "<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
                 unsafe_allow_html=True)
+
+            # 搜索框优先使用顶栏传来的关键词，如果为空则为空
             search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
                                       placeholder="e.g. Oxford, NMC, EIS...")
+            # 同步更新 session state
             st.session_state.search_kw = search_kw
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
@@ -776,7 +637,7 @@ elif current_page == "Browse Datasets":
         else:
             st.warning("No datasets match your filters.")
 
-# ----------------- 页面 E：Contribute Data (加入本地文件上传) -----------------
+# ----------------- 页面 E：Contribute Data (内置文件上传) -----------------
 elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
                 unsafe_allow_html=True)
@@ -801,7 +662,7 @@ elif current_page == "Contribute Data":
                 new_link = st.text_input("Source URL (Optional if local file provided)")
                 new_org = st.text_input("Source Organization / Publisher")
 
-                # ================= 🚀 本地文件上传组件在此 =================
+                # ================= 🚀 本地文件上传组件 =================
                 st.markdown("---")
                 st.markdown(
                     "<p style='font-size:14px; font-weight:600; color:#475569; margin-bottom:5px;'>Or Upload a Local Dataset File</p>",
