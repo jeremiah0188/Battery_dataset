@@ -77,24 +77,31 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 🎯 彻底歼灭中间导航列的长方块白底 ================= */
-    /* 锁定包含 menu-wrapper 标记的整列，强制它和内部所有外壳变透明 */
-    div[data-testid="column"]:has(.menu-wrapper),
-    div[data-testid="column"]:has(.menu-wrapper) > div,
-    div[data-testid="column"]:has(.menu-wrapper) div[data-testid="stElementContainer"],
-    div[data-testid="column"]:has(.menu-wrapper) iframe {
-        background-color: transparent !important;
+    /* ================= 🎯 终极杀器：强制消除顶层导航区白底 ================= */
+    /* 1. 彻底清零首行中间列（导航列）内所有嵌套层的背景色 */
+    [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:nth-child(2) div {
         background: transparent !important;
+        background-color: transparent !important;
         border: none !important;
         box-shadow: none !important;
         backdrop-filter: none !important;
     }
 
-    /* ================= 针对首行增加一个入场动画让导航更丝滑 ================= */
+    /* 2. 强行把 iframe（第三方组件容器）收缩并切出圆角！这样它内置的白底也会跟着变圆角胶囊 */
+    [data-testid="stHorizontalBlock"]:first-of-type > [data-testid="column"]:nth-child(2) iframe {
+        background: transparent !important;
+        border-radius: 999px !important; 
+        max-width: 780px !important; /* 让白底缩紧贴合胶囊 */
+        margin: 0 auto !important; /* 强制水平居中 */
+        display: block !important;
+    }
+
+    /* 导航区入场动画 */
     div[data-testid="stHorizontalBlock"]:first-of-type {
         margin-bottom: 1rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
+
     @keyframes headerSlideDown {
         0% { opacity: 0; transform: translateY(-40px); }
         100% { opacity: 1; transform: translateY(0); }
@@ -380,7 +387,7 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏（完美去白底） =================
+# ================= 5. 顶部导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 with st.container():
@@ -390,9 +397,6 @@ with st.container():
         st.image(LOGO_IMAGE_URL, width=180)
 
     with col_menu:
-        # 🔑 这里的 menu-wrapper 是专门给 CSS 提供靶点的
-        st.markdown('<span class="menu-wrapper"></span>', unsafe_allow_html=True)
-
         if st.session_state.current_view not in ["login", "signup"]:
             menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
             base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
@@ -415,40 +419,40 @@ with st.container():
                 orientation="horizontal",
                 styles={
                     "container": {
-                        "padding": "6px 10px !important",
-                        "background-color": "rgba(255, 255, 255, 0.96) !important",
-                        "border": "1px solid rgba(226, 232, 240, 0.8) !important",
-                        "border-radius": "999px !important",
-                        "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
-                        "margin": "0 auto",
-                        "width": "fit-content",
-                        "display": "flex",
-                        "justify-content": "center",
-                        "align-items": "center"
-                    },
-                    "icon": {
-                        "color": "#64748B",
-                        "font-size": "16px",
-                    },
-                    "nav-link": {
-                        "font-size": "15px",
-                        "font-weight": "700",
-                        "color": "#475569",
-                        "padding": "10px 18px",
-                        "margin": "0 3px",
-                        "border-radius": "50px",
-                        "transition": "all 0.3s ease",
-                        "--hover-color": "#F1F5F9",
-                        "white-space": "nowrap"
-                    },
-                    "nav-link-selected": {
-                        "background-color": "#4A6D5F",
-                        "color": "#FFFFFF",
-                        "font-weight": "800",
-                        "border-radius": "50px",
-                        "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
-                    },
-                }
+                                     "padding": "6px 10px !important",
+                                     "background-color": "rgba(255, 255, 255, 0.96) !important",
+                                     "border": "1px solid rgba(226, 232, 240, 0.8) !important",
+                                     "border-radius": "999px !important",
+                                     "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
+                                     "margin": "0 auto",
+                                     "width": "100%", / * iframe已经被我们在全局CSS强制缩成了胶囊宽，这里用100 % 可以填满它，严丝合缝！ * /
+            "display": "flex",
+            "justify-content": "center",
+            "align-items": "center"
+            },
+            "icon": {
+                "color": "#64748B",
+                "font-size": "16px",
+            },
+            "nav-link": {
+                "font-size": "15px",
+                "font-weight": "700",
+                "color": "#475569",
+                "padding": "10px 18px",
+                "margin": "0 3px",
+                "border-radius": "50px",
+                "transition": "all 0.3s ease",
+                "--hover-color": "#F1F5F9",
+                "white-space": "nowrap"
+            },
+            "nav-link-selected": {
+                "background-color": "#4A6D5F",
+                "color": "#FFFFFF",
+                "font-weight": "800",
+                "border-radius": "50px",
+                "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
+            },
+            }
             )
 
             if selected_page != st.session_state.current_view:
@@ -779,7 +783,7 @@ elif current_page == "Browse Datasets":
         else:
             st.warning("No datasets match your filters.")
 
-# ----------------- 页面 E：Contribute Data (加入本地文件上传) -----------------
+# ----------------- 页面 E：Contribute Data (内置文件上传) -----------------
 elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
                 unsafe_allow_html=True)
@@ -801,17 +805,20 @@ elif current_page == "Contribute Data":
                 new_category = c2b.text_input("Category (e.g., Battery, Grid)")
                 new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
 
-                new_link = st.text_input("Source URL * (External Download Link)")
+                new_link = st.text_input("Source URL (Optional if local file provided)")
                 new_org = st.text_input("Source Organization / Publisher")
 
-                # ================= 🚀 本地文件上传组件 =================
+                # ================= 🚀 本地文件上传组件在此 =================
                 st.markdown("---")
                 st.markdown(
                     "<p style='font-size:14px; font-weight:600; color:#475569; margin-bottom:5px;'>Or Upload a Local Dataset File</p>",
                     unsafe_allow_html=True)
                 uploaded_file = st.file_uploader(
-                    "Supported formats: CSV, Excel, ZIP, JSON, TXT (Max size depends on cloud limits)",
-                    type=['csv', 'xlsx', 'zip', 'json', 'txt'], label_visibility="collapsed")
+                    "Upload file here",
+                    type=['csv', 'xlsx', 'zip', 'json', 'txt', 'mat'],
+                    label_visibility="collapsed",
+                    help="Maximum file size depends on your Streamlit Server limits (typically 200MB default)."
+                )
                 st.markdown("---")
 
                 c8, c9 = st.columns(2)
@@ -819,14 +826,16 @@ elif current_page == "Contribute Data":
                 new_email = c9.text_input("Contact Email (Optional)")
 
                 if st.form_submit_button("Submit to Moderation Queue"):
-                    if not new_name or not new_domain or not new_contributor or (not new_link and not uploaded_file):
+                    if not new_name or not new_domain or not new_contributor or (
+                            not new_link and uploaded_file is None):
                         st.error(
-                            "Please fill in all required fields marked with * (You must provide either a Source URL or upload a file).")
+                            "⚠️ Please fill in all required fields marked with * (You must provide either a Source URL or upload a file).")
                     else:
                         new_row = {c: "" for c in df.columns}
 
                         final_link = new_link
                         if uploaded_file is not None:
+                            # 实际生产环境中你可以把 uploaded_file 的二进制保存到 S3/云存储中，这里演示将文件名拼接到数据库中
                             final_link = f"[Local File Attached] {uploaded_file.name} " + (
                                 f"| External Link: {new_link}" if new_link else "")
 
@@ -847,7 +856,7 @@ elif current_page == "Contribute Data":
                         conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
 
                         st.success(
-                            "Successfully submitted to the moderation queue! Our team will review the details shortly.")
+                            "🎉 Successfully submitted to the moderation queue! Our team will review the details shortly.")
                         st.cache_data.clear()
 
     with tab_request:
