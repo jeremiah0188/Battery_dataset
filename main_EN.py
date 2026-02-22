@@ -3,17 +3,13 @@ import pandas as pd
 import os
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
+from streamlit_option_menu import option_menu
 
 # ================= 1. 初始化 Session State 与 页面路由 =================
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
-
-try:
-    current_page = st.query_params.get("page", "home")
-except:
-    current_page = st.experimental_get_query_params().get("page", ["home"])[0]
-
-is_jian_entry = (st.query_params.get("admin", "") == "Jian" or current_page == "login")
+if "current_view" not in st.session_state:
+    st.session_state.current_view = "Homepage"
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
@@ -23,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= 3. 企业级专业 CSS (纯白无边框版) =================
+# ================= 3. 企业级专业 CSS (纯白无边框版 + 接管原生Container) =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -40,17 +36,19 @@ professional_css = """
     #stDecoration {display:none;}
     [data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
 
-    .block-container { padding-top: 6rem !important; }
-
-    .research-card {
+    /* 🚀 核心修复：接管原生 st.container(border=True) 的样式，完美替代 research-card */
+    [data-testid="stVerticalBlockBorderWrapper"] {
         background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
-        padding: 32px;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03) !important;
+        padding: 16px !important;
         margin-bottom: 24px;
     }
 
+    .block-container { padding-top: 2rem !important; }
+
+    /* 纯 HTML 渲染模块的样式保持不变 */
     .hero-container {
         display: flex; align-items: center; justify-content: space-between;
         padding: 4rem 3rem; background-color: #FFFFFF; border-radius: 20px;
@@ -82,82 +80,72 @@ professional_css = """
 
     .stButton>button { background-color: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; font-weight: 700; border-radius: 8px; transition: all 0.2s; height: 45px;}
     .stButton>button:hover { border-color: #0F766E; color: #0F766E; background-color: #F0FDF4; }
-
-    .custom-top-navbar {
-        position: fixed; top: 0; left: 0; right: 0; height: 70px;
-        background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
-        border-bottom: 1px solid #E2E8F0; display: flex; align-items: center;
-        justify-content: space-between; padding: 0 3rem; z-index: 999999;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-    }
-    .nav-left-section {
-        display: flex; align-items: center; gap: 2.5rem;
-    }
-    .custom-top-navbar .logo img { height: 55px; }
-
-    .nav-menu { display: flex; gap: 1.8rem; }
-    .nav-menu a {
-        color: #475569; font-size: 15px; font-weight: 700; 
-        text-decoration: none; transition: color 0.2s;
-    }
-    .nav-menu a:hover { color: #0F172A; }
-    .nav-menu a.active { color: #0F766E; border-bottom: 2px solid #0F766E; padding-bottom: 4px; }
-
-    .custom-top-navbar .login-btn {
-        background-color: #0F172A; color: #FFFFFF; padding: 8px 24px;
-        border-radius: 30px; font-weight: 700; font-size: 15px;
-        text-decoration: none; transition: all 0.3s;
-    }
-    .custom-top-navbar .login-btn:hover { background-color: #0F766E; transform: translateY(-2px); color: #FFFFFF;}
-    .custom-top-navbar .logout-btn { background-color: #FFFFFF; color: #EF4444; border: 1px solid #EF4444; padding: 8px 24px; border-radius: 30px; font-weight: 700; text-decoration: none;}
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 4. 动态渲染全新顶部菜单栏 (🚀完美修复版) =================
+# ================= 4. 顶部无刷新导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-def get_active_cls(page_name):
-    return "active" if current_page == page_name else ""
+# Header Layout: Logo on Left, Auth Button on Right
+col_logo, col_empty, col_auth = st.columns([2, 5, 1.5])
+with col_logo:
+    st.image(LOGO_IMAGE_URL, width=180)
+with col_auth:
+    st.write("")  # Adjust vertical alignment
+    if st.session_state.is_admin:
+        if st.button("Log Out", use_container_width=True):
+            st.session_state.is_admin = False
+            st.session_state.current_view = "Homepage"
+            st.rerun()
+    else:
+        if st.session_state.current_view not in ["login", "signup"]:
+            if st.button("Log In", use_container_width=True):
+                st.session_state.current_view = "login"
+                st.rerun()
 
-# 🚀 必须加入 target="_self"，否则 Streamlit 会强制弹开新页面
-menu_html = (
-    '<div class="nav-menu">'
-    f'<a href="/?page=home" target="_self" class="{get_active_cls("home")}">Homepage</a>'
-    f'<a href="/?page=browse" target="_self" class="{get_active_cls("browse")}">Browse Datasets</a>'
-    f'<a href="/?page=contribute" target="_self" class="{get_active_cls("contribute")}">Contribute Data</a>'
-    f'<a href="/?page=about" target="_self" class="{get_active_cls("about")}">About</a>'
-    f'<a href="/?page=contact" target="_self" class="{get_active_cls("contact")}">Contact</a>'
-)
-if st.session_state.is_admin:
-    menu_html += f'<a href="/?page=admin" target="_self" class="{get_active_cls("admin")}" style="color:#F59E0B;">Admin Dashboard</a>'
-menu_html += "</div>"
+# Render Option Menu (SPA Navigation)
+if st.session_state.current_view not in ["login", "signup"]:
+    menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
+    if st.session_state.is_admin:
+        menu_tabs.append("Admin Dashboard")
 
-# 🚀 去除了会导致溢出乱码的 onerror 属性，纯净加载图片
-if st.session_state.is_admin:
-    nav_html = (
-        '<div class="custom-top-navbar"><div class="nav-left-section"><div class="logo">'
-        f'<img src="{LOGO_IMAGE_URL}" alt="OpenBattery"></div>'
-        f'{menu_html}</div><a href="/?page=home" target="_self" class="logout-btn">Log Out</a></div>'
+    # 获取当前 active 的 tab index
+    try:
+        default_idx = menu_tabs.index(st.session_state.current_view)
+    except ValueError:
+        default_idx = 0
+
+    selected_page = option_menu(
+        menu_title=None,
+        options=menu_tabs,
+        icons=['house', 'search', 'cloud-upload', 'info-circle', 'envelope', 'shield-lock'],
+        default_index=default_idx,
+        orientation="horizontal",
+        styles={
+            "container": {"padding": "0!important", "background-color": "transparent", "border": "none"},
+            "icon": {"color": "#64748B", "font-size": "16px"},
+            "nav-link": {"font-size": "15px", "font-weight": "700", "color": "#475569", "margin": "0 8px",
+                         "--hover-color": "#F1F5F9"},
+            "nav-link-selected": {"background-color": "#0F766E", "color": "white", "icon-color": "white"},
+        }
     )
-else:
-    nav_html = (
-        '<div class="custom-top-navbar"><div class="nav-left-section"><div class="logo">'
-        f'<img src="{LOGO_IMAGE_URL}" alt="OpenBattery"></div>'
-        f'{menu_html}</div><a href="/?page=login" target="_self" class="login-btn">Log In</a></div>'
-    )
+    # 同步状态
+    if selected_page != st.session_state.current_view:
+        st.session_state.current_view = selected_page
+        st.rerun()
 
-st.markdown(nav_html, unsafe_allow_html=True)
+current_page = st.session_state.current_view
 
 # ================= 5. 🔗 Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
+
 @st.cache_data(ttl=10)
 def load_data():
     try:
         df = conn.read(spreadsheet=SPREADSHEET_URL)
-        # 🚀 极致清洗：剔除所有空行、空列
         df = df.dropna(how='all', axis=0).dropna(how='all', axis=1)
         df = df.fillna('')
         df = df.astype(str)
@@ -166,58 +154,75 @@ def load_data():
     except:
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Domain', 'Category', 'Sub-category', 'Status'])
 
+
 df = load_data()
 
 # ================= 6. 核心路由与页面内容渲染 =================
 
 # ----------------- 页面 A：登录页 (Login) -----------------
 if current_page == "login" and not st.session_state.is_admin:
+    st.markdown("<br><br>", unsafe_allow_html=True)  # 增加一些顶部间距
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.markdown("<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Sign in to your account</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Access the dataset platform to manage submissions, review metadata, and track approval status.</p>", unsafe_allow_html=True)
+        # 🚀 使用原生 container 替代 <div>，规避未闭合导致的白框问题
+        with st.container(border=True):
+            st.markdown(
+                "<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Sign in to your account</h2>",
+                unsafe_allow_html=True)
+            st.markdown(
+                "<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Access the dataset platform to manage submissions, review metadata, and track approval status.</p>",
+                unsafe_allow_html=True)
 
-        email_input = st.text_input("Email address", placeholder="Enter your email")
-        pwd_input = st.text_input("Password", type="password", placeholder="Enter your password")
+            email_input = st.text_input("Email address", placeholder="Enter your email")
+            pwd_input = st.text_input("Password", type="password", placeholder="Enter your password")
 
-        if st.button("Sign In", type="primary", use_container_width=True):
-            if not email_input:
-                st.error("Please enter your email address.")
-            elif not pwd_input:
-                st.error("Please enter your password.")
-            elif pwd_input == st.secrets.get("admin_password", ""):
-                st.session_state.is_admin = True
-                st.success("Signed in successfully. Redirecting...")
-                st.markdown('<meta http-equiv="refresh" content="1;url=/?page=home">', unsafe_allow_html=True)
-            else:
-                st.error("Invalid email or password. Login failed. Please try again.")
+            if st.button("Sign In", type="primary", use_container_width=True):
+                if not email_input or not pwd_input:
+                    st.error("Please enter your email and password.")
+                elif pwd_input == st.secrets.get("admin_password", ""):
+                    st.session_state.is_admin = True
+                    st.session_state.current_view = "Homepage"
+                    st.rerun()
+                else:
+                    st.error("Invalid email or password. Please try again.")
 
-        st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0;'>", unsafe_allow_html=True)
-        st.markdown("<div style='text-align:center;'><a href='#' style='color: #0F766E; font-weight: 600; text-decoration: none;'>Forgot password?</a></div>", unsafe_allow_html=True)
-        st.markdown("<div style='text-align:center; margin-top: 12px; color: #64748B;'>Don’t have an account? <a href='/?page=signup' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Create an account</a></div>", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0;'>", unsafe_allow_html=True)
+
+            # 使用 Streamlit 按钮处理跳转，不触发全页刷新
+            if st.button("Don’t have an account? Create an account", use_container_width=True):
+                st.session_state.current_view = "signup"
+                st.rerun()
+            if st.button("Return to Homepage", use_container_width=True):
+                st.session_state.current_view = "Homepage"
+                st.rerun()
 
 # ----------------- 页面 B：注册页 (Sign Up) -----------------
 elif current_page == "signup" and not st.session_state.is_admin:
+    st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.markdown("<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Create an account</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Create an account to submit datasets, manage your contributions, and receive review notifications.</p>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(
+                "<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Create an account</h2>",
+                unsafe_allow_html=True)
+            st.markdown(
+                "<p style='color: #64748B; font-size: 15px; margin-bottom: 24px; line-height: 1.6;'>Create an account to submit datasets, manage your contributions, and receive review notifications.</p>",
+                unsafe_allow_html=True)
 
-        st.text_input("Full Name", placeholder="Enter your full name")
-        st.text_input("Email address", placeholder="Enter your email")
-        st.text_input("Password", type="password", placeholder="Create a password")
+            st.text_input("Full Name", placeholder="Enter your full name")
+            st.text_input("Email address", placeholder="Enter your email")
+            st.text_input("Password", type="password", placeholder="Create a password")
 
-        if st.button("Create account", type="primary", use_container_width=True):
-            st.info("Registration is temporarily closed. Please contact the administrator for account access.")
-        st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0;'>", unsafe_allow_html=True)
-        st.markdown("<div style='text-align:center; color: #64748B;'>Already have an account? <a href='/?page=login' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Sign in</a></div>", unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+            if st.button("Create account", type="primary", use_container_width=True):
+                st.info("Registration is temporarily closed. Please contact the administrator.")
+
+            st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0;'>", unsafe_allow_html=True)
+            if st.button("Already have an account? Sign in", use_container_width=True):
+                st.session_state.current_view = "login"
+                st.rerun()
 
 # ----------------- 页面 C：Homepage -----------------
-elif current_page == "home":
+elif current_page == "Homepage":
     public_count = len(df[df['Status'] == 'Approved'])
     chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in
                               ["NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal", "Li-S", "Mixed"]])
@@ -248,29 +253,30 @@ elif current_page == "home":
     st.markdown(hero_html, unsafe_allow_html=True)
 
 # ----------------- 页面 D：Browse Datasets -----------------
-elif current_page == "browse":
+elif current_page == "Browse Datasets":
     st.markdown('<div class="section-header header-blue"><h2>Dataset Directory</h2></div>', unsafe_allow_html=True)
 
     public_df = df[df['Status'] == 'Approved']
     filter_col, result_col = st.columns([1, 3])
 
     with filter_col:
-        st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.markdown("<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>", unsafe_allow_html=True)
-        search_kw = st.text_input("Keyword Search", placeholder="e.g. Oxford, NMC...")
+        with st.container(border=True):
+            st.markdown(
+                "<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
+                unsafe_allow_html=True)
+            search_kw = st.text_input("Keyword Search", placeholder="e.g. Oxford, NMC...")
+            st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
+            sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
 
-        st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
-        sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
+            sel_category = "All"
+            sel_subcategory = "All"
 
-        sel_category = "All"
-        sel_subcategory = "All"
-
-        if sel_domain == "Energy":
-            sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
-            if sel_category == "Battery":
-                sel_subcategory = st.selectbox("Battery Data Type", ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark", "Experimental", "Simulation"])
-
-        st.markdown('</div>', unsafe_allow_html=True)
+            if sel_domain == "Energy":
+                sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
+                if sel_category == "Battery":
+                    sel_subcategory = st.selectbox("Battery Data Type",
+                                                   ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark",
+                                                    "Experimental", "Simulation"])
 
     with result_col:
         filtered_df = public_df.copy()
@@ -288,21 +294,26 @@ elif current_page == "browse":
         st.markdown(f"**Result Counter:** {len(filtered_df)} datasets found.")
 
         if not filtered_df.empty:
-            st.markdown('<div class="research-card" style="padding: 16px;">', unsafe_allow_html=True)
-            display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if c in filtered_df.columns]
-            st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if
+                                c in filtered_df.columns]
+                st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
 
-            st.markdown('<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>',
+                unsafe_allow_html=True)
 
             valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
-            selected_dataset = st.selectbox("Select a dataset to view full details:", ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(), label_visibility="collapsed")
+            selected_dataset = st.selectbox("Select a dataset to view full details:",
+                                            ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
+                                            label_visibility="collapsed")
 
             if selected_dataset != "(Select to view)":
                 details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
 
+                # 这里的 details_html 内部没有任何 st 原生控件，因此可以直接用完整的一段 html 包裹
                 details_html = (
-                    '<div class="research-card">'
+                    '<div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03); padding: 32px; margin-bottom: 24px;">'
                     f'<h2 style="font-size: 28px; font-weight:800; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>'
                     f'<p style="color: #64748B; font-size: 15px; margin-bottom: 24px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
                 )
@@ -313,8 +324,8 @@ elif current_page == "browse":
 
                 details_html += '<div class="metadata-grid">'
                 for col_name in df.columns:
-                    # 🚀 深度拦截：不仅拦截字段名，更通过严格字符串逻辑消灭任何可能产生的空数据方块
-                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status', 'Dataset Name']:
+                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status',
+                                                                                                     'Dataset Name']:
                         val = str(details.get(col_name, '')).strip()
                         if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
                             details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
@@ -325,92 +336,100 @@ elif current_page == "browse":
             st.warning("No datasets match your filters.")
 
 # ----------------- 页面 E：Contribute Data -----------------
-elif current_page == "contribute":
+elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Contribute a Dataset</h2></div>', unsafe_allow_html=True)
 
-    with st.form("upload_form", border=False):
-        st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.write("Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+    with st.container(border=True):
+        st.write(
+            "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+        st.markdown("<hr style='margin: 16px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
 
-        st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
-        st.markdown("#### Section 1: Basic Information")
-        c1, c2 = st.columns(2)
-        new_name = c1.text_input("Dataset Name *")
-        new_desc = c2.text_input("Short Description *")
+        with st.form("upload_form", border=False):
+            st.markdown("#### Section 1: Basic Information")
+            c1, c2 = st.columns(2)
+            new_name = c1.text_input("Dataset Name *")
+            new_desc = c2.text_input("Short Description *")
 
-        c1b, c2b, c3b = st.columns(3)
-        new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
-        new_category = c2b.text_input("Category (e.g., Battery, Grid)")
-        new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
+            c1b, c2b, c3b = st.columns(3)
+            new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
+            new_category = c2b.text_input("Category (e.g., Battery, Grid)")
+            new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
 
-        new_link = st.text_input("Source URL * (External Download Link)")
-        new_org = st.text_input("Source Organization / Publisher")
+            new_link = st.text_input("Source URL * (External Download Link)")
+            new_org = st.text_input("Source Organization / Publisher")
 
-        st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
-        st.markdown("#### Section 2: Technical Specifications")
-        c3, c4, c5 = st.columns(3)
-        new_chem = c3.selectbox("Battery Chemistry", ["Not Applicable", "NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal", "Li-S", "Mixed", "Other"])
-        new_cell = c4.text_input("Cell / Module Type")
-        new_temp = c5.text_input("Temperature Range (°C)")
+            st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
+            st.markdown("#### Section 2: Technical Specifications")
+            c3, c4, c5 = st.columns(3)
+            new_chem = c3.selectbox("Battery Chemistry",
+                                    ["Not Applicable", "NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state",
+                                     "Li-metal", "Li-S", "Mixed", "Other"])
+            new_cell = c4.text_input("Cell / Module Type")
+            new_temp = c5.text_input("Temperature Range (°C)")
 
-        c6, c7 = st.columns(2)
-        new_eis = c6.selectbox("Includes EIS Data?", ["No", "Yes"])
-        new_aging = c7.selectbox("Includes Aging / Cycling Data?", ["No", "Yes"])
+            c6, c7 = st.columns(2)
+            new_eis = c6.selectbox("Includes EIS Data?", ["No", "Yes"])
+            new_aging = c7.selectbox("Includes Aging / Cycling Data?", ["No", "Yes"])
 
-        st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
-        st.markdown("#### Section 3: Contributor Info")
-        c8, c9 = st.columns(2)
-        new_contributor = c8.text_input("Contributor Name *")
-        new_email = c9.text_input("Contact Email (Optional)")
+            st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
+            st.markdown("#### Section 3: Contributor Info")
+            c8, c9 = st.columns(2)
+            new_contributor = c8.text_input("Contributor Name *")
+            new_email = c9.text_input("Contact Email (Optional)")
 
-        submitted = st.form_submit_button("📤 Submit to Moderation Queue")
+            submitted = st.form_submit_button("📤 Submit to Moderation Queue")
 
-        if submitted:
-            if not new_name or not new_domain or not new_link or not new_contributor:
-                st.error("Please fill in all required fields marked with *")
-            else:
-                new_row = {c: "" for c in df.columns}
-                new_row.update({
-                    'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category, 'Sub-category': new_subcat,
-                    'Short Description': new_desc, 'Link': new_link, 'Source Organization': new_org,
-                    'Battery Chemistry': new_chem, 'Cell / Module Type': new_cell,
-                    'Temperature Range': new_temp, 'Includes EIS Data': new_eis, 'Includes Aging / Cycling': new_aging,
-                    'Author': new_contributor, 'Contributor Email': new_email, 'Status': 'Pending'
-                })
-                updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-                conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
-                st.success("Successfully submitted to the moderation queue!")
-                st.cache_data.clear()
-        st.markdown('</div>', unsafe_allow_html=True)
+            if submitted:
+                if not new_name or not new_domain or not new_link or not new_contributor:
+                    st.error("Please fill in all required fields marked with *")
+                else:
+                    new_row = {c: "" for c in df.columns}
+                    new_row.update({
+                        'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category,
+                        'Sub-category': new_subcat,
+                        'Short Description': new_desc, 'Link': new_link, 'Source Organization': new_org,
+                        'Battery Chemistry': new_chem, 'Cell / Module Type': new_cell,
+                        'Temperature Range': new_temp, 'Includes EIS Data': new_eis,
+                        'Includes Aging / Cycling': new_aging,
+                        'Author': new_contributor, 'Contributor Email': new_email, 'Status': 'Pending'
+                    })
+                    updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+                    conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
+                    st.success("Successfully submitted to the moderation queue!")
+                    st.cache_data.clear()
 
 # ----------------- 页面 F & G：About & Contact -----------------
-elif current_page == "about":
-    st.markdown('<div class="research-card">', unsafe_allow_html=True)
-    st.markdown('<div class="section-header header-blue"><h2>About This Platform</h2></div>', unsafe_allow_html=True)
-    st.write("This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.")
-    st.write("Maintained by Jian Wu, focusing on battery data analysis and SOH estimation.")
-    st.markdown('</div>', unsafe_allow_html=True)
+# 🚀 深度修复：由于里面没有控件，直接合成一整段 HTML 一次性传入，消灭孤立标签白框！
+elif current_page == "About":
+    about_html = """
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03); padding: 32px; margin-bottom: 24px;">
+        <div class="section-header header-blue">
+            <h2 style="margin: 0;">About This Platform</h2>
+        </div>
+        <p style="margin-top:16px; font-size: 16px; line-height: 1.6;">This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.</p>
+        <p style="font-size: 16px; line-height: 1.6;">Maintained by Jian Wu, focusing on battery data analysis and SOH estimation.</p>
+    </div>
+    """
+    st.markdown(about_html, unsafe_allow_html=True)
 
-elif current_page == "contact":
-    st.markdown('<div class="research-card" style="text-align: center; padding: 80px 20px;">', unsafe_allow_html=True)
-    st.markdown('<h2 style="color:#0F172A; font-weight:900; margin-bottom:16px;">Get in Touch</h2>', unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 16px; color: #475569;'>For questions, dataset suggestions, collaboration, or corrections, please contact: <strong>jian.wu@utbm.fr</strong></p>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+elif current_page == "Contact":
+    contact_html = """
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03); text-align: center; padding: 80px 20px;">
+        <h2 style="color:#0F172A; font-weight:900; margin-bottom:16px; font-size: 36px;">Get in Touch</h2>
+        <p style='font-size: 18px; color: #475569;'>For questions, dataset suggestions, collaboration, or corrections, please contact: <strong style="color: #0F766E;">jian.wu@utbm.fr</strong></p>
+    </div>
+    """
+    st.markdown(contact_html, unsafe_allow_html=True)
 
 # ----------------- 页面 H：Admin Dashboard -----------------
-elif current_page == "admin" and st.session_state.is_admin:
-    st.markdown('<div class="research-card">', unsafe_allow_html=True)
+elif current_page == "Admin Dashboard" and st.session_state.is_admin:
     st.markdown('<div class="section-header header-amber"><h2>Moderation Queue</h2></div>', unsafe_allow_html=True)
-    with st.form("admin_form", border=False):
-        edited_df = st.data_editor(df, column_config={
-            "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])},
-                                   use_container_width=True, num_rows="dynamic")
-        if st.form_submit_button("💾 Synchronize Cloud Data"):
-            conn.update(spreadsheet=SPREADSHEET_URL, data=edited_df)
-            st.success("Synchronized successfully!")
-            st.cache_data.clear()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# 兜底：如果输入了错误的 page 参数，自动跳回 home
-else:
-    st.markdown('<meta http-equiv="refresh" content="0;url=/?page=home">', unsafe_allow_html=True)
+    with st.container(border=True):
+        with st.form("admin_form", border=False):
+            edited_df = st.data_editor(df, column_config={
+                "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])},
+                                       use_container_width=True, num_rows="dynamic")
+            if st.form_submit_button("💾 Synchronize Cloud Data"):
+                conn.update(spreadsheet=SPREADSHEET_URL, data=edited_df)
+                st.success("Synchronized successfully!")
+                st.cache_data.clear()
