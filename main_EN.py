@@ -167,30 +167,49 @@ professional_css = """
     }
 
     /* 顶部图标按钮 */
-    .icon-btn-wrap .stButton > button {
-        width: 54px !important;
-        height: 54px !important;
-        min-width: 54px !important;
-        min-height: 54px !important;
-        padding: 0 !important;
-        border-radius: 12px !important;
-        background: rgba(255,255,255,0.75) !important;
-        border: 1px solid #D1D5DB !important;
-        box-shadow: none !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        line-height: 1 !important;
-        font-size: 20px !important;
-        color: #64748B !important;
-        transition: all 0.25s ease !important;
-    }
-    .icon-btn-wrap .stButton > button:hover {
-        color: #4A6D5F !important;
-        border-color: #BFC7D2 !important;
-        background: rgba(255,255,255,0.95) !important;
-        transform: translateY(-1px) !important;
-    }
+    /* 顶部图标按钮 - 样式3（玻璃拟态） */
+.icon-btn-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn-wrap .stButton > button {
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    min-height: 50px !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+
+    background: rgba(255,255,255,0.55) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255,255,255,0.85) !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    color: #64748B !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    transition: all 0.25s ease !important;
+}
+
+.icon-btn-wrap .stButton > button:hover {
+    color: #4A6D5F !important;
+    background: rgba(255,255,255,0.88) !important;
+    border: 1px solid rgba(255,255,255,0.95) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10) !important;
+}
+
+/* 让 emoji 在按钮里更居中一点（解决你之前偏移问题） */
+.icon-btn-wrap .stButton > button p {
+    margin: 0 !important;
+    line-height: 1 !important;
+}
 
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
@@ -313,9 +332,13 @@ with st.container():
 
     # 这里调布局宽度（菜单、搜索、图标、登录按钮占比）
     col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
-        [1.45, 6.9, 2.35, 1.1, 1.2],
+        [2.1, 7.0, 2.1, 1.0, 1.2],
         vertical_alignment="center"
     )
+    # col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
+    #     [1.45, 6.9, 2.35, 1.1, 1.2],
+    #     vertical_alignment="center"
+    # )
 
     with col_logo:
         st.image(LOGO_IMAGE_URL, width=200)  # ✅ logo 大小在这里调（比如 170 / 185 / 200）
@@ -336,7 +359,7 @@ with st.container():
 
             # 为了让文字按钮精确对齐，按文字长度给不同列宽
             if st.session_state.is_admin:
-                nav_cols = st.columns([1.35, 2.05, 2.15, 1.0, 1.0, 1.8])
+                nav_cols = st.columns([2.6, 2.6, 2.6, 2.6, 2.6, 2.6])
             else:
                 nav_cols = st.columns([1.35, 2.05, 2.15, 1.0, 1.0])
 
@@ -838,7 +861,7 @@ elif current_page == "Settings":
             st.selectbox("Default page", ["Homepage", "Browse Datasets", "Contribute Data"])
             st.radio("Theme", ["Light", "Auto"], horizontal=True)
             st.slider("Items per page", min_value=10, max_value=100, value=20, step=10)
-            st.selectbox("Language", ["English", "中文"])
+            st.selectbox("Language", ["English", "French", "German", "Spanish", "简体中文"])
             if st.button("Save Preferences"):
                 st.success("Preferences saved successfully!")
 
