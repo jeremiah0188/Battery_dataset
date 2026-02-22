@@ -142,48 +142,48 @@ professional_css = """
     transition: all 0.25s ease !important;
     justify-content: center !important;
     }
-    .nav-text-btn div[data-testid="stButton"] > button {
-        background: transparent !important;
-        background-color: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
+.nav-text-btn div[data-testid="stButton"] {
+    width: 100% !important;
+}
 
-        color: #64748B !important;
-        font-weight: 700 !important;
-        font-size: 18px !important;   /* 导航字体大小在这里调 */
-        height: 40px !important;
-        min-height: 40px !important;
-        width: 100% !important;
-        min-width: max-content !important;
+.nav-text-btn div[data-testid="stButton"] > button {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    min-height: 42px !important;
 
-        padding: 0 6px 10px 6px !important;
-        margin: 0 !important;
-        letter-spacing: 0 !important;
-        border-bottom: 3px solid transparent !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
 
-        white-space: nowrap !important;
-        word-break: keep-all !important;
-        overflow-wrap: normal !important;
-        line-height: 1.1 !important;
+    color: #64748B !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    padding: 0 4px 10px 4px !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    border-bottom: 3px solid transparent !important;
 
-        transition: all 0.25s ease !important;
-        justify-content: center !important;
-    }
+    white-space: nowrap !important;
+    line-height: 1 !important;
+    justify-content: center !important;
+    transition: all 0.25s ease !important;
+}
 
-    .nav-text-btn div[data-testid="stButton"] > button:hover {
-        color: #4A6D5F !important;
-        background: transparent !important;
-        background-color: transparent !important;
-        transform: translateY(-1px) !important;
-        box-shadow: none !important;
-    }
+.nav-text-btn div[data-testid="stButton"] > button:hover {
+    color: #4A6D5F !important;
+    background: transparent !important;
+    transform: translateY(-1px) !important;
+    box-shadow: none !important;
+}
 
-    .nav-active div[data-testid="stButton"] > button {
-        color: #4A6D5F !important;
-        font-weight: 800 !important;
-        border-bottom-color: #4A6D5F !important;
-    }
+.nav-active div[data-testid="stButton"] > button {
+    color: #4A6D5F !important;
+    font-weight: 800 !important;
+    border-bottom-color: #4A6D5F !important;
+}
 
     /* 顶部搜索栏 */
     .nav-search .stTextInput input {
@@ -414,7 +414,7 @@ with st.container():
                 wrapper_cls = "nav-text-btn nav-active" if active_tab == page_name else "nav-text-btn"
                 with col:
                     st.markdown(f'<div class="{wrapper_cls}">', unsafe_allow_html=True)
-                    if st.button(label, key=key_name):
+                    if st.button(label, key=key_name, use_container_width=True):
                         st.session_state.current_view = page_name
                         st.session_state.last_menu_selection = page_name
                         st.rerun()
