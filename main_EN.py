@@ -47,7 +47,7 @@ dynamic_css = f"""
 """
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
-# ================= 4. 企业级专业 CSS (包含全新微动画) =================
+# ================= 4. 企业级专业 CSS (包含全新微动画及 📱 移动端适配) =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -63,27 +63,29 @@ professional_css = """
         padding-bottom: 2rem !important; 
     }
 
-    /* ================= 🚀 核心修复：外层导航去白卡化 ================= */
-    /* 精准选中包含 header-wrapper 的外层区块，强制清空背景、边框和阴影 */
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper),
-    div[data-testid="stVerticalBlock"]:has(.header-wrapper) > [data-testid="stVerticalBlockBorderWrapper"] {
+    /* 🚀 外层导航去白卡化 */
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper) {
         background: transparent !important;
-        backdrop-filter: none !important;
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        margin-bottom: 1rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        z-index: 999;
+    }
+
+    div[data-testid="stVerticalBlock"]:has(.header-wrapper) * {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
     @keyframes headerSlideDown {
         0% { opacity: 0; transform: translateY(-40px); }
         100% { opacity: 1; transform: translateY(0); }
     }
-    /* ============================================================= */
 
-    /* 全局内容白卡样式 (仅作用于非导航部分，因为导航部分被上面排除了) */
-    [data-testid="stVerticalBlockBorderWrapper"] {
+    /* 全局内容白卡样式 */
+    [data-testid="stVerticalBlockBorderWrapper"]:not(:has(.header-wrapper)) {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(255, 255, 255, 0.6) !important;
@@ -93,111 +95,81 @@ professional_css = """
         margin-bottom: 24px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
+    [data-testid="stVerticalBlockBorderWrapper"]:not(:has(.header-wrapper)):hover { 
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; 
+    }
 
-    /* 全局按钮 Slate Gray (#708090) */
     .stButton>button { 
-        background-color: #708090 !important; 
-        border: none !important; 
-        color: #FFFFFF !important; 
-        font-weight: 700 !important; 
-        border-radius: 50px !important; 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; 
-        height: 44px !important;
-        padding: 0 24px !important; 
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 10px rgba(112, 128, 144, 0.3) !important;
+        background-color: #708090 !important; border: none !important; color: #FFFFFF !important; 
+        font-weight: 700 !important; border-radius: 50px !important; transition: all 0.3s !important; 
+        height: 44px !important; padding: 0 24px !important; box-shadow: 0 4px 10px rgba(112, 128, 144, 0.3) !important;
     }
-    .stButton>button:hover { 
-        background-color: #5c6a77 !important; 
-        box-shadow: 0 6px 16px rgba(112, 128, 144, 0.5) !important;
-        transform: translateY(-2px) !important;
-    }
+    .stButton>button:hover { background-color: #5c6a77 !important; transform: translateY(-2px) !important; }
 
-    /* Tabs 强制加粗 */
-    [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
-    [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 16px !important; color: #64748B; transition: color 0.3s; }
-    [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
-    [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; border-radius: 3px 3px 0 0; }
+    .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; transition: all 0.3s ease; }
+    .section-header:hover h2 { color: #4A6D5F; transform: translateX(6px); }
 
-    /* 文字层级悬浮微动画 */
-    .section-header h2 { 
-        font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; 
-        transition: all 0.3s ease; 
-    }
-    .section-header:hover h2 {
-        color: #4A6D5F; 
-        transform: translateX(6px); 
-    }
+    .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; transition: transform 0.4s; }
 
-    .hero-title { 
-        font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; 
-        margin-bottom: 1.5rem; letter-spacing: -2px; 
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    }
-    .hero-title:hover {
-        transform: scale(1.02); 
-    }
+    .dataset-list-row { display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease; }
+    .dataset-list-row:hover { background-color: #F8FAFC !important; }
+    .dataset-list-row:hover .ds-name { color: #4A6D5F !important; }
 
-    /* 无边框列表行 Hover 样式 */
-    .dataset-list-row {
-        display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9;
-        align-items: center; transition: all 0.2s ease; background-color: transparent;
-    }
-    .dataset-list-row .ds-name {
-        transition: color 0.2s ease;
-    }
-    .dataset-list-row:hover { 
-        background-color: #F8FAFC !important; 
-    }
-    .dataset-list-row:hover .ds-name {
-        color: #4A6D5F !important; 
-    }
-
-    .hero-container {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 4.5rem 4rem; 
-        background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.4) 100%);
-        border-radius: 24px; border: 1px solid #FFFFFF; 
-        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-        margin-bottom: 2rem; gap: 4rem; backdrop-filter: blur(10px);
-    }
+    .hero-container { display: flex; align-items: center; justify-content: space-between; padding: 4.5rem 4rem; background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.4) 100%); border-radius: 24px; border: 1px solid #FFFFFF; box-shadow: 0 10px 40px rgba(0,0,0,0.03); margin-bottom: 2rem; gap: 4rem; backdrop-filter: blur(10px); }
     .hero-left { flex: 1.2; }
     .hero-subtitle { font-size: 14px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
     .hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.7; margin-bottom: 2rem; }
 
     .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .bento-card { border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.5);}
-    .bento-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+    .bento-card { border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: transform 0.4s; border: 1px solid rgba(255,255,255,0.5);}
+    .chem-tag { background: rgba(255,255,255,0.8); padding:8px 16px; border-radius:30px; font-size:13px; font-weight:800; color:#0F172A; border: 1px solid rgba(0,0,0,0.02); display: inline-block; margin: 4px;}
 
-    .chem-tag { background: rgba(255,255,255,0.8); padding:8px 16px; border-radius:30px; font-size:13px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,0.04); color:#0F172A; border: 1px solid rgba(0,0,0,0.02); display: inline-block; margin: 4px;}
-
-    .section-header { border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); transition: all 0.3s;}
+    .section-header { border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);}
     .header-blue { border-left: 5px solid #3B82F6; }
     .header-teal { border-left: 5px solid #4A6D5F; }
     .header-amber { border-left: 5px solid #F59E0B; }
 
     .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
     .metadata-item { background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: background 0.3s; }
-    .metadata-item:hover { background: #FFFFFF; }
-    .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
     .custom-footer { width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B; font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; }
-    .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
-    .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
-    .footer-links a:hover { color: #4A6D5F; }
-    .footer-separator { color: #CBD5E1; font-weight: 400; }
-    .footer-copyright { color: #94A3B8; font-size: 13px; }
+
+    /* ================= 📱 移动端响应式适配 (Mobile Responsiveness) ================= */
+    @media (max-width: 768px) {
+        .block-container { padding: 1rem !important; }
+
+        /* 首页卡片适配：变为上下堆叠 */
+        .hero-container { flex-direction: column !important; padding: 2rem 1.5rem !important; gap: 2rem !important; }
+        .hero-title { font-size: 2.8rem !important; }
+        .hero-desc { font-size: 1.1rem !important; }
+
+        /* 右侧 Bento 网格适配：变为单列 */
+        .hero-right { grid-template-columns: 1fr !important; width: 100% !important;}
+        .bento-card { min-height: auto !important; padding: 20px !important; }
+        /* 取消第一张卡片的跨行显示 */
+        .bento-card[style*="grid-row:span 2"] { grid-row: auto !important; }
+
+        /* 浏览数据页列表适配：变为堆叠卡片，隐藏表头 */
+        .dataset-list-header { display: none !important; }
+        .dataset-list-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; padding: 16px !important;}
+        .dataset-list-row > div { width: 100% !important; text-align: left !important; padding-right: 0 !important; }
+
+        /* 其他字体缩小 */
+        .section-header h2 { font-size: 20px !important; }
+
+        /* 导航条内部文本可能需要允许横向滚动或换行 */
+        [data-testid="stVerticalBlock"]:has(.header-wrapper) { overflow-x: auto !important; white-space: nowrap !important; }
+    }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏 (🚀 外层彻底透明，内层胶囊实体化) =================
+# ================= 5. 顶部导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-# 使用 st.container 包裹，并打上 header-wrapper 的锚点
 with st.container():
     st.markdown('<div class="header-wrapper" style="display:none;"></div>', unsafe_allow_html=True)
 
@@ -216,7 +188,7 @@ with st.container():
                 default_idx = menu_tabs.index(st.session_state.current_view)
             except ValueError:
                 default_idx = 0
-            # 🚀 导航栏菜单内部样式 (悬浮动画、选中变色全部集中在这里)
+
             selected_page = option_menu(
                 menu_title=None,
                 options=menu_tabs,
@@ -225,18 +197,18 @@ with st.container():
                 orientation="horizontal",
                 styles={
                     "container": {
-                        "padding": "6px 12px !important",
-                        "background-color": "rgba(255, 255, 255, 0.95) !important",  # 清晰可见的白色胶囊本体
-                        "border": "1px solid rgba(226, 232, 240, 0.8) !important",
-                        "border-radius": "100px !important",  # 大圆角
-                        "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
-                        "margin": "0 auto",
-                        "width": "100%"
+                        "padding": "10px",
+                        "background-color": "#ffffff",
+                        "border": "1px solid #E2E8F0",
+                        "border-radius": "100px",
+                        "box-shadow": "0 6px 20px rgba(0,0,0,0.06)",
+                        "width": "100%",
+                        "display": "flex",
+                        "justify-content": "center"
                     },
                     "icon": {
                         "color": "#64748B",
-                        "font-size": "16px",
-                        "transition": "color 0.3s ease"
+                        "font-size": "16px"
                     },
                     "nav-link": {
                         "font-size": "15px",
@@ -245,16 +217,14 @@ with st.container():
                         "padding": "10px 20px",
                         "margin": "0 4px",
                         "border-radius": "50px",
-                        "transition": "all 0.3s ease",  # 悬浮变色过渡动画
-                        "--hover-color": "#F1F5F9"  # 鼠标悬浮时出现的浅灰色背景标记
+                        "transition": "background-color 0.3s ease, color 0.3s ease",
+                        "--hover-color": "#F1F5F9"
                     },
                     "nav-link-selected": {
                         "background-color": "#4A6D5F",
-                        "color": "#FFFFFF",
+                        "color": "#ffffff",
                         "font-weight": "800",
-                        "icon-color": "#FFFFFF",
-                        "border-radius": "50px",
-                        "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
+                        "border-radius": "50px"
                     },
                 }
             )
@@ -297,7 +267,6 @@ public_df = df[df['Status'] == 'Approved']
 
 # ================= 7. 核心路由与页面内容渲染 =================
 
-# ----------------- 页面 A：登录页 (Login) -----------------
 if current_page == "login" and not st.session_state.is_admin:
     st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 1.2, 1])
@@ -322,7 +291,6 @@ if current_page == "login" and not st.session_state.is_admin:
                     st.error("Invalid credentials.")
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 32px 0 24px 0;'>", unsafe_allow_html=True)
-
             c1, c2 = st.columns(2)
             with c1:
                 if st.button("Create an Account", use_container_width=True):
@@ -333,7 +301,6 @@ if current_page == "login" and not st.session_state.is_admin:
                     st.session_state.current_view = "Homepage"
                     st.rerun()
 
-# ----------------- 页面 B：注册页 (Sign Up) -----------------
 elif current_page == "signup" and not st.session_state.is_admin:
     st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 1.2, 1])
@@ -355,7 +322,6 @@ elif current_page == "signup" and not st.session_state.is_admin:
                 st.info("Registration is temporarily closed. Please contact the administrator.")
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 32px 0 24px 0;'>", unsafe_allow_html=True)
-
             c3, c4 = st.columns(2)
             with c3:
                 if st.button("Already have an account? Sign In", use_container_width=True):
@@ -366,7 +332,6 @@ elif current_page == "signup" and not st.session_state.is_admin:
                     st.session_state.current_view = "Homepage"
                     st.rerun()
 
-# ----------------- 页面 C：Homepage -----------------
 elif current_page == "Homepage":
     chem_tags_html = "".join(
         [f'<span class="chem-tag">{c}</span>' for c in ["NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]])
@@ -427,7 +392,6 @@ elif current_page == "Homepage":
         st.write(
             "Our admin team typically reviews submitted datasets within 48-72 hours to ensure metadata quality and source validity.")
 
-# ----------------- 页面 D：Browse Datasets -----------------
 elif current_page == "Browse Datasets":
     st.markdown('<div class="section-header header-blue"><h2>Dataset Directory</h2></div>', unsafe_allow_html=True)
     filter_col, result_col = st.columns([1, 3])
@@ -479,8 +443,9 @@ elif current_page == "Browse Datasets":
             html_parts = []
             html_parts.append(
                 '<div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">')
+            # 🚀 给表头加了 dataset-list-header 类名，以便在手机端隐藏它
             html_parts.append(
-                '<div style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">')
+                '<div class="dataset-list-header" style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">')
             html_parts.append(
                 '<div style="flex: 2.5;">Dataset Name</div><div style="flex: 1.5;">Author</div><div style="flex: 1;">Domain</div><div style="flex: 0.8; text-align: right;">Action</div></div>')
 
@@ -504,7 +469,6 @@ elif current_page == "Browse Datasets":
                 domain = row.get('Domain', 'N/A')
 
                 html_parts.append('<div class="dataset-list-row">')
-                # 🚀 将标题赋予 ds-name class，响应 CSS 悬浮变色
                 html_parts.append(
                     f'<div class="ds-name" style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
                 html_parts.append(
@@ -556,7 +520,6 @@ elif current_page == "Browse Datasets":
         else:
             st.warning("No datasets match your filters.")
 
-# ----------------- 页面 E：Contribute Data -----------------
 elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
                 unsafe_allow_html=True)
@@ -621,7 +584,6 @@ elif current_page == "Contribute Data":
             * Accuracy: Fill out the Chemistry and Data Type fields accurately to help researchers filter effectively.
             """)
 
-# ----------------- 页面 F & G：About & Contact -----------------
 elif current_page == "About":
     about_html = """
     <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); padding: 40px; margin-bottom: 24px;">
@@ -642,7 +604,6 @@ elif current_page == "Contact":
     """
     st.markdown(contact_html, unsafe_allow_html=True)
 
-# ----------------- 页面 H：Admin Dashboard -----------------
 elif current_page == "Admin Dashboard" and st.session_state.is_admin:
     st.markdown('<div class="section-header header-amber"><h2>Moderation Queue</h2></div>', unsafe_allow_html=True)
     with st.container(border=True):
