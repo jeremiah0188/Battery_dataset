@@ -118,6 +118,31 @@ professional_css = """
 
     /* 顶部导航按钮（纯文字，无胶囊）——强覆盖版 */
     .nav-text-btn div[data-testid="stButton"] > button {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+
+    color: #64748B !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+
+    width: 100% !important;
+    padding: 0 4px 10px 4px !important;
+    margin: 0 !important;
+    letter-spacing: 0 !important;
+    border-bottom: 3px solid transparent !important;
+
+    white-space: nowrap !important;
+    line-height: 1 !important;
+
+    transition: all 0.25s ease !important;
+    justify-content: center !important;
+    }
+    .nav-text-btn div[data-testid="stButton"] > button {
         background: transparent !important;
         background-color: transparent !important;
         border: none !important;
@@ -381,9 +406,9 @@ with st.container():
 
             # 关键：给导航文字足够列宽，避免大字体换行
             if st.session_state.is_admin:
-                nav_cols = st.columns([1, 1, 1, 1, 1, 1])
+                nav_cols = st.columns(6, gap="small")  # 6个等宽
             else:
-                nav_cols = st.columns([1, 1, 1, 1, 1])
+                nav_cols = st.columns(5, gap="small")  # 5个等宽
 
             def render_nav_button(col, label, page_name, key_name):
                 wrapper_cls = "nav-text-btn nav-active" if active_tab == page_name else "nav-text-btn"
