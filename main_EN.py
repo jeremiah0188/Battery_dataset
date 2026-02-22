@@ -4,25 +4,27 @@ import os
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
-# ================= 1. 初始化 Session State (用于安全登录状态管理) =================
+# ================= 1. 初始化 Session State 与 页面路由 =================
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
-# 获取当前页面路由 (home, login, signup)
+# 获取当前页面路由 (默认是 home)
 try:
     current_page = st.query_params.get("page", "home")
 except:
     current_page = st.experimental_get_query_params().get("page", ["home"])[0]
+
+is_jian_entry = (st.query_params.get("admin", "") == "Jian" or current_page == "login")
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
     page_title="Open Battery Dataset Portal",
     page_icon="🔋",
     layout="wide",
-    initial_sidebar_state="collapsed"  # 全局彻底关闭侧边栏
+    initial_sidebar_state="collapsed"
 )
 
-# ================= 3. 企业级专业 CSS (高阶视觉版) =================
+# ================= 3. 企业级专业 CSS (纯白无边框版) =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -33,73 +35,15 @@ professional_css = """
         color: #334155;
     }
 
-    /* 彻底隐藏顶部杂项与侧边栏 */
+    /* 彻底隐藏 Streamlit 默认顶部、底部和侧边栏 */
+    [data-testid="stHeader"] { display: none !important; }
     #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
     footer {visibility: hidden;}
     #stDecoration {display:none;}
     [data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none !important;}
-    .block-container { padding-top: 5rem !important; }
 
-    /* 🚀 顶部居中导航栏 (Tabs) - 差异化超大字体与多彩设计 */
-    .stTabs [data-baseweb="tab-list"] {
-        justify-content: center;
-        background: #FFFFFF;
-        border-radius: 20px;
-        padding: 16px 30px;
-        gap: 30px;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-        margin-bottom: 2.5rem;
-        align-items: baseline; /* 底部对齐以适应不同字号 */
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        background-color: transparent;
-        font-weight: 900 !important; /* 统一超粗体 */
-        padding: 10px 20px;
-        border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* 👉 第1个 Tab: Homepage */
-    .stTabs [data-baseweb="tab"]:nth-child(1) {
-        font-size: 38px !important; 
-        color: #3B82F6 !important; /* 科技蓝 */
-    }
-    /* 👉 第2个 Tab: Browse Datasets */
-    .stTabs [data-baseweb="tab"]:nth-child(2) {
-        font-size: 34px !important; 
-        color: #10B981 !important; /* 翡翠绿 */
-    }
-    /* 👉 第3个 Tab: Contribute Data */
-    .stTabs [data-baseweb="tab"]:nth-child(3) {
-        font-size: 30px !important; 
-        color: #8B5CF6 !important; /* 紫水晶 */
-    }
-    /* 👉 第4个 Tab: About */
-    .stTabs [data-baseweb="tab"]:nth-child(4) {
-        font-size: 26px !important; 
-        color: #F59E0B !important; /* 琥珀橙 */
-    }
-    /* 👉 第5个 Tab: Contact */
-    .stTabs [data-baseweb="tab"]:nth-child(5) {
-        font-size: 24px !important; 
-        color: #EC4899 !important; /* 玫瑰粉 */
-    }
-    /* 👉 第6个 Tab: Admin Dashboard (如有) */
-    .stTabs [data-baseweb="tab"]:nth-child(6) {
-        font-size: 24px !important; 
-        color: #0F172A !important; 
-    }
-
-    /* Tab 选中时的状态：统一添加极浅的灰底突出显示 */
-    .stTabs [aria-selected="true"] {
-        background-color: #F1F5F9 !important;
-        transform: translateY(-3px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        border-bottom: none !important;
-    }
+    /* 为自定义导航栏留出空间 */
+    .block-container { padding-top: 6rem !important; }
 
     /* 纯白内容卡片 (Research Card) */
     .research-card {
@@ -125,10 +69,9 @@ professional_css = """
     .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.6; margin-bottom: 2rem; }
 
     .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .bento-card { border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 8px 25px rgba(0,0,0,0.04); transition: transform 0.3s; border: 1px solid rgba(255,255,255,0.5); }
-    .bento-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+    .bento-card { border-radius: 16px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s; }
+    .bento-card:hover { transform: translateY(-5px); }
 
-    /* 胶囊标签优化 */
     .chem-tag { background: rgba(255,255,255,0.7); padding:6px 14px; border-radius:20px; font-size:13px; font-weight:800; box-shadow:0 2px 5px rgba(0,0,0,0.03); color:#0F172A; border: 1px solid rgba(0,0,0,0.05);}
 
     /* 区块标题 */
@@ -138,10 +81,9 @@ professional_css = """
     .header-teal { border-left: 4px solid #0F766E; }
     .header-amber { border-left: 4px solid #f59e0b; }
 
-    /* Metadata Grid */
+    /* Metadata Grid 优化，杜绝空方块 */
     .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
-    .metadata-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px; transition: 0.2s; }
-    .metadata-item:hover { background: #FFFFFF; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+    .metadata-item { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px; }
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
@@ -149,7 +91,7 @@ professional_css = """
     .stButton>button { background-color: #FFFFFF; border: 1px solid #CBD5E1; color: #0F172A; font-weight: 700; border-radius: 8px; transition: all 0.2s; height: 45px;}
     .stButton>button:hover { border-color: #0F766E; color: #0F766E; background-color: #F0FDF4; }
 
-    /* 自定义悬浮顶部导航栏 */
+    /* 🚀 全新悬浮顶部导航栏 (Logo + 居左菜单 + Login) */
     .custom-top-navbar {
         position: fixed; top: 0; left: 0; right: 0; height: 70px;
         background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
@@ -157,7 +99,22 @@ professional_css = """
         justify-content: space-between; padding: 0 3rem; z-index: 999999;
         box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
-    .custom-top-navbar .logo img { height: 40px; margin-top: 5px; }
+    .nav-left-section {
+        display: flex; align-items: center; gap: 2.5rem;
+    }
+    .custom-top-navbar .logo img { height: 40px; }
+
+    /* 核心导航菜单样式 */
+    .nav-menu {
+        display: flex; gap: 1.8rem;
+    }
+    .nav-menu a {
+        color: #475569; font-size: 15px; font-weight: 700; 
+        text-decoration: none; transition: color 0.2s;
+    }
+    .nav-menu a:hover { color: #0F172A; }
+    .nav-menu a.active { color: #0F766E; border-bottom: 2px solid #0F766E; padding-bottom: 4px; }
+
     .custom-top-navbar .login-btn {
         background-color: #0F172A; color: #FFFFFF; padding: 8px 24px;
         border-radius: 30px; font-weight: 700; font-size: 15px;
@@ -169,23 +126,47 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 4. 动态渲染顶部悬浮栏 (Logo + Login 逻辑) =================
+# ================= 4. 动态渲染全新顶部菜单栏 =================
+# ⚠️替换这里的 Logo 链接
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
+
+def get_active_cls(page_name):
+    return "active" if current_page == page_name else ""
+
+
+# 生成菜单 HTML
+menu_html = f"""
+    <div class="nav-menu">
+        <a href="/?page=home" class="{get_active_cls('home')}">Homepage</a>
+        <a href="/?page=browse" class="{get_active_cls('browse')}">Browse Datasets</a>
+        <a href="/?page=contribute" class="{get_active_cls('contribute')}">Contribute Data</a>
+        <a href="/?page=about" class="{get_active_cls('about')}">About</a>
+        <a href="/?page=contact" class="{get_active_cls('contact')}">Contact</a>
+"""
+if st.session_state.is_admin:
+    menu_html += f'<a href="/?page=admin" class="{get_active_cls("admin")}" style="color:#F59E0B;">Admin Dashboard</a>'
+menu_html += "</div>"
+
+# 生成完整 Navbar HTML
 if st.session_state.is_admin:
     nav_html = f"""
     <div class="custom-top-navbar">
-        <div class="logo"><img src="{LOGO_IMAGE_URL}" alt="Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size:24px; font-weight:900; color:#0F172A;\\'>OpenBattery</span>';"></div>
+        <div class="nav-left-section">
+            <div class="logo"><img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size:24px; font-weight:900; color:#0F172A;\\'>OpenBattery</span>';"></div>
+            {menu_html}
+        </div>
         <a href="/?page=home" target="_self" class="logout-btn">Log Out</a>
     </div>
     """
 else:
-    btn_text = "Homepage" if current_page in ["login", "signup"] else "Log In"
-    btn_link = "/?page=home" if current_page in ["login", "signup"] else "/?page=login"
     nav_html = f"""
     <div class="custom-top-navbar">
-        <div class="logo"><img src="{LOGO_IMAGE_URL}" alt="Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size:24px; font-weight:900; color:#0F172A;\\'>OpenBattery</span>';"></div>
-        <a href="{btn_link}" target="_self" class="login-btn">{btn_text}</a>
+        <div class="nav-left-section">
+            <div class="logo"><img src="{LOGO_IMAGE_URL}" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\\'font-size:24px; font-weight:900; color:#0F172A;\\'>OpenBattery</span>';"></div>
+            {menu_html}
+        </div>
+        <a href="/?page=login" target="_self" class="login-btn">Log In</a>
     </div>
     """
 st.markdown(nav_html, unsafe_allow_html=True)
@@ -193,9 +174,6 @@ st.markdown(nav_html, unsafe_allow_html=True)
 # ================= 5. 🔗 Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
-
-UPLOAD_DIR = "uploaded_files"
-if not os.path.exists(UPLOAD_DIR): os.makedirs(UPLOAD_DIR)
 
 
 @st.cache_data(ttl=10)
@@ -211,13 +189,12 @@ def load_data():
 
 df = load_data()
 
-# ================= 6. 核心路由与页面渲染 =================
+# ================= 6. 核心路由与页面内容渲染 =================
 
 # ----------------- 页面 A：登录页 (Login) -----------------
 if current_page == "login" and not st.session_state.is_admin:
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        st.markdown('<div style="margin-top: 4rem;"></div>', unsafe_allow_html=True)
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
         st.markdown(
             "<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Sign in to your account</h2>",
@@ -228,8 +205,6 @@ if current_page == "login" and not st.session_state.is_admin:
 
         email_input = st.text_input("Email address", placeholder="Enter your email")
         pwd_input = st.text_input("Password", type="password", placeholder="Enter your password")
-
-        st.checkbox("Remember me")
 
         if st.button("Sign In", type="primary", use_container_width=True):
             if not email_input:
@@ -250,16 +225,12 @@ if current_page == "login" and not st.session_state.is_admin:
         st.markdown(
             "<div style='text-align:center; margin-top: 12px; color: #64748B;'>Don’t have an account? <a href='/?page=signup' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Create an account</a></div>",
             unsafe_allow_html=True)
-        st.markdown(
-            '<div style="margin-top:24px; padding:16px; background:#F8FAFC; border-radius:8px;"><p style="font-size:13px; color:#64748B; margin:0;"><strong>For admins:</strong> Administrators can sign in to review submissions and manage dataset records.</p></div>',
-            unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------- 页面 B：注册页 (Sign Up) -----------------
 elif current_page == "signup" and not st.session_state.is_admin:
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        st.markdown('<div style="margin-top: 4rem;"></div>', unsafe_allow_html=True)
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
         st.markdown(
             "<h2 style='font-size: 32px; font-weight: 800; color: #0F172A; margin-bottom: 8px;'>Create an account</h2>",
@@ -271,242 +242,235 @@ elif current_page == "signup" and not st.session_state.is_admin:
         st.text_input("Full Name", placeholder="Enter your full name")
         st.text_input("Email address", placeholder="Enter your email")
         st.text_input("Password", type="password", placeholder="Create a password")
-        st.text_input("Confirm password", type="password", placeholder="Confirm your password")
 
         if st.button("Create account", type="primary", use_container_width=True):
-            st.info("Registration is temporarily closed. Please contact the administrator for account access.")
-
+            st.info("Registration is temporarily closed. Please contact the administrator.")
         st.markdown("<hr style='border-color: #E2E8F0; margin: 24px 0;'>", unsafe_allow_html=True)
         st.markdown(
             "<div style='text-align:center; color: #64748B;'>Already have an account? <a href='/?page=login' target='_self' style='color: #0F172A; font-weight: 700; text-decoration: none;'>Sign in</a></div>",
             unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- 页面 C：主站 (Main App) -----------------
-else:
-    # 这里直接使用文本，因为 CSS 中已经针对每个 Tab 设置了特殊的字号和颜色
-    tab_names = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-    if st.session_state.is_admin:
-        tab_names.append("Admin Dashboard")
+# ----------------- 页面 C：Homepage -----------------
+elif current_page == "home":
+    public_count = len(df[df['Status'] == 'Approved'])
+    chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in
+                              ["NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal", "Li-S", "Mixed"]])
 
-    tabs = st.tabs(tab_names)
-
-    # ================= TAB 1: Homepage =================
-    with tabs[0]:
-        public_count = len(df[df['Status'] == 'Approved'])
-        chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in
-                                  ["NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal", "Li-S",
-                                   "Mixed"]])
-
-        # 🚀 右侧方块改为了高级浅色渐变，配合深色文字
-        hero_html = f"""
-        <div class="hero-container">
-            <div class="hero-left">
-                <div class="hero-subtitle">Open Source Data & Analytics</div>
-                <div class="hero-title">Battery Data <br><span>Differently</span></div>
-                <div class="hero-desc">
-                    We deliver high-fidelity, peer-reviewed battery datasets and robust metadata integration tailored to meet the evolving needs of global energy research.
+    hero_html = f"""
+    <div class="hero-container">
+        <div class="hero-left">
+            <div class="hero-subtitle">Open Source Data & Analytics</div>
+            <div class="hero-title">Battery Data <br><span>Differently</span></div>
+            <div class="hero-desc">
+                We deliver high-fidelity, peer-reviewed battery datasets and robust metadata integration tailored to meet the evolving needs of global energy research.
+            </div>
+        </div>
+        <div class="hero-right">
+            <div class="bento-card" style="grid-row:span 2; background: linear-gradient(135deg, #F0F9FF 0%, #E0E7FF 100%); min-height:320px;">
+                <div style="font-size: 14px; font-weight:800; color: #312E81; text-transform:uppercase; opacity: 0.8;">Platform Metrics</div>
+                <div>
+                    <div style="font-size: 64px; font-weight: 900; color: #1E1B4B; margin-top: auto; line-height:1;">{public_count}+</div>
+                    <div style="font-size: 18px; color: #3730A3; font-weight:700; margin-top:8px;">Curated Datasets</div>
                 </div>
             </div>
-            <div class="hero-right">
-                <div class="bento-card" style="grid-row:span 2; background: linear-gradient(135deg, #F0F9FF 0%, #E0E7FF 100%); min-height:320px;">
-                    <div style="font-size: 14px; font-weight:800; color: #312E81; text-transform:uppercase; opacity: 0.8;">Platform Metrics</div>
-                    <div>
-                        <div style="font-size: 64px; font-weight: 900; color: #1E1B4B; margin-top: auto; line-height:1;">{public_count}+</div>
-                        <div style="font-size: 18px; color: #3730A3; font-weight:700; margin-top:8px;">Curated Datasets</div>
-                    </div>
-                </div>
-                <div class="bento-card" style="background: linear-gradient(135deg, #ECFEFF 0%, #CCFBF1 100%); min-height: 160px;">
-                    <div style="font-size: 14px; font-weight:800; color: #115E59; text-transform:uppercase; opacity: 0.9;">A Leader in Quality</div>
-                    <div style="font-size: 28px; font-weight: 900; color: #042F2E; margin-top: auto;">Open Access</div>
-                </div>
-                <div class="bento-card" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); min-height: 160px; border: 1px solid #FDE68A;">
-                    <div style="font-size: 14px; font-weight:800; color: #92400E; text-transform:uppercase;">Supported Chemistry</div>
-                    <div style="display:flex; gap:8px; margin-top: auto; flex-wrap: wrap;">
-                        {chem_tags_html}
-                    </div>
+            <div class="bento-card" style="background: linear-gradient(135deg, #ECFEFF 0%, #CCFBF1 100%); min-height: 160px;">
+                <div style="font-size: 14px; font-weight:800; color: #115E59; text-transform:uppercase; opacity: 0.9;">A Leader in Quality</div>
+                <div style="font-size: 28px; font-weight: 900; color: #042F2E; margin-top: auto;">Open Access</div>
+            </div>
+            <div class="bento-card" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); min-height: 160px; border: 1px solid #FDE68A;">
+                <div style="font-size: 14px; font-weight:800; color: #92400E; text-transform:uppercase;">Supported Chemistry</div>
+                <div style="display:flex; gap:8px; margin-top: auto; flex-wrap: wrap;">
+                    {chem_tags_html}
                 </div>
             </div>
         </div>
-        """
-        st.markdown(hero_html, unsafe_allow_html=True)
+    </div>
+    """
+    st.markdown(hero_html, unsafe_allow_html=True)
 
-    # ================= TAB 2: Browse Datasets (层级化过滤系统) =================
-    with tabs[1]:
-        st.markdown('<div class="section-header header-blue"><h2>Dataset Directory</h2></div>', unsafe_allow_html=True)
+# ----------------- 页面 D：Browse Datasets -----------------
+elif current_page == "browse":
+    st.markdown('<div class="section-header header-blue"><h2>Dataset Directory</h2></div>', unsafe_allow_html=True)
 
-        public_df = df[df['Status'] == 'Approved']
-        filter_col, result_col = st.columns([1, 3])
+    public_df = df[df['Status'] == 'Approved']
+    filter_col, result_col = st.columns([1, 3])
 
-        with filter_col:
-            st.markdown('<div class="research-card">', unsafe_allow_html=True)
-            st.markdown(
-                "<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
-                unsafe_allow_html=True)
-            search_kw = st.text_input("Keyword Search", placeholder="e.g. Oxford, NMC...")
-
-            st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
-            sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
-
-            sel_category = "All"
-            sel_subcategory = "All"
-
-            if sel_domain == "Energy":
-                sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
-                if sel_category == "Battery":
-                    sel_subcategory = st.selectbox("Battery Data Type",
-                                                   ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark",
-                                                    "Experimental", "Simulation"])
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with result_col:
-            filtered_df = public_df.copy()
-            if search_kw:
-                mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False)).any(axis=1)
-                filtered_df = filtered_df[mask]
-
-            if sel_domain != "All" and 'Domain' in filtered_df.columns:
-                filtered_df = filtered_df[filtered_df['Domain'] == sel_domain]
-            if sel_category != "All" and 'Category' in filtered_df.columns:
-                filtered_df = filtered_df[filtered_df['Category'] == sel_category]
-            if sel_subcategory != "All" and 'Sub-category' in filtered_df.columns:
-                filtered_df = filtered_df[filtered_df['Sub-category'] == sel_subcategory]
-
-            st.markdown(f"Result Counter: {len(filtered_df)} datasets found.")
-
-            if not filtered_df.empty:
-                st.markdown('<div class="research-card" style="padding: 16px;">', unsafe_allow_html=True)
-                display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if
-                                c in filtered_df.columns]
-                st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-
-                st.markdown(
-                    '<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>',
-                    unsafe_allow_html=True)
-
-                valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
-                selected_dataset = st.selectbox("Select a dataset to view full details:",
-                                                ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
-                                                label_visibility="collapsed")
-
-                if selected_dataset != "(Select to view)":
-                    details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
-
-                    details_html = ""
-                    details_html += f'<div class="research-card">'
-                    details_html += f'<h2 style="font-size: 28px; font-weight:800; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>'
-                    details_html += f'<p style="color: #64748B; font-size: 15px; margin-bottom: 24px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
-
-                    link = details.get('Link', '')
-                    if link.startswith('http'):
-                        details_html += f'<div style="margin-bottom: 24px;"><a href="{link}" target="_blank" style="display:inline-block; background:#0F766E; color:#FFF; padding:10px 24px; text-decoration:none; border-radius:8px; font-weight:700; font-size:14px;">🔗 Download / Visit Source</a></div>'
-
-                    details_html += '<div class="metadata-grid">'
-                    for col_name in df.columns:
-                        if col_name not in ['Link', 'Status', 'Dataset Name']:
-                            val = details.get(col_name, 'N/A')
-                            if str(val).strip() != '' and str(val).lower() != 'nan':
-                                details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
-                    details_html += '</div></div>'
-
-                    st.markdown(details_html, unsafe_allow_html=True)
-            else:
-                st.warning("No datasets match your filters. Try adjusting the Domain or Category.")
-
-    # ================= TAB 3: Contribute Data =================
-    with tabs[2]:
-        st.markdown('<div class="section-header header-teal"><h2>Contribute a Dataset</h2></div>',
-                    unsafe_allow_html=True)
-
-        with st.form("upload_form", border=False):
-            st.markdown('<div class="research-card">', unsafe_allow_html=True)
-            st.write(
-                "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
-
-            st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
-            st.markdown("#### Section 1: Basic Information")
-            c1, c2 = st.columns(2)
-            new_name = c1.text_input("Dataset Name *")
-            new_desc = c2.text_input("Short Description *")
-
-            c1b, c2b, c3b = st.columns(3)
-            new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
-            new_category = c2b.text_input("Category (e.g., Battery, Grid)")
-            new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
-
-            new_link = st.text_input("Source URL * (External Download Link)")
-            new_org = st.text_input("Source Organization / Publisher")
-
-            st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
-            st.markdown("#### Section 2: Technical Specifications")
-            c3, c4, c5 = st.columns(3)
-            new_chem = c3.selectbox("Battery Chemistry",
-                                    ["Not Applicable", "NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state",
-                                     "Li-metal", "Li-S", "Mixed", "Other"])
-            new_cell = c4.text_input("Cell / Module Type")
-            new_temp = c5.text_input("Temperature Range (°C)")
-
-            st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
-            st.markdown("#### Section 3: Contributor Info")
-            c8, c9 = st.columns(2)
-            new_contributor = c8.text_input("Contributor Name *")
-            new_email = c9.text_input("Contact Email (Optional)")
-
-            submitted = st.form_submit_button("📤 Submit to Moderation Queue")
-
-            if submitted:
-                if not new_name or not new_domain or not new_link or not new_contributor:
-                    st.error("Please fill in all required fields marked with *")
-                else:
-                    new_row = {c: "" for c in df.columns}
-                    new_row.update({
-                        'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category,
-                        'Sub-category': new_subcat,
-                        'Short Description': new_desc, 'Link': new_link, 'Source Organization': new_org,
-                        'Battery Chemistry': new_chem, 'Cell / Module Type': new_cell,
-                        'Temperature Range': new_temp, 'Author': new_contributor, 'Contributor Email': new_email,
-                        'Status': 'Pending'
-                    })
-                    updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-                    conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
-                    st.success("Successfully submitted to the moderation queue!")
-                    st.cache_data.clear()
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    # ================= TAB 4 & 5: About & Contact =================
-    with tabs[3]:
+    with filter_col:
         st.markdown('<div class="research-card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-header header-blue"><h2>About This Platform</h2></div>',
+        st.markdown("<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
                     unsafe_allow_html=True)
-        st.write(
-            "This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.")
-        st.write("Maintained by Jian Wu, focusing on battery data analysis and SOH estimation.")
+        search_kw = st.text_input("Keyword Search", placeholder="e.g. Oxford, NMC...")
+
+        st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
+        sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
+
+        sel_category = "All"
+        sel_subcategory = "All"
+
+        if sel_domain == "Energy":
+            sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
+            if sel_category == "Battery":
+                sel_subcategory = st.selectbox("Battery Data Type",
+                                               ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark",
+                                                "Experimental", "Simulation"])
+
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with tabs[4]:
-        st.markdown('<div class="research-card" style="text-align: center; padding: 60px 20px;">',
-                    unsafe_allow_html=True)
-        st.markdown('<h2 style="color:#0F172A; font-weight:900; margin-bottom:16px;">Get in Touch</h2>',
-                    unsafe_allow_html=True)
-        st.write("For questions, dataset suggestions, collaboration, or corrections, please contact:")
-        st.markdown("<h3 style='color:#0F766E; font-weight:800; margin-top:20px;'>jian.wu@utbm.fr</h3>",
-                    unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    with result_col:
+        filtered_df = public_df.copy()
+        if search_kw:
+            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False)).any(axis=1)
+            filtered_df = filtered_df[mask]
 
-    # ================= TAB 6: Admin Dashboard =================
-    if st.session_state.is_admin:
-        with tabs[5]:
-            st.markdown('<div class="research-card">', unsafe_allow_html=True)
-            st.markdown('<div class="section-header header-amber"><h2>Moderation Queue</h2></div>',
-                        unsafe_allow_html=True)
-            with st.form("admin_form", border=False):
-                edited_df = st.data_editor(df, column_config={
-                    "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])},
-                                           use_container_width=True, num_rows="dynamic")
-                if st.form_submit_button("💾 Synchronize Cloud Data"):
-                    conn.update(spreadsheet=SPREADSHEET_URL, data=edited_df)
-                    st.success("Synchronized successfully!")
-                    st.cache_data.clear()
+        if sel_domain != "All" and 'Domain' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['Domain'] == sel_domain]
+        if sel_category != "All" and 'Category' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['Category'] == sel_category]
+        if sel_subcategory != "All" and 'Sub-category' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['Sub-category'] == sel_subcategory]
+
+        st.markdown(f"**Result Counter:** {len(filtered_df)} datasets found.")
+
+        if not filtered_df.empty:
+            st.markdown('<div class="research-card" style="padding: 16px;">', unsafe_allow_html=True)
+            display_cols = [c for c in ['Dataset Name', 'Domain', 'Category', 'Sub-category', 'Author'] if
+                            c in filtered_df.columns]
+            st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
             st.markdown('</div>', unsafe_allow_html=True)
+
+            st.markdown(
+                '<div class="section-header header-teal" style="margin-top: 24px;"><h2>📖 Dataset Details</h2></div>',
+                unsafe_allow_html=True)
+
+            valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
+            selected_dataset = st.selectbox("Select a dataset to view full details:",
+                                            ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
+                                            label_visibility="collapsed")
+
+            if selected_dataset != "(Select to view)":
+                details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
+
+                details_html = ""
+                details_html += f'<div class="research-card">'
+                details_html += f'<h2 style="font-size: 28px; font-weight:800; color: #0F172A; margin-bottom: 8px;">{selected_dataset}</h2>'
+                details_html += f'<p style="color: #64748B; font-size: 15px; margin-bottom: 24px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
+
+                link = details.get('Link', '')
+                if link.startswith('http'):
+                    details_html += f'<div style="margin-bottom: 24px;"><a href="{link}" target="_blank" style="display:inline-block; background:#0F766E; color:#FFF; padding:10px 24px; text-decoration:none; border-radius:8px; font-weight:700; font-size:14px;">🔗 Download / Visit Source</a></div>'
+
+                details_html += '<div class="metadata-grid">'
+                for col_name in df.columns:
+                    if col_name not in ['Link', 'Status', 'Dataset Name']:
+                        val = details.get(col_name, 'N/A')
+                        # 🚀 严格校验：剔除 nan, None, N/A 和空字符串，彻底消灭空方框！
+                        if pd.notna(val) and str(val).strip() != '' and str(val).strip().lower() not in ['nan', 'none',
+                                                                                                         'n/a', 'na']:
+                            details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
+                details_html += '</div></div>'
+
+                st.markdown(details_html, unsafe_allow_html=True)
+        else:
+            st.warning("No datasets match your filters.")
+
+# ----------------- 页面 E：Contribute Data -----------------
+elif current_page == "contribute":
+    st.markdown('<div class="section-header header-teal"><h2>Contribute a Dataset</h2></div>', unsafe_allow_html=True)
+
+    with st.form("upload_form", border=False):
+        st.markdown('<div class="research-card">', unsafe_allow_html=True)
+        st.write(
+            "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+
+        st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
+        st.markdown("#### Section 1: Basic Information")
+        c1, c2 = st.columns(2)
+        new_name = c1.text_input("Dataset Name *")
+        new_desc = c2.text_input("Short Description *")
+
+        c1b, c2b, c3b = st.columns(3)
+        new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
+        new_category = c2b.text_input("Category (e.g., Battery, Grid)")
+        new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
+
+        new_link = st.text_input("Source URL * (External Download Link)")
+        new_org = st.text_input("Source Organization / Publisher")
+
+        st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
+        st.markdown("#### Section 2: Technical Specifications")
+        c3, c4, c5 = st.columns(3)
+        new_chem = c3.selectbox("Battery Chemistry",
+                                ["Not Applicable", "NMC", "LFP", "NCA", "LCO", "LMO", "LTO", "Solid-state", "Li-metal",
+                                 "Li-S", "Mixed", "Other"])
+        new_cell = c4.text_input("Cell / Module Type")
+        new_temp = c5.text_input("Temperature Range (°C)")
+
+        c6, c7 = st.columns(2)
+        new_eis = c6.selectbox("Includes EIS Data?", ["No", "Yes"])
+        new_aging = c7.selectbox("Includes Aging / Cycling Data?", ["No", "Yes"])
+
+        st.markdown("<hr style='margin: 24px 0; border-color: #E2E8F0;'>", unsafe_allow_html=True)
+        st.markdown("#### Section 3: Contributor Info")
+        c8, c9 = st.columns(2)
+        new_contributor = c8.text_input("Contributor Name *")
+        new_email = c9.text_input("Contact Email (Optional)")
+
+        submitted = st.form_submit_button("📤 Submit to Moderation Queue")
+
+        if submitted:
+            if not new_name or not new_domain or not new_link or not new_contributor:
+                st.error("Please fill in all required fields marked with *")
+            else:
+                new_row = {c: "" for c in df.columns}
+                new_row.update({
+                    'Dataset Name': new_name, 'Domain': new_domain, 'Category': new_category,
+                    'Sub-category': new_subcat,
+                    'Short Description': new_desc, 'Link': new_link, 'Source Organization': new_org,
+                    'Battery Chemistry': new_chem, 'Cell / Module Type': new_cell,
+                    'Temperature Range': new_temp, 'Includes EIS Data': new_eis, 'Includes Aging / Cycling': new_aging,
+                    'Author': new_contributor, 'Contributor Email': new_email, 'Status': 'Pending'
+                })
+                updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+                conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
+                st.success("Successfully submitted to the moderation queue!")
+                st.cache_data.clear()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------- 页面 F & G：About & Contact -----------------
+elif current_page == "about":
+    st.markdown('<div class="research-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-header header-blue"><h2>About This Platform</h2></div>', unsafe_allow_html=True)
+    st.write(
+        "This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.")
+    st.write("Maintained by Jian Wu, focusing on battery data analysis and SOH estimation.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+elif current_page == "contact":
+    st.markdown('<div class="research-card" style="text-align: center; padding: 80px 20px;">', unsafe_allow_html=True)
+    st.markdown('<h2 style="color:#0F172A; font-weight:900; margin-bottom:16px;">Get in Touch</h2>',
+                unsafe_allow_html=True)
+
+    # 🚀 精准满足需求：邮箱不放大，内嵌在文字后方加粗
+    st.markdown(
+        "<p style='font-size: 16px; color: #475569;'>For questions, dataset suggestions, collaboration, or corrections, please contact: <strong>jian.wu@utbm.fr</strong></p>",
+        unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------- 页面 H：Admin Dashboard -----------------
+elif current_page == "admin" and st.session_state.is_admin:
+    st.markdown('<div class="research-card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-header header-amber"><h2>Moderation Queue</h2></div>', unsafe_allow_html=True)
+    with st.form("admin_form", border=False):
+        edited_df = st.data_editor(df, column_config={
+            "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])},
+                                   use_container_width=True, num_rows="dynamic")
+        if st.form_submit_button("💾 Synchronize Cloud Data"):
+            conn.update(spreadsheet=SPREADSHEET_URL, data=edited_df)
+            st.success("Synchronized successfully!")
+            st.cache_data.clear()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# 兜底：如果输入了错误的 page 参数，自动跳回 home
+else:
+    st.markdown('<meta http-equiv="refresh" content="0;url=/?page=home">', unsafe_allow_html=True)
