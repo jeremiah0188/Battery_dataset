@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
-from streamlit_option_menu import option_menu
 
 # ================= 1. 初始化 Session State 与 页面路由 =================
 if "is_admin" not in st.session_state:
@@ -12,6 +11,8 @@ if "last_menu_selection" not in st.session_state:
     st.session_state.last_menu_selection = "Homepage"
 if "search_kw" not in st.session_state:
     st.session_state.search_kw = ""
+if "nav_click" not in st.session_state:
+    st.session_state.nav_click = ""
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
@@ -81,29 +82,24 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域：强制透明、去除白底 ================= */
-    /*
-     * 根本修复：导航栏直接用顶级 columns，不再套 st.container()，
-     * 因此不会产生 stVerticalBlockBorderWrapper 白卡。
-     * 以下规则针对页面内第一个水平块（即导航列）的所有祖先节点，
-     * 强制透明，彻底消灭任何残留白色背景。
-     */
-    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child,
-    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child > div,
-    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child [data-testid="stVerticalBlockBorderWrapper"],
-    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child [data-testid="stHorizontalBlock"],
-    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child [data-testid="column"] {
+    /* ================= 顶部导航区域（原生文字导航，无白底） ================= */
+    .nav-shell { width: 100%; display: block; }
+
+    div[data-testid="stVerticalBlock"]:has(.nav-shell),
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) > div,
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stHorizontalBlock"],
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="column"] {
         background: transparent !important;
         background-color: transparent !important;
         border: none !important;
         backdrop-filter: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        margin-bottom: 0 !important;
+        margin: 0 !important;
     }
 
-    /* 导航栏入场动画 */
-    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child {
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) {
         margin-bottom: 1.5rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
@@ -113,8 +109,70 @@ professional_css = """
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* === 顶部搜索栏特供样式 === */
-    .nav-shell .stTextInput input {
+    /* 文字导航按钮（仅顶部导航使用） */
+    .nav-btn-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 4px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        overflow-x: auto;
+        padding: 0;
+        margin-top: 4px;
+    }
+    .nav-btn-wrap::-webkit-scrollbar { height: 0; }
+
+    .nav-btn {
+        display: inline-block;
+        background: transparent;
+        border: none;
+        color: #64748B;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 6px 10px 8px 10px;
+        margin-right: 8px;
+        cursor: default;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .nav-btn:hover {
+        color: #4A6D5F;
+        transform: translateY(-1px);
+    }
+    .nav-btn-active {
+        color: #4A6D5F !important;
+        font-weight: 800 !important;
+        border-bottom: 2px solid #4A6D5F !important;
+    }
+
+    /* 点击层（透明按钮覆盖到文字下面） */
+    .nav-click-row {
+        margin-top: -32px;
+        margin-bottom: 8px;
+    }
+    .nav-click-row .stButton > button {
+        width: 100% !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: transparent !important;
+        border-radius: 0 !important;
+    }
+    .nav-click-row .stButton > button:hover {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* === 顶部搜索栏特供样式（仅导航） === */
+    .nav-search .stTextInput input {
         border-radius: 50px !important;
         background-color: #F1F5F9 !important;
         border: 1px solid transparent !important;
@@ -122,13 +180,13 @@ professional_css = """
         font-size: 14px !important;
         transition: all 0.3s ease;
     }
-    .nav-shell .stTextInput input:focus {
+    .nav-search .stTextInput input:focus {
         background-color: #FFFFFF !important;
         border-color: #4A6D5F !important;
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.15) !important;
     }
 
-    /* === 顶部图标按钮样式 === */
+    /* === 顶部图标按钮样式（settings / notifications） === */
     .icon-buttons .stButton>button {
         background-color: transparent !important;
         border: none !important;
@@ -148,6 +206,23 @@ professional_css = """
         color: #4A6D5F !important;
         transform: scale(1.15) translateY(-2px) !important;
         background-color: transparent !important;
+    }
+
+    /* 顶部登录按钮保留你的风格 */
+    .nav-auth .stButton>button {
+        background-color: #708090 !important;
+        border: none !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        border-radius: 50px !important;
+        height: 44px !important;
+        padding: 0 24px !important;
+        box-shadow: 0 4px 10px rgba(112, 128, 144, 0.3) !important;
+    }
+    .nav-auth .stButton>button:hover {
+        background-color: #5c6a77 !important;
+        box-shadow: 0 6px 16px rgba(112, 128, 144, 0.5) !important;
+        transform: translateY(-2px) !important;
     }
 
     /* ================= 其他全局 UI ================= */
@@ -207,12 +282,45 @@ professional_css = """
     .header-teal { border-left: 5px solid #4A6D5F; }
     .header-amber { border-left: 5px solid #F59E0B; }
 
+    .metadata-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+        margin-top: 20px;
+    }
+    .metadata-item {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 16px;
+        transition: background 0.3s;
+    }
+    .metadata-item:hover { background: #FFFFFF; }
+    .metadata-label {
+        font-size: 12px;
+        font-weight: 800;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .metadata-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #0F172A;
+        word-wrap: break-word;
+    }
+
     .custom-footer { width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B; font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; }
     .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
     .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
     .footer-links a:hover { color: #4A6D5F; }
     .footer-separator { color: #CBD5E1; font-weight: 400; }
     .footer-copyright { color: #94A3B8; font-size: 13px; }
+
+    @media (max-width: 768px) {
+        .nav-btn-wrap { overflow-x: auto; }
+    }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
@@ -220,117 +328,114 @@ st.markdown(professional_css, unsafe_allow_html=True)
 # ================= 5. 顶部导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-col_logo, col_menu, col_search, col_icons, col_auth = st.columns([1.2, 5.0, 1.8, 0.8, 1.0],
-                                                                 vertical_alignment="center")
 
-with col_logo:
-    st.image(LOGO_IMAGE_URL, width=160)
+def _nav_go(page_name: str):
+    st.session_state.current_view = page_name
+    st.session_state.last_menu_selection = page_name
+    st.rerun()
 
-with col_menu:
-    if st.session_state.current_view not in ["login", "signup"]:
-        menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-        base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
-        if st.session_state.is_admin:
-            menu_tabs.append("Admin Dashboard")
-            menu_icons = base_icons + ['shield-lock']
-        else:
-            menu_icons = base_icons
 
-        # 核心路由逻辑：防止 option_menu 覆盖独立页面 (Settings/Notifications)
-        try:
-            if st.session_state.current_view in menu_tabs:
-                default_idx = menu_tabs.index(st.session_state.current_view)
+with st.container():
+    st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
+
+    col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
+        [1.35, 6.8, 2.3, 0.9, 1.15],
+        vertical_alignment="center"
+    )
+
+    with col_logo:
+        st.image(LOGO_IMAGE_URL, width=170)
+
+    with col_menu:
+        if st.session_state.current_view not in ["login", "signup"]:
+            menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
+            if st.session_state.is_admin:
+                menu_tabs.append("Admin Dashboard")
+
+            active_tab = (
+                st.session_state.current_view
+                if st.session_state.current_view in menu_tabs
+                else st.session_state.last_menu_selection
+            )
+
+            nav_html = '<div class="nav-btn-wrap">'
+            for tab in menu_tabs:
+                active_cls = " nav-btn-active" if tab == active_tab else ""
+                nav_html += f'<span class="nav-btn{active_cls}">{tab}</span>'
+            nav_html += '</div>'
+            st.markdown(nav_html, unsafe_allow_html=True)
+
+            # 透明按钮点击层（与上方文字对齐）
+            st.markdown('<div class="nav-click-row">', unsafe_allow_html=True)
+            if st.session_state.is_admin:
+                nav_cols = st.columns([1.25, 1.8, 1.9, 0.9, 1.0, 1.8])
             else:
-                default_idx = menu_tabs.index(st.session_state.last_menu_selection)
-        except ValueError:
-            default_idx = 0
+                nav_cols = st.columns([1.25, 1.8, 1.9, 0.9, 1.0])
 
-        selected_page = option_menu(
-            menu_title=None,
-            options=menu_tabs,
-            icons=menu_icons,
-            default_index=default_idx,
-            orientation="horizontal",
-            styles={
-                "container": {
-                    "padding": "0 !important",
-                    "background": "transparent !important",
-                    "background-color": "transparent !important",
-                    "border": "none !important",
-                    "box-shadow": "none !important",
-                    "margin": "0 !important",
-                    "width": "100%",
-                    "display": "flex",
-                    "justify-content": "flex-start",
-                    "align-items": "center"
-                },
-                "icon": {
-                    "color": "#94A3B8",
-                    "font-size": "15px",
-                    "margin-right": "6px",
-                    "transition": "color 0.3s ease"
-                },
-                "nav-link": {
-                    "font-size": "15px",
-                    "font-weight": "700",
-                    "color": "#64748B",
-                    "padding": "8px 16px",
-                    "margin": "0 2px",
-                    "border-radius": "12px",
-                    "background": "transparent",
-                    "white-space": "nowrap",
-                    "transition": "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                    "--hover-color": "rgba(74, 109, 95, 0.08)"
-                },
-                "nav-link-selected": {
-                    "background-color": "transparent",
-                    "color": "#4A6D5F",
-                    "font-weight": "800",
-                    "border-bottom": "3px solid #4A6D5F",
-                    "border-radius": "0",
-                    "box-shadow": "none"
-                },
-            }
-        )
+            with nav_cols[0]:
+                if st.button(" ", key="nav_home_btn_txt"):
+                    _nav_go("Homepage")
+            with nav_cols[1]:
+                if st.button(" ", key="nav_browse_btn_txt"):
+                    _nav_go("Browse Datasets")
+            with nav_cols[2]:
+                if st.button(" ", key="nav_contribute_btn_txt"):
+                    _nav_go("Contribute Data")
+            with nav_cols[3]:
+                if st.button(" ", key="nav_about_btn_txt"):
+                    _nav_go("About")
+            with nav_cols[4]:
+                if st.button(" ", key="nav_contact_btn_txt"):
+                    _nav_go("Contact")
 
-        # 仅当用户真正点击菜单时，才触发跳转
-        if selected_page != st.session_state.last_menu_selection:
-            st.session_state.current_view = selected_page
-            st.session_state.last_menu_selection = selected_page
-            st.rerun()
+            if st.session_state.is_admin:
+                with nav_cols[5]:
+                    if st.button(" ", key="nav_admin_btn_txt"):
+                        _nav_go("Admin Dashboard")
 
-with col_search:
-    if st.session_state.current_view not in ["login", "signup"]:
-        st.text_input("Global Search", placeholder="Search datasets...", label_visibility="collapsed",
-                      key="global_nav_search")
+            st.markdown('</div>', unsafe_allow_html=True)
 
-with col_icons:
-    if st.session_state.current_view not in ["login", "signup"]:
-        st.markdown('<div class="icon-buttons">', unsafe_allow_html=True)
-        ic1, ic2 = st.columns(2)
-        with ic1:
-            if st.button("⚙️", help="Settings"):
-                st.session_state.current_view = "Settings"
+    with col_search:
+        if st.session_state.current_view not in ["login", "signup"]:
+            st.markdown('<div class="nav-search">', unsafe_allow_html=True)
+            st.text_input(
+                "Global Search",
+                placeholder="Search datasets...",
+                label_visibility="collapsed",
+                key="global_nav_search"
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_icons:
+        if st.session_state.current_view not in ["login", "signup"]:
+            st.markdown('<div class="icon-buttons">', unsafe_allow_html=True)
+            ic1, ic2 = st.columns(2)
+            with ic1:
+                if st.button("⚙️", help="Settings", key="nav_settings_btn"):
+                    st.session_state.current_view = "Settings"
+                    st.rerun()
+            with ic2:
+                if st.button("🔔", help="Notifications", key="nav_notifications_btn"):
+                    st.session_state.current_view = "Notifications"
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_auth:
+        st.markdown('<div class="nav-auth">', unsafe_allow_html=True)
+        if st.session_state.is_admin:
+            if st.button("Log Out", key="nav_logout_btn"):
+                st.session_state.is_admin = False
+                st.session_state.current_view = "Homepage"
+                st.session_state.last_menu_selection = "Homepage"
                 st.rerun()
-        with ic2:
-            if st.button("🔔", help="Notifications"):
-                st.session_state.current_view = "Notifications"
-                st.rerun()
+        else:
+            if st.session_state.current_view not in ["login", "signup"]:
+                if st.button("Sign In", key="nav_signin_btn"):
+                    st.session_state.current_view = "login"
+                    st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-with col_auth:
-    if st.session_state.is_admin:
-        if st.button("Log Out"):
-            st.session_state.is_admin = False
-            st.session_state.current_view = "Homepage"
-            st.session_state.last_menu_selection = "Homepage"
-            st.rerun()
-    else:
-        if st.session_state.current_view not in ["login", "signup"]:
-            if st.button("Sign In"):
-                st.session_state.current_view = "login"
-                st.rerun()
-
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -647,6 +752,7 @@ elif current_page == "Contribute Data":
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
 
+                # 新增的本地文件上传选项
                 st.markdown(
                     "<h5 style='font-size:15px; margin-top:10px; color:#334155;'>Upload Local Files (Optional)</h5>",
                     unsafe_allow_html=True)
@@ -737,7 +843,7 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.success("Synchronized successfully!")
                 st.cache_data.clear()
 
-# ----------------- 页面 I：Settings -----------------
+# ----------------- 页面 I：Settings (新增) -----------------
 elif current_page == "Settings":
     st.markdown('<div class="section-header header-teal"><h2>⚙️ Settings</h2></div>', unsafe_allow_html=True)
 
@@ -785,20 +891,24 @@ elif current_page == "Settings":
             if st.button("Save Notifications"):
                 st.success("Notification preferences applied!")
 
-# ----------------- 页面 J：Notifications -----------------
+# ----------------- 页面 J：Notifications (新增) -----------------
 elif current_page == "Notifications":
     st.markdown('<div class="section-header header-blue"><h2>🔔 Notifications</h2></div>', unsafe_allow_html=True)
 
+    # 顶部操作按钮
     col_btn, col_filter, _ = st.columns([3, 2, 5])
     with col_btn:
         b1, b2 = st.columns(2)
-        with b1: st.button("Mark all as read", use_container_width=True)
-        with b2: st.button("Clear read", use_container_width=True)
+        with b1:
+            st.button("Mark all as read", use_container_width=True)
+        with b2:
+            st.button("Clear read", use_container_width=True)
     with col_filter:
         st.selectbox("Filter", ["All", "Unread", "System", "Dataset", "Review"], label_visibility="collapsed")
 
     st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0 24px 0;'>", unsafe_allow_html=True)
 
+    # Inbox 样式数据列表
     notifications = [
         {"title": "Your dataset submission has been approved",
          "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible in the directory.",
@@ -814,6 +924,7 @@ elif current_page == "Notifications":
          "time": "1 week ago", "status": "Read", "type": "System", "icon": "⚠️"},
     ]
 
+    # 渲染 Inbox
     for n in notifications:
         bg_color = "#F8FAFC" if n["status"] == "Read" else "#FFFFFF"
         border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
