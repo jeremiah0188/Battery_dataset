@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+from streamlit_gsheets import GSheetsConnection  # 🔌 引入谷歌表格连接器
 
 # ================= 1. 获取 URL 参数 (抓取优先级最高) =================
 # 获取 ?admin=Jian
@@ -52,28 +53,39 @@ st.markdown(hide_css, unsafe_allow_html=True)
 # ================= 4. 诊断提示 (仅在暗门开启时显示在主屏幕) =================
 if is_jian_entry:
     st.toast("🔑 Admin Link Detected!")
-    st.info("💡 **Jian Mode Active**: The admin sidebar should be visible on the left. If not, please try to refresh (Ctrl+F5).")
+    st.info("💡 Jian Mode Active: The admin sidebar should be visible on the left.")
 
-# ================= 5. File & Data Setup =================
-DATA_FILE = "dataset.xlsx"
+# ================= 5. 🔗 Google Sheets 数据库配置 =================
+# ⚠️⚠️⚠️ 必须修改：把下面这行换成你真实的 Google 表格网址！
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
+
+# 建立通讯连接
+conn = st.connection("gsheets", type=GSheetsConnection)
+
 UPLOAD_DIR = "uploaded_files"
-
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
-@st.cache_data
+
+# 每 10 秒刷新一次缓存，保证你随时能看到最新的数据
+@st.cache_data(ttl=10)
 def load_data():
-    if os.path.exists(DATA_FILE):
-        try:
-            df = pd.read_excel(DATA_FILE, header=0, skiprows=[1])
-        except:
-            df = pd.read_excel(DATA_FILE, header=0)
+    try:
+        # 🚀 核心改动：直接从谷歌表格读取数据！
+        df = conn.read(spreadsheet=SPREADSHEET_URL)
+
+        # 清洗数据：剔除全空的行，转为字符串，消除 nan 字符
+        df = df.dropna(how='all')
         df = df.astype(str)
+        df = df.replace('nan', '')
+
         if 'Status' not in df.columns:
             df['Status'] = 'Approved'
         return df
-    else:
+    except Exception as e:
+        st.error(f"Google Sheets Connection Error: {e}")
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Battery Type', 'Capacity (Ah)', 'Status'])
+
 
 df = load_data()
 
@@ -123,15 +135,21 @@ with tabs[0]:
 
         st.markdown("---")
         st.subheader("Dataset Details & Download")
-        dataset_names = filtered_df['Dataset Name'].astype(str).unique().tolist()
+
+        # 只提取有效的数据集名称
+        valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
+        dataset_names = valid_datasets['Dataset Name'].astype(str).unique().tolist()
+
         selected_dataset = st.selectbox("Select a dataset to view full details:", ["(Select)"] + dataset_names)
 
         if selected_dataset != "(Select)":
-            details = filtered_df[filtered_df['Dataset Name'] == selected_dataset].iloc[0]
+            details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
             with st.expander(f"📖 {selected_dataset} - Full Information", expanded=True):
                 link = details.get('Link', '')
-                if pd.notna(link) and str(link).startswith('http') and str(link).lower() != 'nan':
+                if pd.notna(link) and str(link).startswith('http') and str(link).strip() != '':
                     st.markdown(f"### [🔗 Click Here to Download / Go to Source]({link})")
+                else:
+                    st.info("No external download link provided.")
 
                 st.markdown("#### Detailed Metadata")
                 col1, col2 = st.columns(2)
@@ -139,7 +157,7 @@ with tabs[0]:
                 half_index = len(all_columns) // 2
                 for i, col_name in enumerate(all_columns):
                     val = details.get(col_name, 'N/A')
-                    if str(val).lower() == 'nan': val = 'N/A'
+                    if str(val).strip() == '': val = 'N/A'
                     if i <= half_index:
                         col1.write(f"{col_name}: {val}")
                     else:
@@ -180,9 +198,16 @@ with tabs[1]:
                     'Link': new_link if new_link else file_path,
                     'Battery Type': new_battery, 'Status': 'Pending'
                 })
+                # 兼容旧代码里没有 Additional Notes 列的情况
+                if 'Additional Notes' in df.columns:
+                    new_row['Additional Notes'] = new_notes
+
                 new_df = pd.DataFrame([new_row])
                 updated_df = pd.concat([df, new_df], ignore_index=True)
-                updated_df.to_excel(DATA_FILE, index=False)
+
+                # 🚀 核心改动：把新增加的数据直接推送到 Google Sheets！
+                conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
+
                 st.success(f"Success! '{new_name}' is pending review.")
                 st.cache_data.clear()
 
@@ -199,6 +224,7 @@ if is_admin:
                 use_container_width=True, num_rows="dynamic"
             )
             if st.form_submit_button("💾 Save Changes to Database"):
-                edited_df.to_excel(DATA_FILE, index=False)
-                st.success("Database updated!")
+                # 🚀 核心改动：管理员修改后，立刻覆盖更新到 Google Sheets！
+                conn.update(spreadsheet=SPREADSHEET_URL, data=edited_df)
+                st.success("Google Sheets successfully updated! 🎉")
                 st.cache_data.clear()
