@@ -61,7 +61,7 @@ professional_css = """
         padding-bottom: 2rem !important;
     }
 
-    /* ================= 全局内容白卡样式（恢复普通写法） ================= */
+    /* ================= 全局内容白卡样式 ================= */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
@@ -77,31 +77,20 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域：利用锚点彻底清洗内部白卡 ================= */
-    .nav-shell {
-        width: 100%;
-        display: block;
-    }
-
-    /* 核心修复：精准找到包含 nav-shell 的父容器，强制清除其内部所有列、框的背景 */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stVerticalBlockBorderWrapper"],
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stHorizontalBlock"],
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="column"] {
+    /* ================= 🎯 彻底清除顶部导航区的“幽灵白底” ================= */
+    /* 精准锁定页面上的第一个水平块（导航栏），强制把它的背景、边框全部设为透明/0！*/
+    div[data-testid="stHorizontalBlock"]:first-of-type [data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="stHorizontalBlock"]:first-of-type div[data-testid="column"] {
         background: transparent !important;
+        background-color: transparent !important;
         border: none !important;
+        box-shadow: none !important;
         backdrop-filter: none !important;
-        box-shadow: none !important;
         padding: 0 !important;
-        margin: 0 !important;
     }
 
-    /* 导航区自身及内部元素禁止继承额外阴影 */
-    .nav-shell, .nav-shell * {
-        box-shadow: none !important;
-    }
-
-    /* 给导航整体留一点底部间距和入场动画 */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) {
+    /* 增加一个入场动画让导航更丝滑 */
+    div[data-testid="stHorizontalBlock"]:first-of-type {
         margin-bottom: 1rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
@@ -427,13 +416,10 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部导航栏（修复外层白卡 + 手机端可横滑） =================
+# ================= 5. 顶部导航栏（完美去白底） =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 with st.container():
-    # 注入锚点：只要这个包裹层存在，CSS 就能向上追踪到外层，强制清理内部白卡
-    st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
-
     col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
 
     with col_logo:
@@ -468,7 +454,7 @@ with st.container():
                         "border-radius": "999px !important",
                         "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
                         "margin": "0 auto",
-                        "width": "fit-content",  # 关键修复：改为 fit-content 贴合内容，拒绝拉伸长白框！
+                        "width": "fit-content",
                         "display": "flex",
                         "justify-content": "center",
                         "align-items": "center"
@@ -514,11 +500,10 @@ with st.container():
                     st.session_state.current_view = "login"
                     st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
-
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
 conn = st.connection("gsheets", type=GSheetsConnection)
+
 
 @st.cache_data(ttl=10)
 def load_data():
@@ -532,6 +517,7 @@ def load_data():
         return df
     except Exception:
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Domain', 'Category', 'Sub-category', 'Status'])
+
 
 df = load_data()
 public_df = df[df['Status'] == 'Approved'] if 'Status' in df.columns else df.copy()
@@ -613,7 +599,8 @@ elif current_page == "signup" and not st.session_state.is_admin:
 
 # ----------------- 页面 C：Homepage -----------------
 elif current_page == "Homepage":
-    chem_tags_html = "".join([f'<span class="chem-tag">{c}</span>' for c in ["NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]])
+    chem_tags_html = "".join(
+        [f'<span class="chem-tag">{c}</span>' for c in ["NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]])
     hero_html = (
         '<div class="hero-container">'
         '<div class="hero-left">'
@@ -641,7 +628,8 @@ elif current_page == "Homepage":
 
     c_left, c_right = st.columns([2, 1])
     with c_left:
-        st.markdown('<div class="section-header header-teal"><h2>🌟 Latest Additions</h2></div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header header-teal"><h2>🌟 Latest Additions</h2></div>',
+                    unsafe_allow_html=True)
         latest_datasets = public_df.tail(3)
         if not latest_datasets.empty:
             for _, row in latest_datasets.iterrows():
@@ -666,9 +654,11 @@ elif current_page == "Homepage":
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-header header-blue"><h2>💬 Quick FAQ</h2></div>', unsafe_allow_html=True)
     with st.expander("Do I need an account to download data?"):
-        st.write("No. All curated datasets on our platform are open-access and do not require an account to browse or download source files.")
+        st.write(
+            "No. All curated datasets on our platform are open-access and do not require an account to browse or download source files.")
     with st.expander("How long does the moderation review take?"):
-        st.write("Our admin team typically reviews submitted datasets within 48-72 hours to ensure metadata quality and source validity.")
+        st.write(
+            "Our admin team typically reviews submitted datasets within 48-72 hours to ensure metadata quality and source validity.")
 
 # ----------------- 页面 D：Browse Datasets -----------------
 elif current_page == "Browse Datasets":
@@ -677,8 +667,11 @@ elif current_page == "Browse Datasets":
 
     with filter_col:
         with st.container(border=True):
-            st.markdown("<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>", unsafe_allow_html=True)
-            search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw, placeholder="e.g. Oxford, NMC, EIS...")
+            st.markdown(
+                "<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
+                unsafe_allow_html=True)
+            search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
+                                      placeholder="e.g. Oxford, NMC, EIS...")
             st.session_state.search_kw = search_kw
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
@@ -698,7 +691,8 @@ elif current_page == "Browse Datasets":
         filtered_df = public_df.copy()
 
         if search_kw:
-            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(axis=1)
+            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(
+                axis=1)
             filtered_df = filtered_df[mask]
 
         if sel_domain != "All" and 'Domain' in filtered_df.columns:
@@ -751,8 +745,10 @@ elif current_page == "Browse Datasets":
                 domain = row.get('Domain', 'N/A')
 
                 html_parts.append('<div class="dataset-list-row">')
-                html_parts.append(f'<div class="ds-name" style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
-                html_parts.append(f'<div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>')
+                html_parts.append(
+                    f'<div class="ds-name" style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
+                html_parts.append(
+                    f'<div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>')
                 html_parts.append(
                     f'<div style="flex: 1; color: #64748B;"><span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span></div>'
                 )
@@ -764,8 +760,11 @@ elif current_page == "Browse Datasets":
             html_parts.append('</div>')
             st.markdown("".join(html_parts), unsafe_allow_html=True)
 
-            st.markdown('<div class="section-header header-teal" style="margin-top: 10px;"><h2>📖 Dataset Details</h2></div>', unsafe_allow_html=True)
-            valid_datasets = filtered_df[filtered_df['Dataset Name'] != ''] if 'Dataset Name' in filtered_df.columns else filtered_df
+            st.markdown(
+                '<div class="section-header header-teal" style="margin-top: 10px;"><h2>📖 Dataset Details</h2></div>',
+                unsafe_allow_html=True)
+            valid_datasets = filtered_df[
+                filtered_df['Dataset Name'] != ''] if 'Dataset Name' in filtered_df.columns else filtered_df
             selected_dataset = st.selectbox(
                 "Select a dataset to view full details:",
                 ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
@@ -791,7 +790,8 @@ elif current_page == "Browse Datasets":
 
                 details_html += '<div class="metadata-grid">'
                 for col_name in df.columns:
-                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status', 'Dataset Name']:
+                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status',
+                                                                                                     'Dataset Name']:
                         val = str(details.get(col_name, '')).strip()
                         if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
                             details_html += (
@@ -812,61 +812,87 @@ elif current_page == "Browse Datasets":
         else:
             st.warning("No datasets match your filters.")
 
-# ----------------- 页面 E：Contribute Data -----------------
+# ----------------- 页面 E：Contribute Data (加入本地文件上传) -----------------
 elif current_page == "Contribute Data":
-    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
+                unsafe_allow_html=True)
 
     tab_submit, tab_request, tab_guide = st.tabs(["Submit a Dataset", "Request a Dataset", "Submission Guidelines"])
 
     with tab_submit:
         with st.container(border=True):
-            st.write("Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
+            st.write(
+                "Help expand this curated dataset hub. Please provide standardized metadata to improve discoverability.")
             with st.form("upload_form", border=False):
                 c1, c2 = st.columns(2)
                 new_name = c1.text_input("Dataset Name *")
                 new_desc = c2.text_input("Short Description *")
 
                 c1b, c2b, c3b = st.columns(3)
-                new_domain = c1b.selectbox("Domain *", ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
+                new_domain = c1b.selectbox("Domain *",
+                                           ["Energy", "Healthcare", "Manufacturing", "Transportation", "Other"])
                 new_category = c2b.text_input("Category (e.g., Battery, Grid)")
                 new_subcat = c3b.text_input("Sub-category (e.g., Time-Series, EIS)")
 
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
 
+                # ================= 🚀 新增本地文件上传组件 =================
+                st.markdown("---")
+                st.markdown(
+                    "<p style='font-size:14px; font-weight:600; color:#475569; margin-bottom:5px;'>Or Upload a Local Dataset File</p>",
+                    unsafe_allow_html=True)
+                uploaded_file = st.file_uploader(
+                    "Supported formats: CSV, Excel, ZIP, JSON, TXT (Max size depends on cloud limits)",
+                    type=['csv', 'xlsx', 'zip', 'json', 'txt'], label_visibility="collapsed")
+                st.markdown("---")
+
                 c8, c9 = st.columns(2)
                 new_contributor = c8.text_input("Contributor Name *")
                 new_email = c9.text_input("Contact Email (Optional)")
 
                 if st.form_submit_button("Submit to Moderation Queue"):
-                    if not new_name or not new_domain or not new_link or not new_contributor:
-                        st.error("Please fill in all required fields marked with *")
+                    if not new_name or not new_domain or not new_contributor or (not new_link and not uploaded_file):
+                        st.error(
+                            "Please fill in all required fields marked with * (You must provide either a Source URL or upload a file).")
                     else:
                         new_row = {c: "" for c in df.columns}
+
+                        # 判断用户是否上传了文件，如果是，可以把文件名记录在 Link 里作为标记
+                        final_link = new_link
+                        if uploaded_file is not None:
+                            final_link = f"[Local File Attached] {uploaded_file.name} " + (
+                                f"| External Link: {new_link}" if new_link else "")
+
                         new_row.update({
                             'Dataset Name': new_name,
                             'Domain': new_domain,
                             'Category': new_category,
                             'Sub-category': new_subcat,
                             'Short Description': new_desc,
-                            'Link': new_link,
+                            'Link': final_link,
                             'Source Organization': new_org,
                             'Author': new_contributor,
                             'Contributor Email': new_email,
                             'Status': 'Pending'
                         })
+
                         updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
                         conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
-                        st.success("Successfully submitted to the moderation queue!")
+
+                        st.success(
+                            "Successfully submitted to the moderation queue! Our team will review the details shortly.")
                         st.cache_data.clear()
 
     with tab_request:
         with st.container(border=True):
             st.markdown("### Can't find what you're looking for?")
-            st.write("Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
+            st.write(
+                "Submit a request. If our community or admins find relevant open-source data, we'll add it to the platform.")
             with st.form("request_form", border=False):
                 st.text_input("Requested Topic / Dataset Name *", placeholder="e.g. Real-world EV charging profiles")
-                st.text_area("Additional Details", placeholder="Specify any required parameters, chemistry, or format...")
+                st.text_area("Additional Details",
+                             placeholder="Specify any required parameters, chemistry, or format...")
                 st.text_input("Your Email (to notify you if found)")
                 if st.form_submit_button("Submit Request"):
                     st.success("Request submitted successfully! We will keep an eye out for this data.")
