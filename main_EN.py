@@ -78,14 +78,23 @@ professional_css = """
 }
 
 /* ==============================================================
-   🎯 导航栏修复核心 (使用 :has 伪类精准定位)
+   🎯 导航栏修复核心 (限制在顶级子元素，防止隐藏整个网页！)
    ============================================================== */
 
 /* 1. 强制去除桌面导航底层的任何白卡背景（消灭矩形白块） */
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker),
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) [data-testid="stVerticalBlockBorderWrapper"],
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) [data-testid="stHorizontalBlock"],
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) div[data-testid="column"] {
+.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin-bottom: 14px !important;
+    animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) [data-testid="stVerticalBlockBorderWrapper"],
+.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) [data-testid="stHorizontalBlock"],
+.block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) div[data-testid="column"] {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -93,27 +102,21 @@ div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) div[data-testid="col
     padding: 0 !important;
 }
 
-/* 2. 桌面导航下拉动画 */
-div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) {
-    margin-bottom: 14px !important;
-    animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
 @keyframes headerSlideDown {
     0% { opacity: 0; transform: translateY(-24px); }
     100% { opacity: 1; transform: translateY(0); }
 }
 
-/* 3. 响应式显示控制（避免双重渲染） */
+/* 2. 响应式显示控制（精准靶向，避免双重渲染） */
 @media (max-width: 768px) {
-    /* 手机端：隐藏桌面导航 */
-    div[data-testid="stVerticalBlock"]:has(.desktop-nav-marker) {
+    /* 手机端：彻底隐藏桌面导航外壳 */
+    .block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.desktop-nav-marker) {
         display: none !important;
     }
 }
 @media (min-width: 769px) {
-    /* 桌面端：隐藏手机导航 */
-    div[data-testid="stVerticalBlock"]:has(.mobile-nav-marker) {
+    /* 桌面端：彻底隐藏手机导航外壳 */
+    .block-container > div > div > div[data-testid="stVerticalBlock"] > div:has(.mobile-nav-marker) {
         display: none !important;
     }
 }
