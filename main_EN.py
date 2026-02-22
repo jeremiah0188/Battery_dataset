@@ -381,9 +381,9 @@ with st.container():
 
             # 关键：给导航文字足够列宽，避免大字体换行
             if st.session_state.is_admin:
-                nav_cols = st.columns([1.8, 2.6, 2.7, 1.3, 1.3, 2.2])
+                nav_cols = st.columns([2.6, 2.6, 2.6, 2.6, 2.6, 2.2])
             else:
-                nav_cols = st.columns([1.8, 2.6, 2.7, 1.3, 1.3])
+                nav_cols = st.columns([2.6, 2.6, 2.6, 2.6, 2.6])
 
             def render_nav_button(col, label, page_name, key_name):
                 wrapper_cls = "nav-text-btn nav-active" if active_tab == page_name else "nav-text-btn"
