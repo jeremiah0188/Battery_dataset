@@ -2,11 +2,9 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-from streamlit_gsheets import GSheetsConnection  # 🔌 引入谷歌表格连接器
+from streamlit_gsheets import GSheetsConnection
 
-# ================= 1. 获取 URL 参数 (抓取优先级最高) =================
-# 获取 ?admin=Jian
-# 尝试兼容新旧版本抓取方式
+# ================= 1. 获取 URL 参数 =================
 try:
     admin_val = st.query_params.get("admin", "")
 except:
@@ -18,213 +16,237 @@ is_jian_entry = (admin_val == "Jian")
 st.set_page_config(
     page_title="Open Battery Dataset Portal",
     layout="wide",
-    # 如果是 Jian 模式，强制侧边栏展开；否则强制关闭
     initial_sidebar_state="expanded" if is_jian_entry else "collapsed"
 )
 
-# ================= 3. 深度定制 CSS (根据身份切换) =================
+# ================= 3. 核心视觉设计：渐变背景与玻璃拟态 CSS =================
+# 这里融合了你提供的图片风格：温暖渐变、背景模糊、极细边框
+glass_css = f"""
+<style>
+    /* 全局背景：温暖的渐变色 */
+    .stApp {{
+        background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%), 
+                    linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
+        background-blend-mode: soft-light;
+        background-attachment: fixed;
+    }}
+
+    /* 隐藏 Streamlit 默认装饰 */
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
+    header {{background-color: rgba(0,0,0,0);}}
+    #stDecoration {{display:none;}}
+
+    /* 侧边栏样式（管理员模式） */
+    section[data-testid="stSidebar"] {{
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(15px) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+    }}
+
+    /* 玻璃卡片通用类 */
+    .glass-card {{
+        background: rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(20px) !important;
+        border-radius: 20px !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }}
+
+    /* 标签页导航样式（Linear 风格） */
+    .stTabs [data-baseweb="tab-list"] {{
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 5px;
+        gap: 10px;
+    }}
+    .stTabs [data-baseweb="tab"] {{
+        height: 45px;
+        border-radius: 8px;
+        background-color: transparent;
+        transition: all 0.3s;
+        color: #444;
+    }}
+    .stTabs [aria-selected="true"] {{
+        background-color: rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }}
+
+    /* 标题排版：Linear/Apple 风格 */
+    h1 {{
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-weight: 800;
+        color: #2D3436;
+        letter-spacing: -1.5px;
+    }}
+
+    /* 玻璃按钮样式 */
+    .stButton>button {{
+        background: rgba(255, 255, 255, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        backdrop-filter: blur(10px);
+        border-radius: 12px !important;
+        color: #333 !important;
+        transition: 0.3s all;
+    }}
+    .stButton>button:hover {{
+        background: rgba(255, 255, 255, 0.6) !important;
+        transform: translateY(-2px);
+    }}
+</style>
+"""
+st.markdown(glass_css, unsafe_allow_html=True)
+
 if not is_jian_entry:
-    # 【普通用户模式】：极致洁净，完全抹除侧边栏痕迹
-    hide_css = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        #stDecoration {display:none;}
-        [data-testid="stSidebar"] {display: none;}
-        [data-testid="collapsedControl"] {display: none;}
-        </style>
-    """
-else:
-    # 【管理员 Jian 模式】：保留侧边栏功能，但隐藏右上角多余菜单
-    hide_css = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {background-color: rgba(0,0,0,0); color: rgba(0,0,0,0);} /* 让顶部透明但不消失 */
-        #stDecoration {display:none;}
-        /* 强制确保侧边栏在 admin 模式下可见 */
-        [data-testid="stSidebar"] {display: flex !important; visibility: visible !important;}
-        </style>
-    """
+    st.markdown("<style>[data-testid='stSidebar'], [data-testid='collapsedControl'] {display: none;}</style>",
+                unsafe_allow_html=True)
 
-st.markdown(hide_css, unsafe_allow_html=True)
-
-# ================= 4. 诊断提示 (仅在暗门开启时显示在主屏幕) =================
-if is_jian_entry:
-    st.toast("🔑 Admin Link Detected!")
-    st.info("💡 Jian Mode Active: The admin sidebar should be visible on the left.")
-
-# ================= 5. 🔗 Google Sheets 数据库配置 =================
-# ⚠️⚠️⚠️ 必须修改：把下面这行换成你真实的 Google 表格网址！
+# ================= 4. 🔗 Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
-
-# 建立通讯连接
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-UPLOAD_DIR = "uploaded_files"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
 
-
-# 每 10 秒刷新一次缓存，保证你随时能看到最新的数据
 @st.cache_data(ttl=10)
 def load_data():
     try:
-        # 🚀 核心改动：直接从谷歌表格读取数据！
         df = conn.read(spreadsheet=SPREADSHEET_URL)
-
-        # 清洗数据：剔除全空的行，转为字符串，消除 nan 字符
-        df = df.dropna(how='all')
-        df = df.astype(str)
-        df = df.replace('nan', '')
-
-        if 'Status' not in df.columns:
-            df['Status'] = 'Approved'
+        df = df.dropna(how='all').astype(str).replace('nan', '')
+        if 'Status' not in df.columns: df['Status'] = 'Approved'
         return df
-    except Exception as e:
-        st.error(f"Google Sheets Connection Error: {e}")
+    except:
         return pd.DataFrame(columns=['Dataset Name', 'Author', 'Battery Type', 'Capacity (Ah)', 'Status'])
 
 
 df = load_data()
 
-# ================= 6. 管理员身份验证 =================
+# ================= 5. 管理员身份验证 =================
 is_admin = False
 if is_jian_entry:
     with st.sidebar:
-        st.title("👨‍💻 Jian's Control Panel")
-        try:
-            target_password = st.secrets["admin_password"]
-        except:
-            target_password = ""
-            st.warning("Password not set in Secrets!")
-
-        admin_pw = st.text_input("Enter Admin Password", type="password")
+        st.markdown("### 👨‍💻 Jian's Space")
+        target_password = st.secrets.get("admin_password", "")
+        admin_pw = st.text_input("Security Key", type="password")
         if admin_pw == target_password and target_password != "":
             is_admin = True
-            st.success("Admin unlocked!")
-        elif admin_pw != "":
-            st.error("Incorrect password.")
+            st.success("Authorized")
 
-# ================= 7. Main Page UI =================
-st.title("🔋 Open Battery Dataset Portal")
-st.markdown("Browse, download, and share open-source battery datasets for research and engineering.")
+# ================= 6. UI: Hero Section (基于预览图设计) =================
+# 在主页面最上方展示 Hero 区域，只有首页（浏览页）才显示更明显的视觉引导
+st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+col_hero, col_img = st.columns([1.5, 1])
 
+with col_hero:
+    st.title("The Open Battery Dataset")
+    st.markdown("""
+    A decentralized, glass-transparent repository for global battery research.  
+    *Organize, review, and download high-fidelity data with precision.*
+    """)
+    # 动态统计数据
+    st.write("")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Datasets", len(df[df['Status'] == 'Approved']))
+    c2.metric("Pending", len(df[df['Status'] == 'Pending']))
+    c3.metric("Type", "Open Source")
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ================= 7. Tabs 内容 =================
 if is_admin:
-    tabs = st.tabs(["📚 Browse Datasets", "☁️ Upload Dataset", "⚙️ Admin Dashboard"])
+    tabs = st.tabs(["📚 Browse Library", "☁️ Contribute Data", "⚙️ Control Panel"])
 else:
-    tabs = st.tabs(["📚 Browse Datasets", "☁️ Upload Dataset"])
+    tabs = st.tabs(["📚 Browse Library", "☁️ Contribute Data"])
 
-# ================= TAB 1: Browse Datasets =================
+# --- TAB 1: Browse Datasets ---
 with tabs[0]:
-    st.header("Available Datasets")
+    st.header("Library Index")
     public_df = df[df['Status'] == 'Approved']
-    search_query = st.text_input("🔍 Search datasets (e.g., author, battery type, keyword)")
 
-    if search_query and not public_df.empty:
+    # 极简搜索栏
+    search_query = st.text_input("🔍 Search by Author, Battery Type, or Keyword",
+                                 placeholder="Try 'Cylindrical' or 'Pouch'...")
+
+    if search_query:
         mask = public_df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
-        filtered_df = public_df[mask]
+        display_df = public_df[mask]
     else:
-        filtered_df = public_df
+        display_df = public_df
 
-    if not filtered_df.empty:
-        key_columns = ['Dataset Name', 'Author', 'Battery Type', 'Capacity (Ah)', 'Operation Conditions']
-        display_cols = [c for c in key_columns if c in filtered_df.columns]
-        st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
+    # 玻璃化数据表格
+    st.markdown('<div style="background: rgba(255,255,255,0.1); border-radius:15px; padding:10px;">',
+                unsafe_allow_html=True)
+    st.dataframe(display_df[['Dataset Name', 'Author', 'Battery Type', 'Capacity (Ah)']], use_container_width=True,
+                 hide_index=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.subheader("Dataset Details & Download")
+    st.markdown("---")
 
-        # 只提取有效的数据集名称
-        valid_datasets = filtered_df[filtered_df['Dataset Name'] != '']
-        dataset_names = valid_datasets['Dataset Name'].astype(str).unique().tolist()
+    # 详情选择器
+    selected_name = st.selectbox("View full metadata for:", ["(Select Dataset)"] + display_df['Dataset Name'].tolist())
+    if selected_name != "(Select Dataset)":
+        details = display_df[display_df['Dataset Name'] == selected_name].iloc[0]
+        st.markdown(f'<div class="glass-card">', unsafe_allow_html=True)
+        st.subheader(f"📖 {selected_name}")
 
-        selected_dataset = st.selectbox("Select a dataset to view full details:", ["(Select)"] + dataset_names)
+        link = details.get('Link', '')
+        if link.startswith('http'):
+            st.link_button("🔗 Access Source / Download", link, use_container_width=True)
 
-        if selected_dataset != "(Select)":
-            details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
-            with st.expander(f"📖 {selected_dataset} - Full Information", expanded=True):
-                link = details.get('Link', '')
-                if pd.notna(link) and str(link).startswith('http') and str(link).strip() != '':
-                    st.markdown(f"### [🔗 Click Here to Download / Go to Source]({link})")
-                else:
-                    st.info("No external download link provided.")
+        st.markdown("#### Metadata Matrix")
+        col_m1, col_m2 = st.columns(2)
+        all_cols = [c for c in df.columns if c not in ['Link', 'Status']]
+        for i, c in enumerate(all_cols):
+            val = details.get(c, 'N/A')
+            if i % 2 == 0:
+                col_m1.write(f"**{c}**: `{val}`")
+            else:
+                col_m2.write(f"**{c}**: `{val}`")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-                st.markdown("#### Detailed Metadata")
-                col1, col2 = st.columns(2)
-                all_columns = [c for c in df.columns if c not in ['Link', 'Status']]
-                half_index = len(all_columns) // 2
-                for i, col_name in enumerate(all_columns):
-                    val = details.get(col_name, 'N/A')
-                    if str(val).strip() == '': val = 'N/A'
-                    if i <= half_index:
-                        col1.write(f"{col_name}: {val}")
-                    else:
-                        col2.write(f"{col_name}: {val}")
-    else:
-        st.warning("No matching datasets found.")
-
-# ================= TAB 2: Upload Dataset =================
+# --- TAB 2: Upload Dataset ---
 with tabs[1]:
-    st.header("Contribute a Dataset")
-    st.info("Note: Uploaded datasets will be reviewed before appearing in the public portal.")
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.header("Contribute to the Matrix")
+    st.write("Your contribution will be verified by the core admin team before going live.")
 
-    with st.form("upload_form"):
-        new_name = st.text_input("Dataset Name *")
-        new_author = st.text_input("Author / Institution")
-        new_link = st.text_input("External Link (GitHub, Mendeley, etc.)")
-        new_battery = st.selectbox("Battery Type", ["Cylindrical", "Pouch", "Prismatic", "Coin cell", "Other"])
-        new_notes = st.text_area("Additional Notes")
-        uploaded_file = st.file_uploader("Upload local file (Optional)", type=['csv', 'xlsx', 'zip'])
-        submitted = st.form_submit_button("📤 Submit for Review")
+    with st.form("upload_form", border=False):
+        f1, f2 = st.columns(2)
+        new_name = f1.text_input("Dataset Title *")
+        new_author = f2.text_input("Lead Author / Lab")
+        new_link = st.text_input("External URL (Zenodo, GitHub, etc.)")
+        new_battery = st.selectbox("Form Factor", ["Cylindrical", "Pouch", "Prismatic", "Coin cell", "Other"])
+        new_notes = st.text_area("Research Summary")
+
+        submitted = st.form_submit_button("📤 Submit Metadata")
 
         if submitted:
             if not new_name:
-                st.error("Dataset Name is required!")
+                st.error("Title is required")
             else:
-                file_path = ""
-                if uploaded_file is not None:
-                    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                    file_name = f"{timestamp}_{uploaded_file.name}"
-                    save_path = os.path.join(UPLOAD_DIR, file_name)
-                    with open(save_path, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
-                    file_path = save_path
-
-                new_row = {col: "" for col in df.columns}
-                new_row.update({
-                    'Dataset Name': new_name, 'Author': new_author,
-                    'Link': new_link if new_link else file_path,
-                    'Battery Type': new_battery, 'Status': 'Pending'
-                })
-                # 兼容旧代码里没有 Additional Notes 列的情况
-                if 'Additional Notes' in df.columns:
-                    new_row['Additional Notes'] = new_notes
-
-                new_df = pd.DataFrame([new_row])
-                updated_df = pd.concat([df, new_df], ignore_index=True)
-
-                # 🚀 核心改动：把新增加的数据直接推送到 Google Sheets！
+                new_row = {c: "" for c in df.columns}
+                new_row.update(
+                    {'Dataset Name': new_name, 'Author': new_author, 'Link': new_link, 'Battery Type': new_battery,
+                     'Status': 'Pending'})
+                updated_df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
                 conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
-
-                st.success(f"Success! '{new_name}' is pending review.")
+                st.success("Successfully pushed to queue.")
                 st.cache_data.clear()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# ================= TAB 3: Admin Dashboard =================
+# --- TAB 3: Admin Dashboard ---
 if is_admin:
     with tabs[2]:
-        st.header("⚙️ Admin Dashboard")
-        with st.form("admin_form"):
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.header("Control Terminal")
+        with st.form("admin_form", border=False):
             edited_df = st.data_editor(
                 df,
                 column_config={
-                    "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])
-                },
+                    "Status": st.column_config.SelectboxColumn("Status", options=["Approved", "Pending", "Rejected"])},
                 use_container_width=True, num_rows="dynamic"
             )
-            if st.form_submit_button("💾 Save Changes to Database"):
-                # 🚀 核心改动：管理员修改后，立刻覆盖更新到 Google Sheets！
+            if st.form_submit_button("💾 Synchronize Changes"):
                 conn.update(spreadsheet=SPREADSHEET_URL, data=edited_df)
-                st.success("Google Sheets successfully updated! 🎉")
+                st.success("Cloud Synchronized")
                 st.cache_data.clear()
+        st.markdown('</div>', unsafe_allow_html=True)
