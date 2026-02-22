@@ -10,8 +10,8 @@ if "current_view" not in st.session_state:
     st.session_state.current_view = "Homepage"
 if "search_kw" not in st.session_state:
     st.session_state.search_kw = ""
-if "global_search" not in st.session_state:
-    st.session_state.global_search = ""
+if "global_search_input" not in st.session_state:
+    st.session_state.global_search_input = ""
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
@@ -47,7 +47,7 @@ dynamic_css = f"""
 """
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
-# ================= 4. 专业 CSS =================
+# ================= 4. 专业 CSS (恢复全套动态效果 + 彻底消灭 iframe 白底) =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -63,7 +63,31 @@ professional_css = """
         padding-bottom: 2rem !important;
     }
 
-    /* ================= 全局内容白卡样式 ================= */
+    /* ================= 🎯 核心杀手锏：直接打掉 option_menu 的 iframe 白底 ================= */
+    iframe[title*="streamlit_option_menu"] {
+        background-color: transparent !important;
+        background: transparent !important;
+    }
+
+    /* 清除 iframe 外层的包裹容器可能带来的阴影和白卡 */
+    div[data-testid="stVerticalBlock"]:has(iframe[title*="streamlit_option_menu"]),
+    div[data-testid="stElementContainer"]:has(iframe[title*="streamlit_option_menu"]) {
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 顶部整体入场下滑动画 */
+    .block-container > div:first-child {
+        animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    @keyframes headerSlideDown {
+        0% { opacity: 0; transform: translateY(-30px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ================= 全局白卡样式 (带高亮悬浮动态效果) ================= */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(255, 255, 255, 0.85) !important;
         backdrop-filter: blur(12px) !important;
@@ -72,36 +96,33 @@ professional_css = """
         box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04) !important;
         padding: 24px !important;
         margin-bottom: 24px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     [data-testid="stVerticalBlockBorderWrapper"]:hover {
-        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08) !important;
+        border-color: rgba(255, 255, 255, 0.9) !important;
     }
 
-    /* ================= 顶部全局搜索框美化 ================= */
+    /* ================= 顶部全局搜索框动态效果 ================= */
     div[data-testid="stTextInput"] input {
         border-radius: 50px !important;
         padding: 12px 24px !important;
         border: 1px solid rgba(226, 232, 240, 0.8) !important;
-        box-shadow: 0 8px 25px rgba(15, 23, 42, 0.04) !important;
-        font-size: 15px !important;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03) !important;
+        font-size: 14px !important;
         background-color: rgba(255, 255, 255, 0.95) !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        height: 44px !important;
     }
     div[data-testid="stTextInput"] input:focus {
         border-color: #4A6D5F !important;
-        box-shadow: 0 8px 30px rgba(74, 109, 95, 0.15) !important;
+        box-shadow: 0 8px 25px rgba(74, 109, 95, 0.15) !important;
         background-color: #FFFFFF !important;
+        transform: scale(1.01);
     }
 
-    /* 去除导航栏容器本身的白底干扰 */
-    .nav-container-wrapper > div > div {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    /* ================= 其他全局 UI ================= */
+    /* ================= 按钮及交互动态效果 ================= */
     .stButton>button {
         background-color: #708090 !important;
         border: none !important;
@@ -116,21 +137,27 @@ professional_css = """
     }
     .stButton>button:hover {
         background-color: #5c6a77 !important;
-        box-shadow: 0 6px 16px rgba(112, 128, 144, 0.5) !important;
+        box-shadow: 0 8px 18px rgba(112, 128, 144, 0.5) !important;
         transform: translateY(-2px) !important;
     }
 
     .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
         border-radius: 12px !important;
+        transition: all 0.3s ease !important;
+    }
+    .stTextArea textarea:focus, .stSelectbox div[data-baseweb="select"] > div:focus-within {
+        border-color: #4A6D5F !important;
     }
 
+    /* Tabs 悬浮动画 */
     [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
     [data-baseweb="tab"] p {
         font-weight: 800 !important;
         font-size: 16px !important;
         color: #64748B;
-        transition: color 0.3s;
+        transition: color 0.3s ease;
     }
+    [data-baseweb="tab"]:hover p { color: #4A6D5F; }
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
     [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
         background-color: #4A6D5F !important;
@@ -138,15 +165,19 @@ professional_css = """
         border-radius: 3px 3px 0 0;
     }
 
-    .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; transition: all 0.3s ease; }
+    /* 标题悬浮微移 */
+    .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .section-header:hover h2 { color: #4A6D5F; transform: translateX(6px); }
 
+    /* 列表行动画 */
     .dataset-list-row {
         display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9; align-items: center; transition: all 0.2s ease;
     }
-    .dataset-list-row:hover { background-color: #F8FAFC !important; }
+    .dataset-list-row:hover { background-color: #F8FAFC !important; transform: scale(1.005); box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+    .dataset-list-row .ds-name { transition: color 0.2s ease; }
     .dataset-list-row:hover .ds-name { color: #4A6D5F !important; }
 
+    /* ================= 首页 Hero & Bento 动态卡片 ================= */
     .hero-container {
         display: flex; align-items: center; justify-content: space-between; padding: 4.5rem 4rem;
         background: radial-gradient(circle at top left, #FFFFFF 0%, rgba(255,255,255,0.4) 100%);
@@ -155,21 +186,25 @@ professional_css = """
     }
     .hero-left { flex: 1.2; }
     .hero-subtitle { font-size: 14px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
-    .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; }
+    .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .hero-title:hover { transform: scale(1.02); }
     .hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.7; margin-bottom: 2rem; }
 
     .hero-right { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     .bento-card {
         border-radius: 20px; padding: 28px; display: flex; flex-direction: column; justify-content: space-between;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid rgba(255,255,255,0.5); transition: transform 0.4s;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid rgba(255,255,255,0.5); 
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
     }
-    .bento-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+    .bento-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
 
     .chem-tag {
         background: rgba(255,255,255,0.8); padding:8px 16px; border-radius:30px; font-size:13px; font-weight:800;
         box-shadow:0 2px 8px rgba(0,0,0,0.04); color:#0F172A; border: 1px solid rgba(0,0,0,0.02); display: inline-block; margin: 4px;
+        transition: all 0.3s ease;
     }
+    .chem-tag:hover { background: #4A6D5F; color: white; transform: translateY(-2px); }
 
     .section-header {
         border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px;
@@ -180,8 +215,8 @@ professional_css = """
     .header-amber { border-left: 5px solid #F59E0B; }
 
     .metadata-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 20px; }
-    .metadata-item { background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: background 0.3s; }
-    .metadata-item:hover { background: #FFFFFF; }
+    .metadata-item { background: rgba(255, 255, 255, 0.5); border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; transition: all 0.3s ease; }
+    .metadata-item:hover { background: #FFFFFF; transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.04); }
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
@@ -205,16 +240,17 @@ professional_css = """
         [data-testid="stVerticalBlockBorderWrapper"] { padding: 16px !important; border-radius: 16px !important; margin-bottom: 16px !important; }
         .hero-title { font-size: 2.1rem !important; }
         .bento-card { padding: 16px !important; border-radius: 14px !important; }
+        div[data-testid="stTextInput"] input { font-size: 13px !important; padding: 10px 16px !important; }
     }
 </style>
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 全新布局：顶栏 (Logo + 搜索 + 登录) & 底栏 (独立胶囊导航) =================
+# ================= 5. 全新布局：顶栏 (Logo + 全局搜索 + 登录) & 底栏 (居中透明胶囊导航) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-# --- 第一行：顶栏区 ---
 with st.container():
+    # --- 1. 第一行：顶栏 ---
     col_logo, col_search, col_auth = st.columns([1.5, 6, 1.5], vertical_alignment="center")
 
     with col_logo:
@@ -248,76 +284,71 @@ with st.container():
                     st.session_state.current_view = "login"
                     st.rerun()
 
-st.markdown("<div style='margin-bottom: 0.8rem;'></div>", unsafe_allow_html=True)
+    # --- 2. 第二行：胶囊导航（已在CSS中强制破除iframe白底） ---
+    if st.session_state.current_view not in ["login", "signup"]:
+        st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
 
-# --- 第二行：独立导航区 ---
-if st.session_state.current_view not in ["login", "signup"]:
-    # 使用一个特制容器来包裹导航栏，防止样式干扰
-    st.markdown('<div class="nav-container-wrapper">', unsafe_allow_html=True)
+        menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
+        base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
 
-    menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-    base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
+        if st.session_state.is_admin:
+            menu_tabs.append("Admin Dashboard")
+            menu_icons = base_icons + ['shield-lock']
+        else:
+            menu_icons = base_icons
 
-    if st.session_state.is_admin:
-        menu_tabs.append("Admin Dashboard")
-        menu_icons = base_icons + ['shield-lock']
-    else:
-        menu_icons = base_icons
+        try:
+            default_idx = menu_tabs.index(st.session_state.current_view)
+        except ValueError:
+            default_idx = 0
 
-    try:
-        default_idx = menu_tabs.index(st.session_state.current_view)
-    except ValueError:
-        default_idx = 0
+        selected_page = option_menu(
+            menu_title=None,
+            options=menu_tabs,
+            icons=menu_icons,
+            default_index=default_idx,
+            orientation="horizontal",
+            styles={
+                "container": {
+                    "padding": "6px 12px !important",
+                    "background-color": "rgba(255, 255, 255, 0.96) !important",
+                    "border": "1px solid rgba(226, 232, 240, 0.8) !important",
+                    "border-radius": "999px !important",
+                    "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
+                    "margin": "0 auto",
+                    "width": "fit-content",
+                    "display": "flex",
+                    "justify-content": "center",
+                    "align-items": "center"
+                },
+                "icon": {
+                    "color": "#64748B",
+                    "font-size": "16px",
+                },
+                "nav-link": {
+                    "font-size": "15px",
+                    "font-weight": "700",
+                    "color": "#475569",
+                    "padding": "10px 18px",
+                    "margin": "0 4px",
+                    "border-radius": "50px",
+                    "transition": "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "--hover-color": "#F1F5F9",
+                    "white-space": "nowrap"
+                },
+                "nav-link-selected": {
+                    "background-color": "#4A6D5F",
+                    "color": "#FFFFFF",
+                    "font-weight": "800",
+                    "border-radius": "50px",
+                    "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
+                },
+            }
+        )
 
-    selected_page = option_menu(
-        menu_title=None,
-        options=menu_tabs,
-        icons=menu_icons,
-        default_index=default_idx,
-        orientation="horizontal",
-        styles={
-            "container": {
-                "padding": "6px 12px !important",
-                "background-color": "rgba(255, 255, 255, 0.96) !important",
-                "border": "1px solid rgba(226, 232, 240, 0.8) !important",
-                "border-radius": "999px !important",
-                "box-shadow": "0 8px 25px rgba(15, 23, 42, 0.05) !important",
-                "margin": "0 auto",
-                "width": "fit-content",  # 紧贴文字的胶囊效果
-                "display": "flex",
-                "justify-content": "center",
-                "align-items": "center"
-            },
-            "icon": {
-                "color": "#64748B",
-                "font-size": "16px",
-            },
-            "nav-link": {
-                "font-size": "15px",
-                "font-weight": "700",
-                "color": "#475569",
-                "padding": "10px 18px",
-                "margin": "0 4px",
-                "border-radius": "50px",
-                "transition": "all 0.3s ease",
-                "--hover-color": "#F1F5F9",
-                "white-space": "nowrap"
-            },
-            "nav-link-selected": {
-                "background-color": "#4A6D5F",
-                "color": "#FFFFFF",
-                "font-weight": "800",
-                "border-radius": "50px",
-                "box-shadow": "0 4px 12px rgba(74,109,95,0.3)"
-            },
-        }
-    )
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if selected_page != st.session_state.current_view:
-        st.session_state.current_view = selected_page
-        st.rerun()
+        if selected_page != st.session_state.current_view:
+            st.session_state.current_view = selected_page
+            st.rerun()
 
 st.markdown("<hr style='border: none; border-top: 1px solid rgba(226, 232, 240, 0.6); margin: 0 0 24px 0;'>",
             unsafe_allow_html=True)
@@ -493,10 +524,9 @@ elif current_page == "Browse Datasets":
                 "<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
                 unsafe_allow_html=True)
 
-            # 搜索框优先使用顶栏传来的关键词，如果为空则为空
+            # 使用顶栏传来的关键词
             search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
                                       placeholder="e.g. Oxford, NMC, EIS...")
-            # 同步更新 session state
             st.session_state.search_kw = search_kw
 
             st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
@@ -637,7 +667,7 @@ elif current_page == "Browse Datasets":
         else:
             st.warning("No datasets match your filters.")
 
-# ----------------- 页面 E：Contribute Data (内置文件上传) -----------------
+# ----------------- 页面 E：Contribute Data (加入本地文件上传) -----------------
 elif current_page == "Contribute Data":
     st.markdown('<div class="section-header header-teal"><h2>Community Contributions</h2></div>',
                 unsafe_allow_html=True)
