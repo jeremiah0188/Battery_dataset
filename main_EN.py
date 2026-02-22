@@ -47,7 +47,7 @@ dynamic_css = f"""
 """
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
-# ================= 4. 企业级专业 CSS =================
+# ================= 4. 企业级专业 CSS (包含全新微动画) =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -75,7 +75,7 @@ professional_css = """
     }
     [data-testid="stVerticalBlockBorderWrapper"]:hover { box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important; }
 
-    /* 全局按钮 Slate Gray (#708090) 填充 */
+    /* 全局按钮 Slate Gray (#708090) */
     .stButton>button { 
         background-color: #708090 !important; 
         border: none !important; 
@@ -94,23 +94,45 @@ professional_css = """
         transform: translateY(-2px) !important;
     }
 
-    /* Tabs 无图标且强制加粗 */
+    /* Tabs 强制加粗 */
     [data-baseweb="tab"] { padding-top: 8px !important; padding-bottom: 8px !important; }
     [data-baseweb="tab"] p { font-weight: 800 !important; font-size: 16px !important; color: #64748B; transition: color 0.3s; }
     [data-baseweb="tab"][aria-selected="true"] p { color: #0F172A !important; }
     [data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #4A6D5F !important; height: 3px !important; border-radius: 3px 3px 0 0; }
 
+    /* 🚀 新增：文字层级悬浮微动画 */
+    .section-header h2 { 
+        font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; 
+        transition: all 0.3s ease; /* 平滑过渡 */
+    }
+    .section-header:hover h2 {
+        color: #4A6D5F; /* 悬浮变品牌青色 */
+        transform: translateX(6px); /* 悬浮向右微移 */
+    }
+
+    .hero-title { 
+        font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; 
+        margin-bottom: 1.5rem; letter-spacing: -2px; 
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .hero-title:hover {
+        transform: scale(1.02); /* 首页大标题呼吸感放大 */
+    }
+
     /* 无边框列表行 Hover 样式 */
     .dataset-list-row {
-        display: flex;
-        padding: 18px 24px;
-        font-size: 14px;
-        border-bottom: 1px solid #F1F5F9;
-        align-items: center;
-        transition: all 0.2s ease;
-        background-color: transparent;
+        display: flex; padding: 18px 24px; font-size: 14px; border-bottom: 1px solid #F1F5F9;
+        align-items: center; transition: all 0.2s ease; background-color: transparent;
     }
-    .dataset-list-row:hover { background-color: #F8FAFC !important; }
+    .dataset-list-row .ds-name {
+        transition: color 0.2s ease;
+    }
+    .dataset-list-row:hover { 
+        background-color: #F8FAFC !important; 
+    }
+    .dataset-list-row:hover .ds-name {
+        color: #4A6D5F !important; /* 悬浮行时，标题字变色 */
+    }
 
     .hero-container {
         display: flex; align-items: center; justify-content: space-between;
@@ -122,7 +144,6 @@ professional_css = """
     }
     .hero-left { flex: 1.2; }
     .hero-subtitle { font-size: 14px; font-weight: 800; color: #4A6D5F; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; }
-    .hero-title { font-size: 4.8rem; font-weight: 900; line-height: 1.1; color: #0F172A; margin-bottom: 1.5rem; letter-spacing: -2px; }
     .hero-title span { background: linear-gradient(135deg, #4A6D5F 0%, #115E59 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-desc { font-size: 1.25rem; color: #475569; line-height: 1.7; margin-bottom: 2rem; }
 
@@ -132,8 +153,7 @@ professional_css = """
 
     .chem-tag { background: rgba(255,255,255,0.8); padding:8px 16px; border-radius:30px; font-size:13px; font-weight:800; box-shadow:0 2px 8px rgba(0,0,0,0.04); color:#0F172A; border: 1px solid rgba(0,0,0,0.02); display: inline-block; margin: 4px;}
 
-    .section-header { border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
-    .section-header h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin: 0; }
+    .section-header { border: 1px solid #FFFFFF; border-radius: 16px; padding: 16px 24px; margin-bottom: 20px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); transition: all 0.3s;}
     .header-blue { border-left: 5px solid #3B82F6; }
     .header-teal { border-left: 5px solid #4A6D5F; }
     .header-amber { border-left: 5px solid #F59E0B; }
@@ -144,11 +164,7 @@ professional_css = """
     .metadata-label { font-size: 12px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .metadata-value { font-size: 15px; font-weight: 600; color: #0F172A; word-wrap: break-word; }
 
-    /* 流式极简风格页脚 */
-    .custom-footer {
-        width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B;
-        font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; 
-    }
+    .custom-footer { width: 100%; padding: 40px 16px 20px 16px; margin-top: 40px; color: #64748B; font-size: 14px; border-top: 1px solid #E2E8F0; display: flex; flex-direction: column; gap: 16px; }
     .footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-weight: 600; }
     .footer-links a { color: #475569; text-decoration: none; transition: color 0.2s; }
     .footer-links a:hover { color: #4A6D5F; }
@@ -158,10 +174,11 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-# ================= 5. 顶部完美居中悬浮导航栏 (极致透明底板) =================
+# ================= 5. 顶部导航栏 (🚀 加宽并毛玻璃化) =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-col_logo, col_menu, col_auth = st.columns([1.5, 7, 1.2], vertical_alignment="center")
+# 改变列宽分配，给中间的菜单更大的空间（从 7 扩大到 8.5），从而加宽导航条
+col_logo, col_menu, col_auth = st.columns([1.5, 8.5, 1.2], vertical_alignment="center")
 
 with col_logo:
     st.image(LOGO_IMAGE_URL, width=190)
@@ -177,7 +194,7 @@ with col_menu:
         except ValueError:
             default_idx = 0
 
-        # 🚀 强力透明化：彻底剥离所有背景和外壳
+        # 🚀 导航栏毛玻璃宽胶囊设计
         selected_page = option_menu(
             menu_title=None,
             options=menu_tabs,
@@ -186,17 +203,20 @@ with col_menu:
             orientation="horizontal",
             styles={
                 "container": {
-                    "padding": "0 !important",
-                    "background-color": "transparent !important",
-                    "border": "none !important",
-                    "box-shadow": "none !important",
-                    "margin": "0 auto"
+                    "padding": "8px 24px !important",
+                    "background": "rgba(255, 255, 255, 0.6) !important",  # 半透明白底
+                    "backdrop-filter": "blur(12px) !important",  # 毛玻璃滤镜
+                    "border": "1px solid rgba(255, 255, 255, 0.8) !important",
+                    "border-radius": "100px !important",  # 大圆角宽胶囊
+                    "box-shadow": "0 4px 20px rgba(0,0,0,0.03) !important",
+                    "margin": "0 auto",
+                    "width": "100%"
                 },
                 "icon": {"color": "#64748B", "font-size": "16px"},
                 "nav-link": {
                     "font-size": "15px", "font-weight": "700", "color": "#475569",
-                    "padding": "8px 22px", "margin": "0 4px",
-                    "--hover-color": "rgba(255,255,255,0.6)", "border-radius": "50px"
+                    "padding": "8px 24px", "margin": "0 4px",
+                    "--hover-color": "rgba(255,255,255,0.7)", "border-radius": "50px"
                 },
                 "nav-link-selected": {
                     "background-color": "#4A6D5F", "color": "white",
@@ -267,7 +287,6 @@ if current_page == "login" and not st.session_state.is_admin:
                 else:
                     st.error("Invalid credentials.")
 
-            # 🚀 新增：如果没有账号，提供双向跳转选项
             st.markdown("<hr style='border-color: #E2E8F0; margin: 32px 0 24px 0;'>", unsafe_allow_html=True)
 
             c1, c2 = st.columns(2)
@@ -285,7 +304,6 @@ elif current_page == "signup" and not st.session_state.is_admin:
     st.markdown("<br><br>", unsafe_allow_html=True)
     _, col, _ = st.columns([1, 1.2, 1])
     with col:
-        # 🚀 恢复：完整的注册账号页面流
         with st.container(border=True):
             st.markdown(
                 "<h2 style='font-size: 34px; font-weight: 900; color: #0F172A; margin-bottom: 8px; text-align: center;'>Create Account</h2>",
@@ -452,8 +470,9 @@ elif current_page == "Browse Datasets":
                 domain = row.get('Domain', 'N/A')
 
                 html_parts.append('<div class="dataset-list-row">')
+                # 🚀 将标题赋予 ds-name class，响应 CSS 悬浮变色
                 html_parts.append(
-                    f'<div style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
+                    f'<div class="ds-name" style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
                 html_parts.append(
                     f'<div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>')
                 html_parts.append(
@@ -496,7 +515,8 @@ elif current_page == "Browse Datasets":
                             details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
                 details_html += '</div>'
 
-                details_html += f'<div style="margin-top:32px; padding:16px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;"><h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4><p style="margin:0; font-size:13px; color:#475569; font-family:monospace;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p></div>'
+                # 🚀 统一字体：去掉了 font-family:monospace，现在它和全站默认字体一致
+                details_html += f'<div style="margin-top:32px; padding:16px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;"><h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4><p style="margin:0; font-size:13px; color:#475569;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p></div>'
                 details_html += '</div>'
 
                 st.markdown(details_html, unsafe_allow_html=True)
