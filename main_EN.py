@@ -82,30 +82,28 @@ professional_css = """
     }
 
     /* ================= 顶部导航区域：强制透明、去除白底 ================= */
-    .nav-shell { width: 100%; display: block; }
-
-    /* 暴力清除导航区域外层白卡、列容器、插件容器白底 */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell),
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) > div,
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stVerticalBlockBorderWrapper"],
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="stHorizontalBlock"],
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) [data-testid="column"] {
+    /*
+     * 根本修复：导航栏直接用顶级 columns，不再套 st.container()，
+     * 因此不会产生 stVerticalBlockBorderWrapper 白卡。
+     * 以下规则针对页面内第一个水平块（即导航列）的所有祖先节点，
+     * 强制透明，彻底消灭任何残留白色背景。
+     */
+    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child,
+    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child > div,
+    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child [data-testid="stVerticalBlockBorderWrapper"],
+    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child [data-testid="stHorizontalBlock"],
+    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child [data-testid="column"] {
         background: transparent !important;
         background-color: transparent !important;
         border: none !important;
         backdrop-filter: none !important;
         box-shadow: none !important;
         padding: 0 !important;
-        margin: 0 !important;
+        margin-bottom: 0 !important;
     }
 
-    /* iframe 透明（option_menu 在某些版本会走 iframe） */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) iframe {
-        background-color: transparent !important;
-    }
-
-    /* 给导航整体留底部间距 + 入场动画（保留你原动画） */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) {
+    /* 导航栏入场动画 */
+    .block-container > div > [data-testid="stVerticalBlock"] > div:first-child {
         margin-bottom: 1.5rem !important;
         animation: headerSlideDown 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
@@ -115,7 +113,7 @@ professional_css = """
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* === 顶部搜索栏特供样式（仅导航） === */
+    /* === 顶部搜索栏特供样式 === */
     .nav-shell .stTextInput input {
         border-radius: 50px !important;
         background-color: #F1F5F9 !important;
@@ -130,7 +128,7 @@ professional_css = """
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.15) !important;
     }
 
-    /* === 顶部图标按钮样式（settings / notifications） === */
+    /* === 顶部图标按钮样式 === */
     .icon-buttons .stButton>button {
         background-color: transparent !important;
         border: none !important;
@@ -222,134 +220,117 @@ st.markdown(professional_css, unsafe_allow_html=True)
 # ================= 5. 顶部导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
-with st.container():
-    st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
+col_logo, col_menu, col_search, col_icons, col_auth = st.columns([1.2, 5.0, 1.8, 0.8, 1.0],
+                                                                 vertical_alignment="center")
 
-    # 调整列宽：让菜单更宽，避免 Contact 换行；菜单更靠近 logo
-    col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
-        [1.35, 6.6, 2.25, 0.9, 1.1],
-        vertical_alignment="center"
-    )
+with col_logo:
+    st.image(LOGO_IMAGE_URL, width=160)
 
-    with col_logo:
-        st.image(LOGO_IMAGE_URL, width=170)
-
-    with col_menu:
-        if st.session_state.current_view not in ["login", "signup"]:
-            menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
-            base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
-            if st.session_state.is_admin:
-                menu_tabs.append("Admin Dashboard")
-                menu_icons = base_icons + ['shield-lock']
-            else:
-                menu_icons = base_icons
-
-            # 防止 Settings / Notifications 页面被 option_menu 默认值覆盖
-            try:
-                if st.session_state.current_view in menu_tabs:
-                    default_idx = menu_tabs.index(st.session_state.current_view)
-                else:
-                    default_idx = menu_tabs.index(st.session_state.last_menu_selection)
-            except ValueError:
-                default_idx = 0
-
-            selected_page = option_menu(
-                menu_title=None,
-                options=menu_tabs,
-                icons=menu_icons,
-                default_index=default_idx,
-                orientation="horizontal",
-                styles={
-                    # 外层容器透明、无胶囊、靠左
-                    "container": {
-                        "padding": "0 !important",
-                        "background": "transparent !important",
-                        "background-color": "transparent !important",
-                        "border": "none !important",
-                        "border-radius": "0 !important",
-                        "box-shadow": "none !important",
-                        "margin": "0 !important",
-                        "width": "100%",
-                        "display": "flex",
-                        "justify-content": "flex-start",
-                        "align-items": "center"
-                    },
-                    # 隐藏图标，只保留文字（避免图标占位导致换行）
-                    "icon": {
-                        "display": "none",
-                        "font-size": "0px",
-                        "margin": "0"
-                    },
-                    # 普通状态：纯文字 + 动画
-                    "nav-link": {
-                        "font-size": "15px",
-                        "font-weight": "700",
-                        "color": "#64748B",
-                        "padding": "6px 10px 8px 10px",
-                        "margin": "0 8px 0 0",
-                        "border-radius": "0",
-                        "background": "transparent",
-                        "white-space": "nowrap",
-                        "line-height": "1.2",
-                        "transition": "all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1)",
-                        "--hover-color": "transparent",
-                        "border-bottom": "2px solid transparent"
-                    },
-                    # 选中状态：只有文字+下划线（无胶囊底）
-                    "nav-link-selected": {
-                        "background-color": "transparent",
-                        "color": "#4A6D5F",
-                        "font-weight": "800",
-                        "border-bottom": "2px solid #4A6D5F",
-                        "border-radius": "0",
-                        "box-shadow": "none"
-                    },
-                }
-            )
-
-            # 仅当用户真正切换菜单时跳转
-            if selected_page != st.session_state.last_menu_selection:
-                st.session_state.current_view = selected_page
-                st.session_state.last_menu_selection = selected_page
-                st.rerun()
-
-    with col_search:
-        if st.session_state.current_view not in ["login", "signup"]:
-            st.text_input(
-                "Global Search",
-                placeholder="Search datasets...",
-                label_visibility="collapsed",
-                key="global_nav_search"
-            )
-
-    with col_icons:
-        if st.session_state.current_view not in ["login", "signup"]:
-            st.markdown('<div class="icon-buttons">', unsafe_allow_html=True)
-            ic1, ic2 = st.columns(2)
-            with ic1:
-                if st.button("⚙️", help="Settings", key="nav_settings_btn"):
-                    st.session_state.current_view = "Settings"
-                    st.rerun()
-            with ic2:
-                if st.button("🔔", help="Notifications", key="nav_notifications_btn"):
-                    st.session_state.current_view = "Notifications"
-                    st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    with col_auth:
+with col_menu:
+    if st.session_state.current_view not in ["login", "signup"]:
+        menu_tabs = ["Homepage", "Browse Datasets", "Contribute Data", "About", "Contact"]
+        base_icons = ['house', 'search', 'cloud-upload', 'info-circle', 'envelope']
         if st.session_state.is_admin:
-            if st.button("Log Out", key="nav_logout_btn"):
-                st.session_state.is_admin = False
-                st.session_state.current_view = "Homepage"
-                st.session_state.last_menu_selection = "Homepage"
-                st.rerun()
+            menu_tabs.append("Admin Dashboard")
+            menu_icons = base_icons + ['shield-lock']
         else:
-            if st.session_state.current_view not in ["login", "signup"]:
-                if st.button("Sign In", key="nav_signin_btn"):
-                    st.session_state.current_view = "login"
-                    st.rerun()
+            menu_icons = base_icons
 
-    st.markdown('</div>', unsafe_allow_html=True)
+        # 核心路由逻辑：防止 option_menu 覆盖独立页面 (Settings/Notifications)
+        try:
+            if st.session_state.current_view in menu_tabs:
+                default_idx = menu_tabs.index(st.session_state.current_view)
+            else:
+                default_idx = menu_tabs.index(st.session_state.last_menu_selection)
+        except ValueError:
+            default_idx = 0
+
+        selected_page = option_menu(
+            menu_title=None,
+            options=menu_tabs,
+            icons=menu_icons,
+            default_index=default_idx,
+            orientation="horizontal",
+            styles={
+                "container": {
+                    "padding": "0 !important",
+                    "background": "transparent !important",
+                    "background-color": "transparent !important",
+                    "border": "none !important",
+                    "box-shadow": "none !important",
+                    "margin": "0 !important",
+                    "width": "100%",
+                    "display": "flex",
+                    "justify-content": "flex-start",
+                    "align-items": "center"
+                },
+                "icon": {
+                    "color": "#94A3B8",
+                    "font-size": "15px",
+                    "margin-right": "6px",
+                    "transition": "color 0.3s ease"
+                },
+                "nav-link": {
+                    "font-size": "15px",
+                    "font-weight": "700",
+                    "color": "#64748B",
+                    "padding": "8px 16px",
+                    "margin": "0 2px",
+                    "border-radius": "12px",
+                    "background": "transparent",
+                    "white-space": "nowrap",
+                    "transition": "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                    "--hover-color": "rgba(74, 109, 95, 0.08)"
+                },
+                "nav-link-selected": {
+                    "background-color": "transparent",
+                    "color": "#4A6D5F",
+                    "font-weight": "800",
+                    "border-bottom": "3px solid #4A6D5F",
+                    "border-radius": "0",
+                    "box-shadow": "none"
+                },
+            }
+        )
+
+        # 仅当用户真正点击菜单时，才触发跳转
+        if selected_page != st.session_state.last_menu_selection:
+            st.session_state.current_view = selected_page
+            st.session_state.last_menu_selection = selected_page
+            st.rerun()
+
+with col_search:
+    if st.session_state.current_view not in ["login", "signup"]:
+        st.text_input("Global Search", placeholder="Search datasets...", label_visibility="collapsed",
+                      key="global_nav_search")
+
+with col_icons:
+    if st.session_state.current_view not in ["login", "signup"]:
+        st.markdown('<div class="icon-buttons">', unsafe_allow_html=True)
+        ic1, ic2 = st.columns(2)
+        with ic1:
+            if st.button("⚙️", help="Settings"):
+                st.session_state.current_view = "Settings"
+                st.rerun()
+        with ic2:
+            if st.button("🔔", help="Notifications"):
+                st.session_state.current_view = "Notifications"
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+with col_auth:
+    if st.session_state.is_admin:
+        if st.button("Log Out"):
+            st.session_state.is_admin = False
+            st.session_state.current_view = "Homepage"
+            st.session_state.last_menu_selection = "Homepage"
+            st.rerun()
+    else:
+        if st.session_state.current_view not in ["login", "signup"]:
+            if st.button("Sign In"):
+                st.session_state.current_view = "login"
+                st.rerun()
+
 
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -666,7 +647,6 @@ elif current_page == "Contribute Data":
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
 
-                # 新增的本地文件上传选项
                 st.markdown(
                     "<h5 style='font-size:15px; margin-top:10px; color:#334155;'>Upload Local Files (Optional)</h5>",
                     unsafe_allow_html=True)
@@ -757,7 +737,7 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.success("Synchronized successfully!")
                 st.cache_data.clear()
 
-# ----------------- 页面 I：Settings (新增) -----------------
+# ----------------- 页面 I：Settings -----------------
 elif current_page == "Settings":
     st.markdown('<div class="section-header header-teal"><h2>⚙️ Settings</h2></div>', unsafe_allow_html=True)
 
@@ -805,24 +785,20 @@ elif current_page == "Settings":
             if st.button("Save Notifications"):
                 st.success("Notification preferences applied!")
 
-# ----------------- 页面 J：Notifications (新增) -----------------
+# ----------------- 页面 J：Notifications -----------------
 elif current_page == "Notifications":
     st.markdown('<div class="section-header header-blue"><h2>🔔 Notifications</h2></div>', unsafe_allow_html=True)
 
-    # 顶部操作按钮
     col_btn, col_filter, _ = st.columns([3, 2, 5])
     with col_btn:
         b1, b2 = st.columns(2)
-        with b1:
-            st.button("Mark all as read", use_container_width=True)
-        with b2:
-            st.button("Clear read", use_container_width=True)
+        with b1: st.button("Mark all as read", use_container_width=True)
+        with b2: st.button("Clear read", use_container_width=True)
     with col_filter:
         st.selectbox("Filter", ["All", "Unread", "System", "Dataset", "Review"], label_visibility="collapsed")
 
     st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0 24px 0;'>", unsafe_allow_html=True)
 
-    # Inbox 样式数据列表
     notifications = [
         {"title": "Your dataset submission has been approved",
          "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible in the directory.",
@@ -838,7 +814,6 @@ elif current_page == "Notifications":
          "time": "1 week ago", "status": "Read", "type": "System", "icon": "⚠️"},
     ]
 
-    # 渲染 Inbox
     for n in notifications:
         bg_color = "#F8FAFC" if n["status"] == "Read" else "#FFFFFF"
         border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
