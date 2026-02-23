@@ -195,28 +195,17 @@ professional_css = """
     }
 
 /* 顶部图标按钮 - 样式3（玻璃拟态，彻底锁死完美正方形） */
-/* ================= 顶部图标按钮（终极结构锁定法） ================= */
-    /* 精准狙击导航栏第 4 列（图标列），彻底隔绝全局 padding 污染 */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) div[data-testid="stButton"] {
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
-    }
-
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) button {
+/* ================= 顶部图标按钮（利用 Streamlit Key 绝对锁死尺寸） ================= */
+    .st-key-nav_settings_btn button,
+    .st-key-nav_notifications_btn button {
         width: 46px !important;
         height: 46px !important;
         min-width: 46px !important;
-        min-height: 46px !important;
         max-width: 46px !important;
-        max-height: 46px !important;
-        padding: 0 !important; /* 彻底清除导致变形的罪魁祸首 */
-        margin: 0 !important;
-        flex: 0 0 46px !important; /* 强制锁定比例，绝对不允许拉伸 */
-        aspect-ratio: 1/1 !important;
-        box-sizing: border-box !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
         border-radius: 14px !important;
-        
+
         background: rgba(255,255,255,0.55) !important;
         backdrop-filter: blur(10px) !important;
         border: 1px solid rgba(255,255,255,0.85) !important;
@@ -225,34 +214,34 @@ professional_css = """
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        overflow: hidden !important;
+        
+        color: #64748B !important;
+        font-size: 20px !important;
     }
 
-    /* 保证内部 Emoji 绝对居中 */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) button p {
+    /* 内部图标绝对居中对齐 */
+    .st-key-nav_settings_btn button p,
+    .st-key-nav_notifications_btn button p {
         margin: 0 !important;
         padding: 0 !important;
-        line-height: 1 !important;
-        font-size: 20px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
 
-    /* 将小红点直接绑定到第 2 个图标（铃铛）所在的列，不依赖 class */
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) div[data-testid="column"]:nth-child(2) div[data-testid="stButton"] {
+    /* 铃铛右上角的通知红点 */
+    .st-key-nav_notifications_btn {
         position: relative !important;
     }
-    
-    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) div[data-testid="column"]:nth-child(2) div[data-testid="stButton"]::after {
+    .st-key-nav_notifications_btn::after {
         content: "";
         position: absolute;
-        top: -2px;
-        right: calc(50% - 24px); /* 精准贴合 46px 按钮的右上角 */
-        width: 9px;
-        height: 9px;
+        top: 2px;
+        right: calc(50% - 22px);
+        width: 8px;
+        height: 8px;
         background: #EF4444;
-        border: 2px solid #FFFFFF;
+        border: 2px solid rgba(255,255,255,0.95);
         border-radius: 999px;
         z-index: 20;
         pointer-events: none;
@@ -441,18 +430,16 @@ with st.container():
             c_icon1, c_icon2 = st.columns([1, 1])
 
             with c_icon1:
-                st.markdown('<div class="icon-btn-wrap">', unsafe_allow_html=True)
+                # 删除了无用的 markdown wrapper
                 if st.button("⚙", help="Settings", key="nav_settings_btn"):
                     st.session_state.current_view = "Settings"
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
 
             with c_icon2:
-                st.markdown('<div class="icon-btn-wrap notify-dot">', unsafe_allow_html=True)
+                # 删除了无用的 markdown wrapper
                 if st.button("🔔", help="Notifications", key="nav_notifications_btn"):
                     st.session_state.current_view = "Notifications"
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
 
     with col_auth:
         st.markdown('<div class="nav-auth">', unsafe_allow_html=True)
