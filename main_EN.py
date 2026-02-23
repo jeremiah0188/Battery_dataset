@@ -13,6 +13,19 @@ if "search_kw" not in st.session_state:
     st.session_state.search_kw = ""
 if "nav_click" not in st.session_state:
     st.session_state.nav_click = ""
+if "user_prefs" not in st.session_state:
+    st.session_state.user_prefs = {"default_page": "Homepage", "theme": "Light", "items": 20, "lang": "English"}
+if "data_prefs" not in st.session_state:
+    st.session_state.data_prefs = {"domain": "All", "chem": "All", "sort": "Most Recent"}
+if "notif_prefs" not in st.session_state:
+    st.session_state.notif_prefs = {"email": True, "status": True, "alerts": False, "digest": True}
+if "notifications" not in st.session_state:
+    st.session_state.notifications = [
+        {"id": 1, "title": "Your dataset submission has been approved", "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible.", "time": "2 hours ago", "status": "Unread", "type": "Dataset", "icon": "✅"},
+        {"id": 2, "title": "Your submission is under review", "msg": "Admin is currently reviewing 'LFP Cycling Data'.", "time": "1 day ago", "status": "Read", "type": "Review", "icon": "⏳"},
+        {"id": 3, "title": "New dataset added in Battery / EIS", "msg": "Check out the newly added 'Oxford Battery Degradation' dataset.", "time": "2 days ago", "status": "Read", "type": "System", "icon": "🆕"}
+    ]
+
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
@@ -853,6 +866,7 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.cache_data.clear()
 
 # ----------------- 页面 I：Settings (新增) -----------------
+# ----------------- 页面 I：Settings (修改为真实可用) -----------------
 elif current_page == "Settings":
     st.markdown('<div class="section-header header-teal"><h2>⚙️ Settings</h2></div>', unsafe_allow_html=True)
 
@@ -866,7 +880,7 @@ elif current_page == "Settings":
             role_text = "Administrator" if st.session_state.is_admin else "Contributor (Guest)"
             st.text_input("Display Name", value="Admin User" if st.session_state.is_admin else "Guest User")
             st.text_input("Email", value="admin@example.com" if st.session_state.is_admin else "")
-            st.text_input("Password", type="password", value="********" if st.session_state.is_admin else "")
+            st.text_input("Password", type="password", value="****" if st.session_state.is_admin else "")
             st.text_input("Role", value=role_text, disabled=True)
             if st.button("Save Account Changes"):
                 st.success("Account settings updated successfully!")
@@ -874,33 +888,54 @@ elif current_page == "Settings":
     with tab_prefs:
         with st.container(border=True):
             st.markdown("### General Settings")
-            st.selectbox("Default page", ["Homepage", "Browse Datasets", "Contribute Data"])
-            st.radio("Theme", ["Light", "Auto"], horizontal=True)
-            st.slider("Items per page", min_value=10, max_value=100, value=20, step=10)
-            st.selectbox("Language", ["English", "French", "German", "Spanish", "简体中文"])
+            p_opts = ["Homepage", "Browse Datasets", "Contribute Data"]
+            t_opts = ["Light", "Auto"]
+            l_opts = ["English", "French", "German", "Spanish", "简体中文"]
+
+            new_page = st.selectbox("Default page", p_opts,
+                                    index=p_opts.index(st.session_state.user_prefs["default_page"]))
+            new_theme = st.radio("Theme", t_opts, index=t_opts.index(st.session_state.user_prefs["theme"]),
+                                 horizontal=True)
+            new_items = st.slider("Items per page", min_value=10, max_value=100,
+                                  value=st.session_state.user_prefs["items"], step=10)
+            new_lang = st.selectbox("Language", l_opts, index=l_opts.index(st.session_state.user_prefs["lang"]))
+
             if st.button("Save Preferences"):
+                st.session_state.user_prefs.update(
+                    {"default_page": new_page, "theme": new_theme, "items": new_items, "lang": new_lang})
                 st.success("Preferences saved successfully!")
 
     with tab_data_prefs:
         with st.container(border=True):
             st.markdown("### Dataset Customization")
-            st.selectbox("Preferred domain", ["All", "Energy", "Battery", "Healthcare", "Manufacturing"])
-            st.selectbox("Preferred chemistry", ["All", "NMC", "LFP", "NCA", "LCO", "Solid-state"])
-            st.selectbox("Default sort", ["Most Recent", "A-Z", "Most Popular"])
+            d_opts = ["All", "Energy", "Battery", "Healthcare", "Manufacturing"]
+            c_opts = ["All", "NMC", "LFP", "NCA", "LCO", "Solid-state"]
+            s_opts = ["Most Recent", "A-Z", "Most Popular"]
+
+            new_dom = st.selectbox("Preferred domain", d_opts,
+                                   index=d_opts.index(st.session_state.data_prefs["domain"]))
+            new_chem = st.selectbox("Preferred chemistry", c_opts,
+                                    index=c_opts.index(st.session_state.data_prefs["chem"]))
+            new_sort = st.selectbox("Default sort", s_opts, index=s_opts.index(st.session_state.data_prefs["sort"]))
+
             if st.button("Save Dataset Preferences"):
+                st.session_state.data_prefs.update({"domain": new_dom, "chem": new_chem, "sort": new_sort})
                 st.success("Dataset preferences updated!")
 
     with tab_notifs:
         with st.container(border=True):
             st.markdown("### Email & Alert Preferences")
-            st.toggle("Email notifications", value=True)
-            st.toggle("Submission status updates", value=True)
-            st.toggle("New dataset alerts", value=False)
-            st.toggle("Weekly digest", value=True)
+            n1 = st.toggle("Email notifications", value=st.session_state.notif_prefs["email"])
+            n2 = st.toggle("Submission status updates", value=st.session_state.notif_prefs["status"])
+            n3 = st.toggle("New dataset alerts", value=st.session_state.notif_prefs["alerts"])
+            n4 = st.toggle("Weekly digest", value=st.session_state.notif_prefs["digest"])
+
             if st.button("Save Notifications"):
+                st.session_state.notif_prefs.update({"email": n1, "status": n2, "alerts": n3, "digest": n4})
                 st.success("Notification preferences applied!")
 
 # ----------------- 页面 J：Notifications (新增) -----------------
+# ----------------- 页面 J：Notifications (修改为真实可用) -----------------
 elif current_page == "Notifications":
     st.markdown('<div class="section-header header-blue"><h2>🔔 Notifications</h2></div>', unsafe_allow_html=True)
 
@@ -909,53 +944,55 @@ elif current_page == "Notifications":
     with col_btn:
         b1, b2 = st.columns(2)
         with b1:
-            st.button("Mark all as read", use_container_width=True)
+            if st.button("Mark all as read", use_container_width=True):
+                for n in st.session_state.notifications:
+                    n["status"] = "Read"
+                st.rerun()  # 刷新页面以应用更改
         with b2:
-            st.button("Clear read", use_container_width=True)
+            if st.button("Clear read", use_container_width=True):
+                # 过滤掉已读的消息
+                st.session_state.notifications = [n for n in st.session_state.notifications if n["status"] != "Read"]
+                st.rerun()
+
     with col_filter:
-        st.selectbox("Filter", ["All", "Unread", "System", "Dataset", "Review"], label_visibility="collapsed")
+        filter_val = st.selectbox("Filter", ["All", "Unread", "System", "Dataset", "Review"],
+                                  label_visibility="collapsed")
 
     st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0 24px 0;'>", unsafe_allow_html=True)
 
-    # Inbox 样式数据列表
-    notifications = [
-        {"title": "Your dataset submission has been approved",
-         "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible in the directory.",
-         "time": "2 hours ago", "status": "Unread", "type": "Dataset", "icon": "✅"},
-        # {"title": "Your submission is under review",
-        #  "msg": "Admin is currently reviewing 'LFP Cycling Data'. You will be notified once complete.",
-        #  "time": "1 day ago", "status": "Read", "type": "Review", "icon": "⏳"},
-        # {"title": "New dataset added in Battery / EIS",
-        #  "msg": "Check out the newly added 'Oxford Battery Degradation' dataset published by the community.",
-        #  "time": "2 days ago", "status": "Read", "type": "System", "icon": "🆕"},
-        # {"title": "Source link validation failed",
-        #  "msg": "The URL provided for 'Solid-state Tests' is unreachable. Please update the metadata.",
-        #  "time": "1 week ago", "status": "Read", "type": "System", "icon": "⚠️"},
-    ]
+    # 根据下拉框过滤通知列表
+    display_notifs = st.session_state.notifications
+    if filter_val == "Unread":
+        display_notifs = [n for n in display_notifs if n["status"] == "Unread"]
+    elif filter_val != "All":
+        display_notifs = [n for n in display_notifs if n["type"] == filter_val]
 
-    # 渲染 Inbox
-    for n in notifications:
-        bg_color = "#F8FAFC" if n["status"] == "Read" else "#FFFFFF"
-        border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
-        box_shadow = "none" if n["status"] == "Read" else "0 4px 15px rgba(59, 130, 246, 0.05)"
+    # 渲染 Inbox 列表
+    if not display_notifs:
+        st.info("No notifications to display.")
+    else:
+        for n in display_notifs:
+            bg_color = "#F8FAFC" if n["status"] == "Read" else "#FFFFFF"
+            border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
+            box_shadow = "none" if n["status"] == "Read" else "0 4px 15px rgba(59, 130, 246, 0.05)"
 
-        notif_html = f"""
-        <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 20px; transition: transform 0.2s; box-shadow: {box_shadow};">
-            <div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div>
-            <div style="flex: 1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span>
-                    <span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span>
-                </div>
-                <div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div>
-                <div style="display: flex; gap: 8px;">
-                    <span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>
-                    {f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if n["status"] == "Unread" else ''}
+            notif_html = f"""
+            <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 20px; transition: transform 0.2s; box-shadow: {box_shadow};">
+                <div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span>
+                        <span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span>
+                    </div>
+                    <div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div>
+                    <div style="display: flex; gap: 8px;">
+                        <span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>
+                        {f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if n["status"] == "Unread" else ''}
+                    </div>
                 </div>
             </div>
-        </div>
-        """
-        st.markdown(notif_html, unsafe_allow_html=True)
+            """
+            st.markdown(notif_html, unsafe_allow_html=True)
 
 # ================= 8. 全局 Footer =================
 st.markdown("""
