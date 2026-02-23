@@ -195,36 +195,28 @@ professional_css = """
     }
 
 /* 顶部图标按钮 - 样式3（玻璃拟态，彻底锁死完美正方形） */
-    .icon-btn-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
+/* ================= 顶部图标按钮（终极结构锁定法） ================= */
+    /* 精准狙击导航栏第 4 列（图标列），彻底隔绝全局 padding 污染 */
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) div[data-testid="stButton"] {
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
     }
 
-    /* 必须切断 Streamlit 默认的 flex 弹性伸缩 */
-    .icon-btn-wrap div[data-testid="stButton"] {
-        width: 48px !important;
-        min-width: 48px !important;
-        max-width: 48px !important;
-        flex: 0 0 48px !important; /* 核心：禁止被内容撑开或压缩 */
-        display: block !important;
-        margin: 0 auto !important;
-    }
-
-    .icon-btn-wrap div[data-testid="stButton"] > button {
-        width: 48px !important;
-        height: 48px !important;
-        min-width: 48px !important;
-        min-height: 48px !important;
-        max-width: 48px !important;
-        max-height: 48px !important;
-        padding: 0 !important;
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) button {
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px !important;
+        min-height: 46px !important;
+        max-width: 46px !important;
+        max-height: 46px !important;
+        padding: 0 !important; /* 彻底清除导致变形的罪魁祸首 */
         margin: 0 !important;
+        flex: 0 0 46px !important; /* 强制锁定比例，绝对不允许拉伸 */
+        aspect-ratio: 1/1 !important;
         box-sizing: border-box !important;
         border-radius: 14px !important;
-        overflow: hidden !important; /* 核心：防止宽字符溢出撑开 */
-
+        
         background: rgba(255,255,255,0.55) !important;
         backdrop-filter: blur(10px) !important;
         border: 1px solid rgba(255,255,255,0.85) !important;
@@ -233,41 +225,38 @@ professional_css = """
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-
-        color: #64748B !important;
-        font-size: 20px !important;
-        line-height: 1 !important;
-        transition: all 0.25s ease !important;
+        overflow: hidden !important;
     }
 
-    /* emoji 居中修正 */
-    .icon-btn-wrap div[data-testid="stButton"] > button p {
+    /* 保证内部 Emoji 绝对居中 */
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) button p {
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1 !important;
+        font-size: 20px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 100% !important;
     }
 
-    # /* 通知红点位置微调 */
-    # .icon-btn-wrap.notify-dot {
-    #     position: relative;
-    # }
-    # .icon-btn-wrap.notify-dot::after {
-    #     content: "";
-    #     position: absolute;
-    #     top: 2px;
-    #     right: calc(50% - 20px); 
-    #     width: 8px;
-    #     height: 8px;
-    #     background: #EF4444;
-    #     border: 2px solid rgba(255,255,255,0.95);
-    #     border-radius: 999px;
-    #     z-index: 20;
-    #     pointer-events: none;
-    # }
+    /* 将小红点直接绑定到第 2 个图标（铃铛）所在的列，不依赖 class */
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) div[data-testid="column"]:nth-child(2) div[data-testid="stButton"] {
+        position: relative !important;
+    }
+    
+    div[data-testid="stVerticalBlock"]:has(.nav-shell) div[data-testid="column"]:nth-child(4) div[data-testid="column"]:nth-child(2) div[data-testid="stButton"]::after {
+        content: "";
+        position: absolute;
+        top: -2px;
+        right: calc(50% - 24px); /* 精准贴合 46px 按钮的右上角 */
+        width: 9px;
+        height: 9px;
+        background: #EF4444;
+        border: 2px solid #FFFFFF;
+        border-radius: 999px;
+        z-index: 20;
+        pointer-events: none;
+    }
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
         background-color: #708090 !important;
