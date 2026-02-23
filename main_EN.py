@@ -190,21 +190,30 @@ professional_css = """
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.12) !important;
     }
 
-    /* 顶部图标按钮 - 样式3（玻璃拟态） */
+/* 顶部图标按钮 - 样式3（玻璃拟态） */
     .icon-btn-wrap {
         display: flex;
         align-items: center;
         justify-content: center;
+        width: 100%;
     }
 
-    .icon-btn-wrap .stButton > button {
-        width: 50px !important;
-        height: 50px !important;
-        min-width: 50px !important;
-        min-height: 50px !important;
+    /* 必须同时锁死容器和按钮本身的宽、高、最大、最小尺寸 */
+    .icon-btn-wrap div[data-testid="stButton"],
+    .icon-btn-wrap div[data-testid="stButton"] > button {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
         padding: 0 !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
         border-radius: 14px !important;
+    }
 
+    .icon-btn-wrap div[data-testid="stButton"] > button {
         background: rgba(255,255,255,0.55) !important;
         backdrop-filter: blur(10px) !important;
         border: 1px solid rgba(255,255,255,0.85) !important;
@@ -221,29 +230,33 @@ professional_css = """
     }
 
     /* emoji 居中修正 */
-    .icon-btn-wrap .stButton > button p {
+    .icon-btn-wrap div[data-testid="stButton"] > button p {
         margin: 0 !important;
+        padding: 0 !important;
         line-height: 1 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    # /* 通知红点（可选但推荐） */
-    # .icon-btn-wrap.notify-dot {
-    #     position: relative;
-    # }
-    # .icon-btn-wrap.notify-dot::after {
-    #     content: "";
-    #     position: absolute;
-    #     top: 8px;
-    #     right: 8px;
-    #     width: 8px;
-    #     height: 8px;
-    #     background: #EF4444;
-    #     border: 2px solid rgba(255,255,255,0.95);
-    #     border-radius: 999px;
-    #     z-index: 20;
-    #     pointer-events: none;
-    # }
-
+    /* 通知红点位置微调，适应严格锁定的大小 */
+    .icon-btn-wrap.notify-dot {
+        position: relative;
+    }
+    .icon-btn-wrap.notify-dot::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        right: calc(50% - 20px); /* 确保红点贴着按钮右上角 */
+        width: 8px;
+        height: 8px;
+        background: #EF4444;
+        border: 2px solid rgba(255,255,255,0.95);
+        border-radius: 999px;
+        z-index: 20;
+        pointer-events: none;
+    }
+    
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
         background-color: #708090 !important;
@@ -935,7 +948,6 @@ elif current_page == "Settings":
                 st.success("Notification preferences applied!")
 
 # ----------------- 页面 J：Notifications (新增) -----------------
-# ----------------- 页面 J：Notifications (修改为真实可用) -----------------
 elif current_page == "Notifications":
     st.markdown('<div class="section-header header-blue"><h2>🔔 Notifications</h2></div>', unsafe_allow_html=True)
 
@@ -976,22 +988,21 @@ elif current_page == "Notifications":
             border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
             box_shadow = "none" if n["status"] == "Read" else "0 4px 15px rgba(59, 130, 246, 0.05)"
 
-            notif_html = f"""
-            <div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 20px; transition: transform 0.2s; box-shadow: {box_shadow};">
-                <div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div>
-                <div style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span>
-                        <span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span>
-                    </div>
-                    <div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div>
-                    <div style="display: flex; gap: 8px;">
-                        <span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>
-                        {f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if n["status"] == "Unread" else ''}
-                    </div>
-                </div>
-            </div>
-            """
+            # 注意：这里的 HTML 必须顶格写，不能有 Python 的缩进，否则会被解析为 Markdown 文本
+            notif_html = f"""<div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 20px; transition: transform 0.2s; box-shadow: {box_shadow};">
+        <div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div>
+        <div style="flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span>
+        <span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span>
+        </div>
+        <div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div>
+        <div style="display: flex; gap: 8px;">
+        <span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>
+        {f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if n["status"] == "Unread" else ''}
+        </div>
+        </div>
+        </div>"""
             st.markdown(notif_html, unsafe_allow_html=True)
 
 # ================= 8. 全局 Footer =================
