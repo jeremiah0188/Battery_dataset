@@ -251,23 +251,23 @@ professional_css = """
         width: 100% !important;
     }
 
-    /* 通知红点位置微调 */
-    .icon-btn-wrap.notify-dot {
-        position: relative;
-    }
-    .icon-btn-wrap.notify-dot::after {
-        content: "";
-        position: absolute;
-        top: 2px;
-        right: calc(50% - 20px); 
-        width: 8px;
-        height: 8px;
-        background: #EF4444;
-        border: 2px solid rgba(255,255,255,0.95);
-        border-radius: 999px;
-        z-index: 20;
-        pointer-events: none;
-    }
+    # /* 通知红点位置微调 */
+    # .icon-btn-wrap.notify-dot {
+    #     position: relative;
+    # }
+    # .icon-btn-wrap.notify-dot::after {
+    #     content: "";
+    #     position: absolute;
+    #     top: 2px;
+    #     right: calc(50% - 20px); 
+    #     width: 8px;
+    #     height: 8px;
+    #     background: #EF4444;
+    #     border: 2px solid rgba(255,255,255,0.95);
+    #     border-radius: 999px;
+    #     z-index: 20;
+    #     pointer-events: none;
+    # }
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
         background-color: #708090 !important;
