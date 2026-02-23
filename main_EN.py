@@ -611,142 +611,219 @@ elif current_page == "Homepage":
         st.write(
             "Our admin team typically reviews submitted datasets within 48-72 hours to ensure metadata quality and source validity.")
 
+
 # ----------------- 页面 D：Browse Datasets -----------------
 elif current_page == "Browse Datasets":
     st.markdown('<div class="section-header header-blue"><h2>Dataset Directory</h2></div>', unsafe_allow_html=True)
-    filter_col, result_col = st.columns([1, 3])
 
-    with filter_col:
-        with st.container(border=True):
-            st.markdown(
-                "<h3 style='font-size:18px; font-weight:800; color:#0F172A; margin-bottom:16px;'>🔍 Filters</h3>",
-                unsafe_allow_html=True)
-            search_kw = st.text_input("Keyword Search", value=st.session_state.search_kw,
-                                      placeholder="e.g. Oxford, NMC, EIS...")
-            st.session_state.search_kw = search_kw
+    # 增加了一个可折叠的高级搜索框，避免占用太多视觉空间
+    with st.expander("🔍 Advanced Filters & Search", expanded=True):
+        search_kw = st.text_input("Global Keyword Search", value=st.session_state.search_kw,
+                                  placeholder="e.g. Oxford, NMC, EIS, Time-Series...")
+        st.session_state.search_kw = search_kw
 
-            st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0;'>", unsafe_allow_html=True)
-            sel_domain = st.selectbox("Domain", ["All", "Energy", "Healthcare", "Manufacturing", "Transportation"])
-            sel_category = "All"
-            sel_subcategory = "All"
+        st.markdown("<hr style='border-color: #E2E8F0; margin: 10px 0;'>", unsafe_allow_html=True)
 
-            if sel_domain == "Energy":
-                sel_category = st.selectbox("Category", ["All", "Battery", "Grid", "Solar", "Wind"])
-                if sel_category == "Battery":
-                    sel_subcategory = st.selectbox("Battery Data Type",
-                                                   ["All", "Time-Series", "EIS", "Aging / Cycling", "Benchmark",
-                                                    "Experimental", "Simulation"])
+        # 将新表头分为 4 大类，并排显示
+        col1, col2, col3, col4 = st.columns(4)
 
-    with result_col:
-        filtered_df = public_df.copy()
+        with col1:
+            st.markdown("<span style='font-size:14px; font-weight:800; color:#4A6D5F;'>1. Basic & Domain</span>",
+                        unsafe_allow_html=True)
+            # 自动从表格抓取存在的选项
+            domains = ["All"] + sorted([str(x) for x in public_df['Domain'].unique() if str(x).strip() and str(
+                x).lower() != 'nan']) if 'Domain' in public_df.columns else ["All", "Energy", "Transportation", "Manufacturing"]
+            categories = ["All"] + sorted([str(x) for x in public_df['Category'].unique() if str(x).strip() and str(
+                x).lower() != 'nan']) if 'Category' in public_df.columns else ["All"]
+            years = ["All"] + sorted([str(x).replace('.0', '') for x in public_df['Year'].unique() if
+                                      str(x).strip() and str(x).lower() != 'nan'],
+                                     reverse=True) if 'Year' in public_df.columns else ["All"]
 
-        if search_kw:
-            mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(
-                axis=1)
-            filtered_df = filtered_df[mask]
+            sel_domain = st.selectbox("Domain", domains)
+            sel_category = st.selectbox("Category", categories)
+            sel_year = st.selectbox("Year", years)
 
-        if sel_domain != "All" and 'Domain' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['Domain'] == sel_domain]
-        if sel_category != "All" and 'Category' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['Category'] == sel_category]
-        if sel_subcategory != "All" and 'Sub-category' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['Sub-category'] == sel_subcategory]
+        with col2:
+            st.markdown("<span style='font-size:14px; font-weight:800; color:#4A6D5F;'>2. Battery Specs</span>",
+                        unsafe_allow_html=True)
+            # 常用的化学体系和测试类型，用户选"NMC"也能把"LFP; NMC"选出来
+            base_chems = ["All", "NMC", "LFP", "NCA", "LCO", "LMO", "Solid-state"]
+            levels = ["All", "Cell", "Pack", "System"]
+            data_types = ["All", "Time-Series", "EIS", "Voltage", "Current", "Temperature", "Capacity", "Resistance"]
 
-        st.markdown(f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; gap:8px; flex-wrap:wrap; background: rgba(255,255,255,0.7); padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 16px;">
-            <div style="font-size: 15px; font-weight: 700; color: #0F172A;">
-                <span style="background: #4A6D5F; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin-right: 8px;">{len(filtered_df)}</span> Datasets Found
-            </div>
-            <div style="font-size: 13px; color: #64748B; font-weight: 500;">
-                Sort by: <span style="color: #0F172A; font-weight: 700;">Most Recent</span>
-            </div>
+            sel_chem = st.selectbox("Chemistry", base_chems)
+            sel_level = st.selectbox("Battery Level", levels)
+            sel_datatype = st.selectbox("Data / Sub-category", data_types)
+
+        with col3:
+            st.markdown("<span style='font-size:14px; font-weight:800; color:#4A6D5F;'>3. AI / Tasks</span>",
+                        unsafe_allow_html=True)
+            tasks = ["All", "Regression", "Classification", "Optimization"]
+            apps = ["All", "SOH Estimation", "RUL Prediction", "SOC Estimation", "Capacity Fade Modeling",
+                    "Thermal Management"]
+            labels_avail = ["All", "Yes", "Partial", "No"]
+
+            sel_task = st.selectbox("Task Type", tasks)
+            sel_app = st.selectbox("Application Scenario", apps)
+            sel_labels = st.selectbox("Labels Available", labels_avail)
+
+        with col4:
+            st.markdown("<span style='font-size:14px; font-weight:800; color:#4A6D5F;'>4. Quality & Access</span>",
+                        unsafe_allow_html=True)
+            qualities = ["All", "Processed", "Mixed", "Raw"]
+            statuses = ["All", "Complete", "Incomplete"]
+
+            sel_quality = st.selectbox("Data Quality", qualities)
+            sel_status = st.selectbox("Status", statuses)
+
+    # ================= 数据过滤逻辑 =================
+    filtered_df = public_df.copy()
+
+    # 全局关键字搜索
+    if search_kw:
+        mask = filtered_df.astype(str).apply(lambda x: x.str.contains(search_kw, case=False, regex=False)).any(axis=1)
+        filtered_df = filtered_df[mask]
+
+    # 第一列过滤
+    if sel_domain != "All" and 'Domain' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Domain'].astype(str).str.contains(sel_domain, case=False, na=False)]
+    if sel_category != "All" and 'Category' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Category'].astype(str).str.contains(sel_category, case=False, na=False)]
+    if sel_year != "All" and 'Year' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Year'].astype(str).str.contains(sel_year, case=False, na=False)]
+
+    # 第二列过滤 (支持包含匹配)
+    if sel_chem != "All" and 'Chemistry' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Chemistry'].astype(str).str.contains(sel_chem, case=False, na=False)]
+    if sel_level != "All" and 'Battery Level' in filtered_df.columns:
+        filtered_df = filtered_df[
+            filtered_df['Battery Level'].astype(str).str.contains(sel_level, case=False, na=False)]
+    if sel_datatype != "All":
+        # 只要 Data Type 或 Sub-category 中包含该关键字，都能搜出来
+        mask_dt = pd.Series([False] * len(filtered_df), index=filtered_df.index)
+        if 'Data Type' in filtered_df.columns:
+            mask_dt = mask_dt | filtered_df['Data Type'].astype(str).str.contains(sel_datatype, case=False, na=False)
+        if 'Sub-category' in filtered_df.columns:
+            mask_dt = mask_dt | filtered_df['Sub-category'].astype(str).str.contains(sel_datatype, case=False, na=False)
+        filtered_df = filtered_df[mask_dt]
+
+    # 第三列过滤
+    if sel_task != "All" and 'Task Type' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Task Type'].astype(str).str.contains(sel_task, case=False, na=False)]
+    if sel_app != "All" and 'Application Scenario' in filtered_df.columns:
+        filtered_df = filtered_df[
+            filtered_df['Application Scenario'].astype(str).str.contains(sel_app, case=False, na=False)]
+    if sel_labels != "All" and 'Labels Available' in filtered_df.columns:
+        filtered_df = filtered_df[
+            filtered_df['Labels Available'].astype(str).str.contains(sel_labels, case=False, na=False)]
+
+    # 第四列过滤
+    if sel_quality != "All" and 'Data Quality' in filtered_df.columns:
+        filtered_df = filtered_df[
+            filtered_df['Data Quality'].astype(str).str.contains(sel_quality, case=False, na=False)]
+    if sel_status != "All" and 'Status' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['Status'].astype(str).str.contains(sel_status, case=False, na=False)]
+
+    # ================= 渲染结果数量 =================
+    st.markdown(f"""
+    <div style="display: flex; justify-content: space-between; align-items: center; gap:8px; flex-wrap:wrap; background: rgba(255,255,255,0.7); padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 16px; margin-top: 10px;">
+        <div style="font-size: 15px; font-weight: 700; color: #0F172A;">
+            <span style="background: #4A6D5F; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin-right: 8px;">{len(filtered_df)}</span> Datasets Found
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
 
-        if not filtered_df.empty:
-            html_parts = []
-            html_parts.append(
-                '<div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">')
-            html_parts.append(
-                '<div class="dataset-list-header" style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">')
-            html_parts.append(
-                '<div style="flex: 2.5;">Dataset Name</div><div style="flex: 1.5;">Author</div><div style="flex: 1;">Domain</div><div style="flex: 0.8; text-align: right;">Action</div></div>')
+    # ================= 渲染列表及详情 =================
+    if not filtered_df.empty:
+        html_parts = []
+        html_parts.append(
+            '<div style="border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #FFFFFF; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">')
+        html_parts.append(
+            '<div class="dataset-list-header" style="display: flex; background-color: #F8FAFC; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #475569; border-bottom: 1px solid #E2E8F0; text-transform: uppercase; letter-spacing: 0.5px;">')
+        html_parts.append(
+            '<div style="flex: 2.5;">Dataset Name</div><div style="flex: 1.5;">Author</div><div style="flex: 1;">Domain</div><div style="flex: 0.8; text-align: right;">Action</div></div>')
 
-            for _, row in filtered_df.iterrows():
-                raw_author = str(row.get('Author', 'Unspecified')).strip()
-                if raw_author in ['Unspecified', 'N/A', '', 'nan']:
-                    display_author = '<span style="color:#94A3B8; font-style:italic;">Unspecified</span>'
+        for _, row in filtered_df.iterrows():
+            raw_author = str(row.get('Author', 'Unspecified')).strip()
+            if raw_author in ['Unspecified', 'N/A', '', 'nan']:
+                display_author = '<span style="color:#94A3B8; font-style:italic;">Unspecified</span>'
+            else:
+                if ',' in raw_author:
+                    display_author = f"{raw_author.split(',')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
+                elif ' and ' in raw_author:
+                    display_author = f"{raw_author.split(' and ')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
+                elif len(raw_author) > 25:
+                    display_author = raw_author[:22] + "..."
                 else:
-                    if ',' in raw_author:
-                        display_author = f"{raw_author.split(',')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
-                    elif ' and ' in raw_author:
-                        display_author = f"{raw_author.split(' and ')[0].strip()} <span style='color:#94A3B8; font-weight:500;'>et al.</span>"
-                    elif len(raw_author) > 25:
-                        display_author = raw_author[:22] + "..."
-                    else:
-                        display_author = raw_author
+                    display_author = raw_author
 
-                ds_name = row.get('Dataset Name', 'Unnamed')
-                domain = row.get('Domain', 'N/A')
+            ds_name = row.get('Dataset Name', 'Unnamed')
+            domain = row.get('Domain', 'N/A')
 
-                html_parts.append('<div class="dataset-list-row">')
-                html_parts.append(
-                    f'<div class="ds-name" style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
-                html_parts.append(
-                    f'<div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>')
-                html_parts.append(
-                    f'<div style="flex: 1; color: #64748B;"><span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span></div>')
-                html_parts.append(
-                    '<div style="flex: 0.8; text-align: right;"><span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: default;">View ↓</span></div>')
-                html_parts.append('</div>')
-
+            html_parts.append('<div class="dataset-list-row">')
+            html_parts.append(
+                f'<div class="ds-name" style="flex: 2.5; font-weight: 700; color: #0F172A; padding-right: 16px;">{ds_name}</div>')
+            html_parts.append(
+                f'<div style="flex: 1.5; color: #475569; padding-right: 16px;" title="{raw_author}">{display_author}</div>')
+            html_parts.append(
+                f'<div style="flex: 1; color: #64748B;"><span style="background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;">{domain}</span></div>')
+            html_parts.append(
+                '<div style="flex: 0.8; text-align: right;"><span style="background: #F0FDF4; color: #166534; border: 1px solid #DCFCE7; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; cursor: default;">View ↓</span></div>')
             html_parts.append('</div>')
-            st.markdown("".join(html_parts), unsafe_allow_html=True)
 
-            st.markdown(
-                '<div class="section-header header-teal" style="margin-top: 10px;"><h2>📖 Dataset Details</h2></div>',
-                unsafe_allow_html=True)
-            valid_datasets = filtered_df[
-                filtered_df['Dataset Name'] != ''] if 'Dataset Name' in filtered_df.columns else filtered_df
-            selected_dataset = st.selectbox("Select a dataset to view full details:",
-                                            ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
-                                            label_visibility="collapsed")
+        html_parts.append('</div>')
+        st.markdown("".join(html_parts), unsafe_allow_html=True)
 
-            if selected_dataset != "(Select to view)":
-                details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
-                details_html = (
-                    '<div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); padding: 24px; margin-bottom: 24px;">'
-                    f'<h2 style="font-size: 28px; font-weight:900; color: #0F172A; margin-bottom: 8px; line-height:1.2;">{selected_dataset}</h2>'
-                    f'<p style="color: #64748B; font-size: 15px; margin-bottom: 20px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
-                )
+        st.markdown(
+            '<div class="section-header header-teal" style="margin-top: 10px;"><h2>📖 Dataset Details</h2></div>',
+            unsafe_allow_html=True)
+        valid_datasets = filtered_df[
+            filtered_df['Dataset Name'] != ''] if 'Dataset Name' in filtered_df.columns else filtered_df
+        selected_dataset = st.selectbox("Select a dataset to view full details:",
+                                        ["(Select to view)"] + valid_datasets['Dataset Name'].tolist(),
+                                        label_visibility="collapsed")
 
-                link = str(details.get('Link', '')).strip()
-                if link.startswith('http'):
-                    details_html += (
-                        f'<div style="margin-bottom: 20px;">'
-                        f'<a href="{link}" target="_blank" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:12px 22px; text-decoration:none; border-radius:50px; font-weight:700; font-size:14px; box-shadow: 0 4px 10px rgba(74,109,95,0.2);">'
-                        f'🔗 Download / Visit Source</a></div>'
-                    )
+        if selected_dataset != "(Select to view)":
+            details = valid_datasets[valid_datasets['Dataset Name'] == selected_dataset].iloc[0]
+            details_html = (
+                '<div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); padding: 24px; margin-bottom: 24px;">'
+                f'<h2 style="font-size: 28px; font-weight:900; color: #0F172A; margin-bottom: 8px; line-height:1.2;">{selected_dataset}</h2>'
+                f'<p style="color: #64748B; font-size: 15px; margin-bottom: 20px; font-weight:500;">Source: {details.get("Source Organization", details.get("Author", "N/A"))}</p>'
+            )
 
-                details_html += '<div class="metadata-grid">'
-                for col_name in df.columns:
-                    if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Status',
-                                                                                                     'Dataset Name']:
-                        val = str(details.get(col_name, '')).strip()
-                        if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
-                            details_html += (
-                                f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>')
-                details_html += '</div>'
-
+            # 获取Link / DOI (兼容老版本的 Link)
+            link = str(details.get('Link / DOI', details.get('Link', ''))).strip()
+            if link.startswith('http'):
                 details_html += (
-                    f'<div style="margin-top:24px; padding:14px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;">'
-                    f'<h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4>'
-                    f'<p style="margin:0; font-size:13px; color:#475569;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p>'
-                    f'</div></div>'
+                    f'<div style="margin-bottom: 20px;">'
+                    f'<a href="{link}" target="_blank" style="display:inline-block; background:linear-gradient(135deg, #4A6D5F 0%, #3B5B4F 100%); color:#FFF; padding:12px 22px; text-decoration:none; border-radius:50px; font-weight:700; font-size:14px; box-shadow: 0 4px 10px rgba(74,109,95,0.2);">'
+                    f'🔗 Download / Visit Source</a></div>'
                 )
-                st.markdown(details_html, unsafe_allow_html=True)
-        else:
-            st.warning("No datasets match your filters.")
+
+            details_html += '<div class="metadata-grid">'
+            for col_name in df.columns:
+                if str(col_name).strip() and "Unnamed" not in str(col_name) and col_name not in ['Link', 'Link / DOI',
+                                                                                                 'Status',
+                                                                                                 'Dataset Name']:
+                    val = str(details.get(col_name, '')).strip()
+
+                    # ===== 新增：专门处理年份的 .0 问题 =====
+                    if col_name == 'Year' and val.endswith('.0'):
+                        val = val.replace('.0', '')
+                    # =======================================
+
+                    if val and val.lower() not in ['nan', 'none', 'n/a', 'na', 'null', '']:
+                        details_html += f'<div class="metadata-item"><div class="metadata-label">{col_name}</div><div class="metadata-value">{val}</div></div>'
+            details_html += '</div>'
+            details_html += (
+                f'<div style="margin-top:24px; padding:14px; background:rgba(255,255,255,0.6); border-left:4px solid #4A6D5F; border-radius:8px;">'
+                f'<h4 style="margin:0 0 8px 0; font-size:14px; color:#0F172A;">📚 How to Cite</h4>'
+                f'<p style="margin:0; font-size:13px; color:#475569;">Data accessed from the Open Battery Dataset Portal (2026). Original source: {details.get("Source Organization", "N/A")}. Dataset: {selected_dataset}.</p>'
+                f'</div></div>'
+            )
+            st.markdown(details_html, unsafe_allow_html=True)
+    else:
+        st.warning("No datasets match your filters.")
 
 # ----------------- 页面 E：Contribute Data -----------------
 elif current_page == "Contribute Data":
