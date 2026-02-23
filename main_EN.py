@@ -21,11 +21,15 @@ if "notif_prefs" not in st.session_state:
     st.session_state.notif_prefs = {"email": True, "status": True, "alerts": False, "digest": True}
 if "notifications" not in st.session_state:
     st.session_state.notifications = [
-        {"id": 1, "title": "Your dataset submission has been approved", "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible.", "time": "2 hours ago", "status": "Unread", "type": "Dataset", "icon": "✅"},
-        {"id": 2, "title": "Your submission is under review", "msg": "Admin is currently reviewing 'LFP Cycling Data'.", "time": "1 day ago", "status": "Read", "type": "Review", "icon": "⏳"},
-        {"id": 3, "title": "New dataset added in Battery / EIS", "msg": "Check out the newly added 'Oxford Battery Degradation' dataset.", "time": "2 days ago", "status": "Read", "type": "System", "icon": "🆕"}
+        {"id": 1, "title": "Your dataset submission has been approved",
+         "msg": "Your dataset 'NMC Aging Profiling' is now live and accessible.", "time": "2 hours ago",
+         "status": "Unread", "type": "Dataset", "icon": "✅"},
+        {"id": 2, "title": "Your submission is under review", "msg": "Admin is currently reviewing 'LFP Cycling Data'.",
+         "time": "1 day ago", "status": "Read", "type": "Review", "icon": "⏳"},
+        {"id": 3, "title": "New dataset added in Battery / EIS",
+         "msg": "Check out the newly added 'Oxford Battery Degradation' dataset.", "time": "2 days ago",
+         "status": "Read", "type": "System", "icon": "🆕"}
     ]
-
 
 # ================= 2. Page Configuration =================
 st.set_page_config(
@@ -64,7 +68,6 @@ dynamic_css = f"""
 st.markdown(dynamic_css, unsafe_allow_html=True)
 
 # ================= 4. 专业 CSS =================
-# ================= 4. 专业 CSS（仅替换顶部相关样式，其他样式保持你原来的） =================
 professional_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -94,7 +97,7 @@ professional_css = """
         box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06) !important;
     }
 
-    /* ================= 顶部导航区域（关键修复版） ================= */
+    /* ================= 顶部导航区域 ================= */
     .nav-shell { width: 100%; display: block; }
 
     div[data-testid="stVerticalBlock"]:has(.nav-shell),
@@ -128,53 +131,54 @@ professional_css = """
         padding-bottom: 2px;
     }
     .nav-menu-row::-webkit-scrollbar { height: 0; }
-    
-/* 顶部导航按钮（胶囊样式） */
-.nav-text-btn div[data-testid="stButton"] {
-    width: 100% !important;
-}
 
-.nav-text-btn div[data-testid="stButton"] > button {
-    width: 100% !important;
-    min-width: 0 !important;
-    height: 42px !important;
-    min-height: 42px !important;
-    background: #F0F3F8 !important;          /* 胶囊填充色 */
-    background-color: #F0F3F8 !important;
-    border: 1px solid #E2E8F0 !important;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08) !important;
-    border-radius: 999px !important;
+    /* 顶部导航按钮（胶囊样式） */
+    .nav-text-btn div[data-testid="stButton"] {
+        width: 100% !important;
+    }
 
-    color: #000000 !important;               /* 字体黑色 */
-    font-weight: 700 !important;
-    font-size: 16px !important;
-    padding: 0 4px !important;
-    margin: 0 !important;
-    letter-spacing: 0 !important;
+    .nav-text-btn div[data-testid="stButton"] > button {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 42px !important;
+        min-height: 42px !important;
+        background: #F0F3F8 !important;          
+        background-color: #F0F3F8 !important;
+        border: 1px solid #E2E8F0 !important;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08) !important;
+        border-radius: 999px !important;
 
-    white-space: nowrap !important;
-    line-height: 1 !important;
-    justify-content: center !important;
-    transition: all 0.25s ease !important;
-}
+        color: #000000 !important;               
+        font-weight: 700 !important;
+        font-size: 16px !important;
+        padding: 0 4px !important;
+        margin: 0 !important;
+        letter-spacing: 0 !important;
 
-/* 悬停态 */
-.nav-text-btn div[data-testid="stButton"] > button:hover {
-    color: #000000 !important;
-    background: #E9EEF5 !important;
-    border-color: #D8E1EC !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10) !important;
-}
+        white-space: nowrap !important;
+        line-height: 1 !important;
+        justify-content: center !important;
+        transition: all 0.25s ease !important;
+    }
 
-/* 当前激活项 */
-.nav-active div[data-testid="stButton"] > button {
-    color: #000000 !important;
-    font-weight: 800 !important;
-    background: #E6EDF6 !important;   /* 比普通态稍深一点 */
-    border: 1px solid #CBD5E1 !important;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10) !important;
-}
+    /* 悬停态 */
+    .nav-text-btn div[data-testid="stButton"] > button:hover {
+        color: #000000 !important;
+        background: #E9EEF5 !important;
+        border-color: #D8E1EC !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.10) !important;
+    }
+
+    /* 当前激活项 */
+    .nav-active div[data-testid="stButton"] > button {
+        color: #000000 !important;
+        font-weight: 800 !important;
+        background: #E6EDF6 !important;   
+        border: 1px solid #CBD5E1 !important;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10) !important;
+    }
+
     /* 顶部搜索栏 */
     .nav-search .stTextInput input {
         border-radius: 14px !important;
@@ -190,7 +194,7 @@ professional_css = """
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.12) !important;
     }
 
-/* 顶部图标按钮 - 样式3（玻璃拟态） */
+    /* 顶部图标按钮 - 样式3（玻璃拟态，修复完美正方形与等大对齐） */
     .icon-btn-wrap {
         display: flex;
         align-items: center;
@@ -198,7 +202,6 @@ professional_css = """
         width: 100%;
     }
 
-    /* 必须同时锁死容器和按钮本身的宽、高、最大、最小尺寸 */
     .icon-btn-wrap div[data-testid="stButton"],
     .icon-btn-wrap div[data-testid="stButton"] > button {
         width: 48px !important;
@@ -229,7 +232,6 @@ professional_css = """
         transition: all 0.25s ease !important;
     }
 
-    /* emoji 居中修正 */
     .icon-btn-wrap div[data-testid="stButton"] > button p {
         margin: 0 !important;
         padding: 0 !important;
@@ -239,7 +241,6 @@ professional_css = """
         justify-content: center;
     }
 
-    /* 通知红点位置微调，适应严格锁定的大小 */
     .icon-btn-wrap.notify-dot {
         position: relative;
     }
@@ -247,7 +248,7 @@ professional_css = """
         content: "";
         position: absolute;
         top: 2px;
-        right: calc(50% - 20px); /* 确保红点贴着按钮右上角 */
+        right: calc(50% - 20px); 
         width: 8px;
         height: 8px;
         background: #EF4444;
@@ -256,7 +257,7 @@ professional_css = """
         z-index: 20;
         pointer-events: none;
     }
-    
+
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
         background-color: #708090 !important;
@@ -274,7 +275,7 @@ professional_css = """
         transform: translateY(-2px) !important;
     }
 
-    /* 全局按钮（保留） */
+    /* 全局按钮 */
     .stButton>button {
         background-color: #708090 !important;
         border: none !important;
@@ -369,21 +370,19 @@ professional_css = """
 """
 st.markdown(professional_css, unsafe_allow_html=True)
 
-
-# ================= 5. 顶部导航栏（完整替换版） =================
+# ================= 5. 顶部导航栏 =================
 LOGO_IMAGE_URL = "https://raw.githubusercontent.com/jeremiah0188/Battery_dataset/main/logo.png"
 
 with st.container():
     st.markdown('<div class="nav-shell">', unsafe_allow_html=True)
 
-    # 顶部整体布局：logo / 菜单 / 搜索 / 图标 / 登录
     col_logo, col_menu, col_search, col_icons, col_auth = st.columns(
         [2.3, 6.8, 2.1, 1.2, 1.2],
         vertical_alignment="center"
     )
 
     with col_logo:
-        st.image(LOGO_IMAGE_URL, width=200)  # logo 大小在这里调
+        st.image(LOGO_IMAGE_URL, width=200)
 
     with col_menu:
         if st.session_state.current_view not in ["login", "signup"]:
@@ -399,11 +398,11 @@ with st.container():
 
             st.markdown('<div class="nav-menu-row">', unsafe_allow_html=True)
 
-            # 关键：给导航文字足够列宽，避免大字体换行
             if st.session_state.is_admin:
-                nav_cols = st.columns(6, gap="small")  # 6个等宽
+                nav_cols = st.columns(6, gap="small")
             else:
-                nav_cols = st.columns(5, gap="small")  # 5个等宽
+                nav_cols = st.columns(5, gap="small")
+
 
             def render_nav_button(col, label, page_name, key_name):
                 wrapper_cls = "nav-text-btn nav-active" if active_tab == page_name else "nav-text-btn"
@@ -414,6 +413,7 @@ with st.container():
                         st.session_state.last_menu_selection = page_name
                         st.rerun()
                     st.markdown('</div>', unsafe_allow_html=True)
+
 
             render_nav_button(nav_cols[0], "Homepage", "Homepage", "nav_home_btn")
             render_nav_button(nav_cols[1], "Browse", "Browse Datasets", "nav_browse_btn")
@@ -471,7 +471,6 @@ with st.container():
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
-
 
 # ================= 6. Google Sheets 数据库配置 =================
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1GY3dQ4yBtt2gbd-2Xxf1a_3UpwXKqACJcPX5qlMthzc/edit?gid=0#gid=0"
@@ -788,7 +787,6 @@ elif current_page == "Contribute Data":
                 new_link = st.text_input("Source URL * (External Download Link)")
                 new_org = st.text_input("Source Organization / Publisher")
 
-                # 新增的本地文件上传选项
                 st.markdown(
                     "<h5 style='font-size:15px; margin-top:10px; color:#334155;'>Upload Local Files (Optional)</h5>",
                     unsafe_allow_html=True)
@@ -878,7 +876,6 @@ elif current_page == "Admin Dashboard" and st.session_state.is_admin:
                 st.success("Synchronized successfully!")
                 st.cache_data.clear()
 
-# ----------------- 页面 I：Settings (新增) -----------------
 # ----------------- 页面 I：Settings (修改为真实可用) -----------------
 elif current_page == "Settings":
     st.markdown('<div class="section-header header-teal"><h2>⚙️ Settings</h2></div>', unsafe_allow_html=True)
@@ -947,11 +944,10 @@ elif current_page == "Settings":
                 st.session_state.notif_prefs.update({"email": n1, "status": n2, "alerts": n3, "digest": n4})
                 st.success("Notification preferences applied!")
 
-# ----------------- 页面 J：Notifications (新增) -----------------
+# ----------------- 页面 J：Notifications -----------------
 elif current_page == "Notifications":
     st.markdown('<div class="section-header header-blue"><h2>🔔 Notifications</h2></div>', unsafe_allow_html=True)
 
-    # 顶部操作按钮
     col_btn, col_filter, _ = st.columns([3, 2, 5])
     with col_btn:
         b1, b2 = st.columns(2)
@@ -959,10 +955,9 @@ elif current_page == "Notifications":
             if st.button("Mark all as read", use_container_width=True):
                 for n in st.session_state.notifications:
                     n["status"] = "Read"
-                st.rerun()  # 刷新页面以应用更改
+                st.rerun()
         with b2:
             if st.button("Clear read", use_container_width=True):
-                # 过滤掉已读的消息
                 st.session_state.notifications = [n for n in st.session_state.notifications if n["status"] != "Read"]
                 st.rerun()
 
@@ -972,14 +967,12 @@ elif current_page == "Notifications":
 
     st.markdown("<hr style='border-color: #E2E8F0; margin: 16px 0 24px 0;'>", unsafe_allow_html=True)
 
-    # 根据下拉框过滤通知列表
     display_notifs = st.session_state.notifications
     if filter_val == "Unread":
         display_notifs = [n for n in display_notifs if n["status"] == "Unread"]
     elif filter_val != "All":
         display_notifs = [n for n in display_notifs if n["type"] == filter_val]
 
-    # 渲染 Inbox 列表
     if not display_notifs:
         st.info("No notifications to display.")
     else:
@@ -988,21 +981,21 @@ elif current_page == "Notifications":
             border_color = "#E2E8F0" if n["status"] == "Read" else "#93C5FD"
             box_shadow = "none" if n["status"] == "Read" else "0 4px 15px rgba(59, 130, 246, 0.05)"
 
-            # 注意：这里的 HTML 必须顶格写，不能有 Python 的缩进，否则会被解析为 Markdown 文本
+            # HTML 已顶格，防止被解析为 Markdown 代码块
             notif_html = f"""<div style="background: {bg_color}; border: 1px solid {border_color}; border-radius: 12px; padding: 18px 24px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 20px; transition: transform 0.2s; box-shadow: {box_shadow};">
-        <div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div>
-        <div style="flex: 1;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-        <span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span>
-        <span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span>
-        </div>
-        <div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div>
-        <div style="display: flex; gap: 8px;">
-        <span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>
-        {f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if n["status"] == "Unread" else ''}
-        </div>
-        </div>
-        </div>"""
+<div style="font-size: 26px; padding-top: 2px;">{n['icon']}</div>
+<div style="flex: 1;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+<span style="font-weight: 800; color: #0F172A; font-size: 16px;">{n['title']}</span>
+<span style="font-size: 13px; color: #94A3B8; font-weight: 600;">{n['time']}</span>
+</div>
+<div style="color: #475569; font-size: 15px; margin-bottom: 12px; line-height: 1.5;">{n['msg']}</div>
+<div style="display: flex; gap: 8px;">
+<span style="background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n['type']}</span>
+{f'<span style="background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">{n["status"]}</span>' if n["status"] == "Unread" else ''}
+</div>
+</div>
+</div>"""
             st.markdown(notif_html, unsafe_allow_html=True)
 
 # ================= 8. 全局 Footer =================
