@@ -194,7 +194,7 @@ professional_css = """
         box-shadow: 0 0 0 3px rgba(74, 109, 95, 0.12) !important;
     }
 
-    /* 顶部图标按钮 - 样式3（玻璃拟态，修复完美正方形与等大对齐） */
+/* 顶部图标按钮 - 样式3（玻璃拟态，彻底锁死完美正方形） */
     .icon-btn-wrap {
         display: flex;
         align-items: center;
@@ -202,7 +202,16 @@ professional_css = """
         width: 100%;
     }
 
-    .icon-btn-wrap div[data-testid="stButton"],
+    /* 必须切断 Streamlit 默认的 flex 弹性伸缩 */
+    .icon-btn-wrap div[data-testid="stButton"] {
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        flex: 0 0 48px !important; /* 核心：禁止被内容撑开或压缩 */
+        display: block !important;
+        margin: 0 auto !important;
+    }
+
     .icon-btn-wrap div[data-testid="stButton"] > button {
         width: 48px !important;
         height: 48px !important;
@@ -211,12 +220,11 @@ professional_css = """
         max-width: 48px !important;
         max-height: 48px !important;
         padding: 0 !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
         box-sizing: border-box !important;
         border-radius: 14px !important;
-    }
+        overflow: hidden !important; /* 核心：防止宽字符溢出撑开 */
 
-    .icon-btn-wrap div[data-testid="stButton"] > button {
         background: rgba(255,255,255,0.55) !important;
         backdrop-filter: blur(10px) !important;
         border: 1px solid rgba(255,255,255,0.85) !important;
@@ -232,15 +240,18 @@ professional_css = """
         transition: all 0.25s ease !important;
     }
 
+    /* emoji 居中修正 */
     .icon-btn-wrap div[data-testid="stButton"] > button p {
         margin: 0 !important;
         padding: 0 !important;
         line-height: 1 !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
     }
 
+    /* 通知红点位置微调 */
     .icon-btn-wrap.notify-dot {
         position: relative;
     }
@@ -257,7 +268,6 @@ professional_css = """
         z-index: 20;
         pointer-events: none;
     }
-
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
         background-color: #708090 !important;
