@@ -213,23 +213,23 @@ professional_css = """
         line-height: 1 !important;
     }
 
-    /* 通知红点（可选但推荐） */
-    .icon-btn-wrap.notify-dot {
-        position: relative;
-    }
-    .icon-btn-wrap.notify-dot::after {
-        content: "";
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 8px;
-        height: 8px;
-        background: #EF4444;
-        border: 2px solid rgba(255,255,255,0.95);
-        border-radius: 999px;
-        z-index: 20;
-        pointer-events: none;
-    }
+    # /* 通知红点（可选但推荐） */
+    # .icon-btn-wrap.notify-dot {
+    #     position: relative;
+    # }
+    # .icon-btn-wrap.notify-dot::after {
+    #     content: "";
+    #     position: absolute;
+    #     top: 8px;
+    #     right: 8px;
+    #     width: 8px;
+    #     height: 8px;
+    #     background: #EF4444;
+    #     border: 2px solid rgba(255,255,255,0.95);
+    #     border-radius: 999px;
+    #     z-index: 20;
+    #     pointer-events: none;
+    # }
 
     /* 顶部登录按钮 */
     .nav-auth .stButton>button {
@@ -589,7 +589,7 @@ elif current_page == "Homepage":
             tags_html = "".join(
                 [f'<span class="chem-tag" style="background:#F1F5F9; border-color:#CBD5E1;">{t}</span>' for t in tags])
             st.markdown(f"<div>{tags_html}</div><br>", unsafe_allow_html=True)
-            st.info(" Use these keywords in the search bar.")
+            st.info(" Use these keywords in the search bar ")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-header header-blue"><h2>💬 Quick FAQ</h2></div>', unsafe_allow_html=True)
@@ -820,7 +820,6 @@ elif current_page == "About":
     <div style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.6); border-radius: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); padding: 32px; margin-bottom: 24px;">
         <div class="section-header header-blue"><h2 style="margin: 0;">About This Platform</h2></div>
         <p style="margin-top:20px; font-size: 16px; line-height: 1.8; color: #475569;">This website is a curated platform for organizing and sharing public datasets. It is designed to improve dataset discoverability, metadata standardization, and reuse in research and engineering workflows.</p>
-        <p style="font-size: 16px; line-height: 1.8; color: #475569;">Maintained by <strong style="color:#0F172A;">Jian Wu</strong>, focusing on battery data analysis and SOH estimation.</p>
     </div>
     """
     st.markdown(about_html, unsafe_allow_html=True)
@@ -967,7 +966,7 @@ st.markdown("""
         <a href="#">Terms & Privacy</a>
     </div>
     <div class="footer-copyright">
-        © 2026 Open Battery Dataset Portal. Maintained by Jian Wu.
+        © 2026 Open Battery Dataset Portal. Maintained by Jian.
     </div>
 </div>
 """, unsafe_allow_html=True)
